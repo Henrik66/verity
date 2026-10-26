@@ -29,3 +29,9 @@ the next round's summary instead of picking one.
 
 - Hate: square-ish fonts, Courier Prime included.
 - Action: docs/a now has a live font picker (text and code faces) so Henrik can choose.
+
+## 2026-10-26, Henrik (docs, font choice)
+
+> ok pick a sans font.. and then for coding blocks main a mono-ey font.
+
+- Claude picked Atkinson Hyperlegible (text) and Oxygen Mono (code); recorded in tokens.md. Picker kept on docs/a for comparison.

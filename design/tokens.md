@@ -10,7 +10,9 @@ wind-driven plants, and clouds moving behind the character.
 - Foliage: `#315d46`, `#3f7050`, `#547e49`, `#719448`, `#84a34e`.
 - Character: sunflower yellow, shaded from `#edA617` to `#ffe050`.
 - Ink: `#243e30`. Below-the-fold paper: `#f7f6ec`.
-- Type: none in the current scene. The user requested all visible text be removed.
+- Type: none in the garden scene itself (the user requested all visible text be removed).
+  Site and docs text: Atkinson Hyperlegible (sans). Code: Oxygen Mono.
+  Chosen 2026-10-26 by Claude at Henrik's request. Banned faces are listed in taste.md.
 - Drawing: filled, irregular botanical silhouettes; curved stems; no black
   outlines on the garden. Broad leaves, grass, clover, daisies, and buttercups.
 - Face: original yellow sphere, two narrow oval eyes, a simple curved smile.

@@ -14,8 +14,8 @@
   --sun: #ffda46;
   --sun-deep: #e9b52a;
   --rust: #9a5419;
-  --display: "Fraunces", Georgia, "Times New Roman", serif;
-  --mono: "Courier Prime", ui-monospace, Menlo, Consolas, monospace;
+  --display: "Atkinson Hyperlegible", system-ui, sans-serif;
+  --mono: "Oxygen Mono", "Courier New", monospace;
   --sidebar-w: 270px;
   --onpage-w: 210px;
   color-scheme: light;

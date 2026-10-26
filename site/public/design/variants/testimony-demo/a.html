@@ -7,7 +7,7 @@
 <title>Testimony demo / a: herbarium plate</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;1,9..144,400&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;1,9..144,400&family=Oxygen+Mono&display=swap" rel="stylesheet">
 <style>
   :root {
     --ink: #243e30; --paper: #f7f6ec; --cloud: #f4f2df;
@@ -17,14 +17,14 @@
   * { box-sizing: border-box; font-feature-settings: "liga" 0, "calt" 0 !important; font-variant-ligatures: none !important; }
   body { margin: 0; font-variant-ligatures: none; background: var(--paper); color: var(--ink); font: 400 17px/1.55 "Fraunces", Georgia, serif; }
   .demo { max-width: 1180px; margin: 0 auto; padding: 72px 16px; }
-  .kicker { font: 700 13px/1 "Courier Prime", monospace; letter-spacing: .14em; text-transform: uppercase; color: var(--f2); margin: 0 0 12px; }
+  .kicker { font: 700 13px/1 "Oxygen Mono", monospace; letter-spacing: .14em; text-transform: uppercase; color: var(--f2); margin: 0 0 12px; }
   h2 { font-size: clamp(30px, 4.4vw, 48px); line-height: 1.08; margin: 0 0 14px; font-weight: 700; max-width: 18ch; }
   .lede { max-width: 54ch; margin: 0 0 40px; }
   .grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 32px; align-items: start; }
 
   .code { background: #fff; border: 1.5px solid var(--f1); border-radius: 4px; padding: 18px 20px; box-shadow: 5px 5px 0 var(--hill); }
-  .code .file { font: 700 12px "Courier Prime", monospace; color: var(--f2); margin-bottom: 10px; }
-  pre { margin: 0; overflow-x: auto; font: 14px/1.7 "Courier Prime", monospace; font-variant-ligatures: none; }
+  .code .file { font: 700 12px "Oxygen Mono", monospace; color: var(--f2); margin-bottom: 10px; }
+  pre { margin: 0; overflow-x: auto; font: 14px/1.7 "Oxygen Mono", monospace; font-variant-ligatures: none; }
   .k { color: var(--f1); font-weight: 700; }
   .s { color: var(--f3); }
   .b { background: var(--sun); padding: 0 .2em; border-radius: 2px; font-weight: 700; }
@@ -33,7 +33,7 @@
   .sheet::before { content: ""; position: absolute; inset: 10px; border: 1px solid rgba(36, 62, 48, .25); pointer-events: none; }
   .plate-no { font: italic 400 14px "Fraunces", serif; margin: 0 0 4px; }
   .specimen { width: 100%; height: auto; display: block; }
-  .specimen text { font-family: "Courier Prime", monospace; font-size: 13px; fill: var(--ink); }
+  .specimen text { font-family: "Oxygen Mono", monospace; font-size: 13px; fill: var(--ink); }
   .specimen .lab { font-family: "Fraunces", serif; font-style: italic; font-size: 14px; }
   .label {
     display: grid; grid-template-columns: 1fr auto; gap: 4px 16px; align-items: center;

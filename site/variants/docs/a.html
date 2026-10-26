@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="variant-idea" content="Font picker on 2a's layout: use the bar in the bottom-right corner (or the [ ] and , . keys) to swap the text face and the code face live. Square coding monos and banned faces are left out.">
+<meta name="variant-idea" content="2a's layout with the chosen pair: Atkinson Hyperlegible for text, Oxygen Mono for code. The font picker (bottom right, or [ ] and , . keys) stays for comparison.">
 <title>Docs / a: font picker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -45,7 +45,7 @@
   .rule { display: grid; grid-template-columns: 7ch minmax(0, 1fr); margin: 0 0 10px; }
   .rule .no { color: var(--mute); }
   pre { margin: 0 0 16px; padding-left: 3ch; overflow-x: auto; line-height: 1.6; border-left: 1px solid var(--rule); }
-  .k { font-weight: 600; } .s { color: #5b6b2f; } .n { color: #7a4f1f; }
+  .k { font-weight: 600; color: var(--link); } .s { color: #5b6b2f; } .n { color: #7a4f1f; }
   .out .x { color: var(--fal); font-weight: 600; }
   .label { color: var(--mute); }
   .foot { margin-top: 48px; border-top: 1px solid var(--rule); padding-top: 6px; display: flex; justify-content: space-between; color: var(--mute); font-size: 13px; }
@@ -213,9 +213,11 @@ print(explain(valid_username(<span class="s">"al"</span>)))</pre>
     l.href = "https://fonts.googleapis.com/css2?family=" + spec + "&display=swap";
     document.head.appendChild(l);
   };
-  const get = (k, d) => { try { const v = localStorage.getItem("vfont-" + k); return v === null ? d : +v; } catch (e) { return d; } };
-  const put = (k, v) => { try { localStorage.setItem("vfont-" + k, v); } catch (e) {} };
-  const state = { text: get("text", 0) % TEXT.length, code: get("code", 0) % CODE.length };
+  const get = (k, d) => { try { const v = localStorage.getItem("vfont2-" + k); return v === null ? d : +v; } catch (e) { return d; } };
+  const put = (k, v) => { try { localStorage.setItem("vfont2-" + k, v); } catch (e) {} };
+  const q = new URLSearchParams(location.search);
+  const pick = (list, name, d) => { const i = list.findIndex((f) => f[0] === name); return i < 0 ? d : i; };
+  const state = { text: pick(TEXT, q.get("text"), get("text", TEXT.findIndex((f) => f[0] === "Atkinson Hyperlegible")) % TEXT.length), code: pick(CODE, q.get("code"), get("code", CODE.findIndex((f) => f[0] === "Oxygen Mono")) % CODE.length) };
   const root = document.documentElement.style;
   function apply() {
     const t = TEXT[state.text], c = CODE[state.code];
