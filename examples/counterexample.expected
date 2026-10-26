@@ -1,0 +1,7 @@
+falsity
+  counterexample: p = 2 (primes[0])
+    p % 2 == 1: 0 != 1
+verity
+  witness: p = 11 (primes[4])
+    p > 10: 11 > 10
+not every prime is odd, and Verity can tell you why

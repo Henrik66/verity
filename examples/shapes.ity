@@ -1,0 +1,28 @@
+# Algebraic data types, pattern matching, and truths that testify.
+from testimony import explain
+
+data Circle(r)
+data Rect(w, h)
+data Square(side)
+
+def area(Circle(r)) = 3.14159 * r ** 2
+addpattern def area(Rect(w, h)) = w * h
+addpattern def area(Square(s)) = s * s
+
+def is_square(shape):
+    match shape:
+        case Square(_):
+            return verity because "it was built as a Square"
+        case Rect(w, h):
+            return w == h
+        case _:
+            return falsity because f"{shape} is a rectangle"
+
+shapes = [Circle(1), Rect(2, 3), Square(4), Rect(5, 5)]
+
+shapes |> map$(area) |> list |> print
+
+for s in shapes:
+    print(f"{s}: {explain(is_square(s))}")
+
+(forall s in shapes, area(s) > 3) |> explain |> print

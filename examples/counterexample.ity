@@ -1,0 +1,13 @@
+# forall finds a counterexample; exists finds a witness.
+from testimony import explain
+
+primes = [2, 3, 5, 7, 11, 13]
+
+all_odd = forall p in primes, p % 2 == 1
+has_big = exists p in primes, p > 10
+
+all_odd |> explain |> print
+has_big |> explain |> print
+
+if not all_odd:
+    print("not every prime is odd, and Verity can tell you why")

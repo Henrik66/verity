@@ -1,0 +1,13 @@
+[package]
+name = "verity"
+version = "0.0.1"
+edition = "2024"
+description = "Verity: a quirky functional Python where booleans testify"
+license = "Apache-2.0"
+readme = "README.md"
+
+[[bin]]
+name = "verity"
+path = "src/main.rs"
+
+[dependencies]

@@ -1,0 +1,11 @@
+[3.14159, 6, 16, 25]
+Circle(r=1): falsity
+  refuted: Circle(r=1) is a rectangle
+Rect(w=2, h=3): falsity
+  w == h: 2 != 3
+Square(side=4): verity
+  witnessed: it was built as a Square
+Rect(w=5, h=5): verity
+  w == h: 5 == 5
+verity
+  all 4 elements of shapes satisfy area(s) > 3

@@ -1,0 +1,139 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Verity",
+  "scopeName": "source.verity",
+  "fileTypes": ["ity"],
+  "patterns": [
+    { "include": "#comment" },
+    { "include": "#string" },
+    { "include": "#truth" },
+    { "include": "#testimony" },
+    { "include": "#definition" },
+    { "include": "#keyword" },
+    { "include": "#number" },
+    { "include": "#operator" }
+  ],
+  "repository": {
+    "comment": {
+      "match": "#.*$",
+      "name": "comment.line.number-sign.verity"
+    },
+    "string": {
+      "patterns": [
+        {
+          "begin": "(?i)([rbf]{0,2})(\"\"\"|''')",
+          "end": "\\2",
+          "beginCaptures": { "1": { "name": "storage.type.string.verity" } },
+          "name": "string.quoted.triple.verity",
+          "patterns": [{ "include": "#string-escape" }]
+        },
+        {
+          "begin": "(?i)([rbf]{0,2})([\"'])",
+          "end": "\\2|$",
+          "beginCaptures": { "1": { "name": "storage.type.string.verity" } },
+          "name": "string.quoted.single.verity",
+          "patterns": [{ "include": "#string-escape" }]
+        }
+      ]
+    },
+    "string-escape": {
+      "match": "\\\\.",
+      "name": "constant.character.escape.verity"
+    },
+    "truth": {
+      "patterns": [
+        {
+          "match": "\\b(verity|falsity)\\b",
+          "name": "constant.language.truth.verity"
+        },
+        {
+          "match": "\\btruth\\b",
+          "name": "support.type.truth.verity"
+        }
+      ]
+    },
+    "testimony": {
+      "patterns": [
+        {
+          "match": "\\bbecause\\b",
+          "name": "keyword.other.because.verity"
+        },
+        {
+          "match": "\\b(forall|exists)\\b",
+          "name": "keyword.other.quantifier.verity"
+        }
+      ]
+    },
+    "definition": {
+      "patterns": [
+        {
+          "match": "\\b(?:(addpattern|match)\\s+)?(def)\\s+([A-Za-z_][A-Za-z0-9_]*)",
+          "captures": {
+            "1": { "name": "storage.modifier.verity" },
+            "2": { "name": "storage.type.function.verity" },
+            "3": { "name": "entity.name.function.verity" }
+          }
+        },
+        {
+          "match": "\\b(data)\\s+([A-Za-z_][A-Za-z0-9_]*)",
+          "captures": {
+            "1": { "name": "storage.type.data.verity" },
+            "2": { "name": "entity.name.type.verity" }
+          }
+        }
+      ]
+    },
+    "keyword": {
+      "patterns": [
+        {
+          "match": "\\b(and|or|not|in|is)\\b",
+          "name": "keyword.operator.logical.verity"
+        },
+        {
+          "match": "\\b(if|elif|else|for|while|return|match|case|import|from|as|with|yield|pass|break|continue|raise|try|except|finally|lambda)\\b",
+          "name": "keyword.control.verity"
+        },
+        {
+          "match": "\\bNone\\b",
+          "name": "constant.language.none.verity"
+        }
+      ]
+    },
+    "number": {
+      "match": "\\b(0[xX][0-9a-fA-F_]+|0[oO][0-7_]+|0[bB][01_]+|\\d[\\d_]*(\\.\\d[\\d_]*)?([eE][+-]?\\d+)?j?)\\b",
+      "name": "constant.numeric.verity"
+    },
+    "operator": {
+      "patterns": [
+        {
+          "match": "\\|\\*{0,2}>|<\\*{0,2}\\||\\|\\?\\*{0,2}>",
+          "name": "keyword.operator.pipe.verity"
+        },
+        {
+          "match": "\\.\\.\\*{0,2}>|<\\*{0,2}\\.\\.|\\.\\.",
+          "name": "keyword.operator.composition.verity"
+        },
+        {
+          "match": "->|=>",
+          "name": "keyword.operator.lambda.verity"
+        },
+        {
+          "match": "\\$",
+          "name": "keyword.operator.partial.verity"
+        },
+        {
+          "match": "::",
+          "name": "keyword.operator.chain.verity"
+        },
+        {
+          "match": "==|!=|<=|>=|<|>",
+          "name": "keyword.operator.comparison.verity"
+        },
+        {
+          "match": "\\*\\*|//|[-+*/%@]=?|=",
+          "name": "keyword.operator.arithmetic.verity"
+        }
+      ]
+    }
+  }
+}

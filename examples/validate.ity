@@ -1,0 +1,11 @@
+# A validation function whose answer explains itself.
+import string_ops
+from testimony import explain
+
+def valid_username(name) =
+    (len(name) >= 3 because f"{name!r} has at least 3 characters")
+    and (len(name) <= 16 because f"{name!r} has at most 16 characters")
+    and (string_ops.is_alnum(name) because f"{name!r} is alphanumeric")
+
+for name in ["ada", "al", "grace_hopper"]:
+    print(f"{name!r}: {explain(valid_username(name))}")

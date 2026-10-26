@@ -1,0 +1,14 @@
+'ada': verity
+  all of:
+    witnessed: 'ada' has at least 3 characters
+      len(name) >= 3: 3 >= 3
+    witnessed: 'ada' has at most 16 characters
+      len(name) <= 16: 3 <= 16
+    witnessed: 'ada' is alphanumeric
+      every character of 'ada' is alphanumeric
+'al': falsity
+  refuted: 'al' has at least 3 characters
+    len(name) >= 3: 2 < 3
+'grace_hopper': falsity
+  refuted: 'grace_hopper' is alphanumeric
+    '_' at index 5 is not alphanumeric
