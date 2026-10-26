@@ -24,6 +24,28 @@ More in [`examples/`](examples/).
 
 **Early design.** Nothing compiles yet. The compiler is being written in Rust (hand-written lexer and parser) and will emit Python plus a small embedded runtime. See [CLAUDE.md](CLAUDE.md) for the spec and milestones.
 
+## Homepage development
+
+The garden homepage uses React, Vite, and Three.js. Botanical illustrations are
+editable SVG, and only the smiling character needs WebGL. A matching SVG character
+remains available when WebGL cannot start. Motion respects the system's reduced
+motion preference. The current frontend is the garden scene alone, without text,
+controls, or facial animation.
+
+```sh
+npm install
+npm run dev
+```
+
+Open the local URL printed by Vite. `npm run build` creates the static site in
+`site/dist`, and `npm run preview` serves that build. GitHub Pages builds and deploys
+this directory through `.github/workflows/pages.yml`.
+
+With the dev server running, `npm run test:site` runs the browser smoke checks.
+It uses an installed Chrome on macOS, or Playwright Chromium elsewhere (install
+with `npx playwright install chromium`). Set `SITE_URL` or `CHROME_PATH` to override
+the defaults. Screenshots are saved under `site/test-results/`.
+
 ## License
 
 Apache-2.0

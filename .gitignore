@@ -19,3 +19,7 @@ dist/
 .DS_Store
 .idea/
 .vscode/
+
+# Frontend dependencies and browser checks
+node_modules/
+site/test-results/
