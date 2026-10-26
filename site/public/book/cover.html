@@ -34,11 +34,12 @@
 <li><a href="data-model.html"><span class="toc-num">3</span>Data Model</a></li>
 <li><a href="expressions.html"><span class="toc-num">4</span>Expressions</a></li>
 <li><a href="testimony.html"><span class="toc-num">5</span>Testimony Semantics</a></li>
-<li><a href="statements.html"><span class="toc-num">6</span>Statements and Definitions</a></li>
+<li><a href="statements.html"><span class="toc-num">6</span>Statements</a></li>
 <li><a href="python.html"><span class="toc-num">7</span>Python Interoperability</a></li>
 <li><a href="stdlib.html"><span class="toc-num">8</span>Standard Library</a></li>
 <li><a href="cli.html"><span class="toc-num">9</span>Command-Line Interface</a></li>
-<li><a href="implementation.html"><span class="toc-num">10</span>Implementation</a></li>
+<li><a href="machine.html"><span class="toc-num">10</span>Machine Interface</a></li>
+<li><a href="implementation.html"><span class="toc-num">11</span>Implementation</a></li>
 </ul>
 <p class="toc-heading">Appendices</p><ul>
 <li><a href="grammar.html"><span class="toc-num">A</span>Grammar</a></li>
@@ -53,15 +54,15 @@
     <div class="cover-art-title" aria-hidden="true">
       <span class="cat-1">Verity</span>
       <span class="cat-2">Programming</span>
-      <span class="cat-3">Truthful + Functional + Quirky</span>
+      <span class="cat-3">Checks that explain themselves</span>
       <span class="cat-4">Gombos &middot; Balakrishnan</span>
     </div>
   </div>
 
   <div>
     <h1>Verity Programming</h1>
-    <p class="cover-subtitle">Truthful + Functional + Quirky</p>
-    <p class="cover-lede">The reference documentation for Verity, a functional language that compiles to Python and whose booleans testify: its syntax, semantics, testimony model, Python interoperability, standard library and compiler.</p>
+    <p class="cover-subtitle">Checks that explain themselves</p>
+    <p class="cover-lede">The reference documentation for Verity, Python whose truth values explain themselves, to people and to agents: its syntax, semantics, testimony model, machine interface, Python interoperability, standard library and compiler. Also available as plain text: <a href="llms.txt">llms.txt</a>, <a href="verity.txt">verity.txt</a>.</p>
     <ul class="authors">
       <li>Henrik Gombos <a href="https://github.com/Henrik66">GitHub: Henrik66</a></li>
       <li>Pranav Balakrishnan <a href="https://github.com/pranavbalakri">GitHub: pranavbalakri</a></li>
@@ -70,6 +71,7 @@
     <div class="cover-actions">
       <a class="btn btn-primary" href="overview.html">Overview</a>
       <a class="btn" href="testimony.html">Testimony semantics</a>
+      <a class="btn" href="machine.html">Machine interface</a>
     </div>
   </div>
 </div>
@@ -84,16 +86,17 @@
 <table>
   <thead><tr><th>Section</th><th>Covers</th></tr></thead>
   <tbody>
-    <tr><td><a href="overview.html">1. Overview</a></td><td>Summary, design goals, execution model, differences from Python and Coconut</td></tr>
-    <tr><td><a href="lexical.html">2. Lexical Analysis</a></td><td>Source files, lines, indentation, identifiers, keywords, literals, operators</td></tr>
-    <tr><td><a href="data-model.html">3. Data Model</a></td><td>The <code>truth</code> type, testimony values, data values, functions</td></tr>
-    <tr><td><a href="expressions.html">4. Expressions</a></td><td>Precedence, partial application, lambdas, pipes, composition, comparisons, boolean operations, <code>because</code>, quantifiers</td></tr>
-    <tr><td><a href="testimony.html">5. Testimony Semantics</a></td><td>Node kinds, construction rules, rendering, observation, erasure, cost model</td></tr>
-    <tr><td><a href="statements.html">6. Statements and Definitions</a></td><td><code>def</code>, pattern-matching functions, patterns, <code>data</code>, <code>match</code>, imports</td></tr>
-    <tr><td><a href="python.html">7. Python Interoperability</a></td><td>Lifting, <code>to_bool</code>, non-boolean comparisons, calling Verity from Python</td></tr>
-    <tr><td><a href="stdlib.html">8. Standard Library</a></td><td><code>testimony</code>, <code>Truth</code>, <code>string_ops</code>, <code>list_ops</code></td></tr>
-    <tr><td><a href="cli.html">9. Command-Line Interface</a></td><td><code>verity run</code>, <code>verity compile</code>, exit status, diagnostics</td></tr>
-    <tr><td><a href="implementation.html">10. Implementation</a></td><td>Compiler architecture, lowering, runtime, erasure pass, conformance</td></tr>
+    <tr><td><a href="overview.html">1. Overview</a></td><td>Summary, why, design goals, non-goals, execution model, differences from Python</td></tr>
+    <tr><td><a href="lexical.html">2. Lexical Analysis</a></td><td>Source files, lines, indentation, identifiers, keywords, literals</td></tr>
+    <tr><td><a href="data-model.html">3. Data Model</a></td><td>The <code>truth</code> type, testimony, reasons, secrets, <code>TestimonyError</code></td></tr>
+    <tr><td><a href="expressions.html">4. Expressions</a></td><td>Precedence, truth literals, comparisons, boolean operations, <code>because</code>, quantifiers</td></tr>
+    <tr><td><a href="testimony.html">5. Testimony Semantics</a></td><td>Node kinds, construction, reasons, text and JSON rendering, audiences, secrets, bounds, erasure</td></tr>
+    <tr><td><a href="statements.html">6. Statements</a></td><td><code>assert</code>, functions, classes, <code>match</code>, imports</td></tr>
+    <tr><td><a href="python.html">7. Python Interoperability</a></td><td>Lifting, <code>to_bool</code>, pass-through, the Python library, <code>@testify</code>, pytest</td></tr>
+    <tr><td><a href="stdlib.html">8. Standard Library</a></td><td><code>testimony</code>, <code>Truth</code>, <code>string_ops</code></td></tr>
+    <tr><td><a href="cli.html">9. Command-Line Interface</a></td><td><code>check</code>, <code>run</code>, <code>compile</code>, <code>test</code>, exit status, diagnostics</td></tr>
+    <tr><td><a href="machine.html">10. Machine Interface</a></td><td>JSON records, diagnostic codes, fixes, determinism, plain-text docs</td></tr>
+    <tr><td><a href="implementation.html">11. Implementation</a></td><td>Compiler architecture, lowering, dual compilation, runtime, conformance</td></tr>
     <tr><td><a href="grammar.html">A. Grammar</a></td><td>The complete EBNF grammar</td></tr>
     <tr><td><a href="glossary.html">B. Glossary</a></td><td>Terms</td></tr>
   </tbody>

@@ -1,143 +1,75 @@
-<p>This section specifies Verity's expressions. Expressions not mentioned here (displays, comprehensions, subscriptions, slicing, attribute references, arithmetic, bitwise operators, conditional expressions) have Python's syntax and semantics.</p>
+<p>This section specifies the expressions whose meaning differs from Python's. Every other expression (literals, displays, comprehensions, calls, subscriptions, slicing, attribute references, arithmetic, bitwise operators, <code>lambda</code>, conditional expressions, f-strings) has Python 3.12's syntax and semantics.</p>
 
 <h2 id="precedence">Operator precedence</h2>
-<p>From highest (binds tightest) to lowest. Operators in the same row have equal precedence. [[proposed]] Where Verity shares an operator with Coconut, the relative order follows Coconut's.</p>
+<p>Python's precedence table, with two additions. From highest (binds tightest) to lowest; operators in the same row have equal precedence. [[settled]]</p>
 <div class="table-wrap">
 <table>
   <thead><tr><th>Operators</th><th>Description</th><th>Associativity</th></tr></thead>
   <tbody>
-    <tr><td><code>x(...)</code>, <code>x$(...)</code>, <code>x[...]</code>, <code>x.name</code></td><td>call, partial application, subscription, attribute</td><td>left</td></tr>
+    <tr><td><code>x(...)</code>, <code>x[...]</code>, <code>x.name</code></td><td>call, subscription, attribute</td><td>left</td></tr>
     <tr><td><code>**</code></td><td>exponentiation</td><td>right</td></tr>
     <tr><td><code>+x</code>, <code>-x</code>, <code>~x</code></td><td>unary</td><td>n/a</td></tr>
     <tr><td><code>*</code>, <code>@</code>, <code>/</code>, <code>//</code>, <code>%</code></td><td>multiplicative</td><td>left</td></tr>
     <tr><td><code>+</code>, <code>-</code></td><td>additive</td><td>left</td></tr>
     <tr><td><code>&lt;&lt;</code>, <code>&gt;&gt;</code></td><td>shifts</td><td>left</td></tr>
-    <tr><td><code>&amp;</code></td><td>bitwise and</td><td>left</td></tr>
-    <tr><td><code>^</code></td><td>bitwise xor</td><td>left</td></tr>
-    <tr><td><code>|</code></td><td>bitwise or</td><td>left</td></tr>
-    <tr><td><code>..&gt;</code></td><td>forward composition</td><td>left</td></tr>
-    <tr><td><code>|&gt;</code></td><td>pipe</td><td>left</td></tr>
-    <tr><td><code>==</code> <code>!=</code> <code>&lt;</code> <code>&lt;=</code> <code>&gt;</code> <code>&gt;=</code> <code>in</code> <code>not in</code> <code>is</code> <code>is not</code></td><td>comparisons</td><td>see <a href="#comparisons">4.7</a></td></tr>
+    <tr><td><code>&amp;</code>, <code>^</code>, <code>|</code></td><td>bitwise and, xor, or (three levels, as in Python)</td><td>left</td></tr>
+    <tr><td><code>==</code> <code>!=</code> <code>&lt;</code> <code>&lt;=</code> <code>&gt;</code> <code>&gt;=</code> <code>in</code> <code>not in</code> <code>is</code> <code>is not</code></td><td>comparisons</td><td>see <a href="#comparisons">4.3</a></td></tr>
     <tr><td><code>not</code></td><td>negation</td><td>n/a</td></tr>
-    <tr><td><code>because</code></td><td>custom testimony</td><td>none (not chainable)</td></tr>
+    <tr><td><code>because</code></td><td>attach a claim (Verity)</td><td>none (not chainable)</td></tr>
     <tr><td><code>and</code></td><td>conjunction</td><td>left</td></tr>
     <tr><td><code>or</code></td><td>disjunction</td><td>left</td></tr>
     <tr><td><code>x if c else y</code></td><td>conditional expression</td><td>right</td></tr>
-    <tr><td><code>-&gt;</code></td><td>lambda</td><td>right</td></tr>
-    <tr><td><code>forall</code>, <code>exists</code></td><td>quantifiers</td><td>body extends right</td></tr>
+    <tr><td><code>lambda</code></td><td>lambda</td><td>n/a</td></tr>
+    <tr><td><code>forall</code>, <code>exists</code></td><td>quantifiers (Verity)</td><td>body extends right</td></tr>
   </tbody>
 </table>
 </div>
 <p>Consequences worth noting:</p>
 <ul>
-  <li><code>x |&gt; f == y</code> parses as <code>(x |&gt; f) == y</code>.</li>
   <li><code>n % 2 == 0 because m</code> parses as <code>(n % 2 == 0) because m</code>, and <code>not p because m</code> as <code>(not p) because m</code>.</li>
   <li><code>p because m and q</code> parses as <code>(p because m) and q</code>. The conformance examples parenthesize such operands anyway, and this document recommends doing so.</li>
-  <li>A quantifier's body extends as far right as possible, so a quantifier must be parenthesized to be piped: <code>(forall x in xs, p) |&gt; explain</code>.</li>
+  <li>A quantifier's body extends as far right as possible. Inside a call it stops at the next top-level comma, so <code>f(forall x in xs, p, y)</code> passes two arguments.</li>
 </ul>
 
-<h2 id="primaries">Primaries</h2>
-<pre class="ebnf">
-primary   ::= atom trailer*
-trailer   ::= "(" [arguments] ")" | "$" "(" [arguments] ")"
-            | "[" subscripts "]" | "." NAME
-atom      ::= NAME | NUMBER | STRING+ | "verity" | "falsity" | "None"
-            | "(" [expression_list] ")" | list_display | set_display | dict_display
-</pre>
-<p>Atoms, calls, subscriptions and attribute references are as in Python. <code>verity</code> and <code>falsity</code> evaluate to truths with <code>literal</code> testimony (<a href="testimony.html#nodes">Section 5.1</a>).</p>
-
-<h2 id="partial">Partial application</h2>
-<pre class="ebnf">
-partial   ::= primary "$" "(" [arguments] ")"
-</pre>
-<p><code>f$(a, b)</code> evaluates <code>f</code>, <code>a</code> and <code>b</code> immediately and produces a callable <code>g</code> such that <code>g(c, d)</code> is <code>f(a, b, c, d)</code>. Keyword arguments are supported, and keywords supplied at call time override those fixed by the partial. [[proposed]] The semantics match Python's <code>functools.partial</code>.</p>
-<pre class="ity">
-def power(base, exp) = base ** exp
-
-two_to = power$(2)
-print(two_to(10))
-[1, 2, 3] |> map$(x -> x * 10) |> list |> print
-</pre>
-<pre class="out">
-1024
-[10, 20, 30]
-</pre>
-<p>Coconut's <code>?</code> placeholder for skipping positional arguments is not supported. [[open]]</p>
-
-<h2 id="lambdas">Lambdas</h2>
-<pre class="ebnf">
-lambda        ::= lambda_params "->" expression
-lambda_params ::= NAME | "(" [NAME ("," NAME)* [","]] ")"
-</pre>
-<p>A lambda evaluates to a function whose body is the expression after <code>-&gt;</code>. The body extends as far right as possible, so <code>x -&gt; x + 1 |&gt; f</code> is <code>x -&gt; ((x + 1) |&gt; f)</code>. [[settled]] Default values, <code>*args</code> and <code>**kwargs</code> in lambda parameters are [[open]].</p>
-<pre class="ity">
-inc = x -> x + 1
-add = (x, y) -> x + y
-print(add(inc(1), 3))
-</pre>
-<pre class="out">
-5
-</pre>
-
-<h2 id="pipes">Pipes</h2>
-<pre class="ebnf">
-pipe      ::= compose ("|>" compose)*
-</pre>
-<p><code>x |&gt; f</code> evaluates <code>x</code>, then <code>f</code>, then calls <code>f(x)</code>. Pipes associate left, so <code>x |&gt; f |&gt; g</code> is <code>g(f(x))</code>. [[settled]] Only <code>|&gt;</code> is provided. Coconut's other pipe forms (<code>&lt;|</code>, <code>|*&gt;</code>, <code>|?&gt;</code> and so on) are [[open]].</p>
-
-<h2 id="composition">Composition</h2>
-<pre class="ebnf">
-compose   ::= bit_or ("..>" bit_or)*
-</pre>
-<p><code>f ..&gt; g</code> evaluates both operands and produces a function <code>h</code> such that <code>h(*args, **kwargs)</code> is <code>g(f(*args, **kwargs))</code>. Composition associates left. [[settled]] for single-argument use. Forwarding of multiple arguments to <code>f</code> is [[proposed]].</p>
-<pre class="ity">
-shout = str.strip ..> str.upper ..> (s -> s + "!")
-print(shout("  bluebell "))
-</pre>
-<pre class="out">
-BLUEBELL!
-</pre>
+<h2 id="truth-literals">Truth literals</h2>
+<p><code>verity</code> and <code>falsity</code> evaluate to truths with <em>literal</em> testimony (<a href="testimony.html#nodes">Section 5.1</a>). [[settled]] <code>True</code> and <code>False</code> in Verity source are compile error <code>E0101</code>, whose diagnostic carries a fix replacing them (<a href="machine.html#codes">Section 10.3</a>). Python code still produces and receives Python <code>bool</code>s; see <a href="python.html">Section 7</a>.</p>
 
 <h2 id="comparisons">Comparisons</h2>
-<pre class="ebnf">
-comparison ::= pipe (comp_op pipe)*
-comp_op    ::= "==" | "!=" | "<" | ">" | "<=" | ">=" | "in" | "not" "in" | "is" | "is" "not"
-</pre>
 <p>A comparison <code>a op b</code> evaluates <code>a</code> and then <code>b</code>, and applies Python's comparison protocol. Then: [[settled]]</p>
 <ul>
   <li>If the result <code>r</code> is a Python <code>bool</code>, the value of the comparison is a truth with the same truth value. Its testimony is a <em>comparison</em> node recording the source text of the whole comparison, both operand values and the relation that held (<a href="testimony.html#construction">Section 5.2</a>).</li>
   <li>Otherwise, for example a numpy array or pandas Series, the value of the comparison is <code>r</code>, unchanged.</li>
 </ul>
-<p>Comparison testimony for <code>==</code>, <code>!=</code>, <code>&lt;</code>, <code>&lt;=</code>, <code>&gt;</code> and <code>&gt;=</code> is [[settled]]. For <code>in</code>, <code>not in</code>, <code>is</code> and <code>is not</code> it is [[proposed]], with the same form, e.g. <code>3 in xs: 3 not in [1, 2]</code>. The meaning and testimony of chained comparisons such as <code>a &lt; b &lt; c</code> are [[open]]. Until they are settled, an implementation may reject chains.</p>
+<p>The meaning and testimony of chained comparisons such as <code>a &lt; b &lt; c</code> are [[open]]. Until they are settled, the compiler rejects chains with <code>E0201</code>, whose hint suggests <code>a &lt; b and b &lt; c</code>.</p>
 
 <h2 id="boolean-operations">Boolean operations</h2>
-<pre class="ebnf">
-or_test     ::= and_test ("or" and_test)*
-and_test    ::= because_test ("and" because_test)*
-not_test    ::= "not" not_test | comparison
-</pre>
-<p>Operands of <code>not</code>, <code>and</code> and <code>or</code> must be truths. A Python <code>bool</code> operand is first <em>lifted</em> to a truth (<a href="python.html#lifting">Section 7.2</a>). The behavior for operands that are neither, such as <code>name or "anonymous"</code>, is [[open]].</p>
+<p>Operands of <code>not</code>, <code>and</code> and <code>or</code> that are truths or Python <code>bool</code>s produce truths. A <code>bool</code> operand is first <em>lifted</em> (<a href="python.html#lifting">Section 7.2</a>). [[settled]]</p>
 <ul>
-  <li><code>not p</code> is a truth with the opposite value. Its testimony wraps <code>p</code>'s. [[settled]]</li>
-  <li><code>p and q</code> evaluates <code>p</code>. If <code>p</code> is a falsity, the result is <code>p</code>'s value and testimony, and <code>q</code> is not evaluated. Otherwise <code>q</code> is evaluated. A falsity <code>q</code> gives a falsity with <code>q</code>'s testimony, and a verity gives a verity whose testimony lists both. [[settled]]</li>
-  <li><code>p or q</code> is the dual: it short-circuits on the first verity, and a falsity lists every operand's refutation. [[settled]]</li>
+  <li><code>not p</code> is a truth with the opposite value. Its testimony wraps <code>p</code>'s.</li>
+  <li><code>p and q</code> evaluates <code>p</code>. If <code>p</code> is a falsity, the result is <code>p</code>'s value and testimony, and <code>q</code> is not evaluated. Otherwise <code>q</code> is evaluated. A falsity <code>q</code> gives a falsity with <code>q</code>'s testimony, and a verity gives a verity whose testimony lists both.</li>
+  <li><code>p or q</code> is the dual: it short-circuits on the first verity, and a falsity lists every operand's refutation.</li>
 </ul>
-<p>Unlike Python, <code>and</code> and <code>or</code> always produce a truth, never one of their operands. Exact testimony construction is given in <a href="testimony.html#construction">Section 5.2</a>.</p>
+<p>If an operand is neither a truth nor a <code>bool</code>, as in <code>name or "anonymous"</code>, the operation has Python's semantics and returns one of its operands. This keeps ordinary Python idioms working. [[settled]]</p>
+<p>To report every failing check rather than the first, use <code>testimony.all_of</code> instead of <code>and</code> (<a href="testimony.html#construction">Section 5.2</a>).</p>
 
-<h2 id="because">Custom testimony: <code>because</code></h2>
+<h2 id="because">Attaching claims: <code>because</code></h2>
 <pre class="ebnf">
 because_test ::= not_test ["because" not_test]
 </pre>
-<p><code>p because m</code> evaluates <code>p</code>, which must be a truth or liftable bool, and yields a truth with the same value. Its testimony is a <em>because</em> node carrying <code>str(m)</code>, with <code>p</code>'s testimony as its child. [[settled]] <code>m</code> states the claim that holds when <code>p</code> is a verity. It renders after <code>witnessed:</code> or <code>refuted:</code>.</p>
+<p><code>p because m</code> evaluates <code>p</code>, which must be a truth or a <code>bool</code>, and yields a truth with the same value. [[settled]]</p>
 <ul>
-  <li><code>m</code> is evaluated only if the testimony is observed (<a href="testimony.html#observation">Section 5.4</a>). [[proposed]] A program must therefore not rely on side effects in <code>m</code>.</li>
-  <li><code>because</code> does not chain. <code>p because a because b</code> is a syntax error. [[proposed]]</li>
+  <li><code>m</code> is a string or a <code>Reason</code> built by <code>testimony.reason</code> (<a href="testimony.html#reasons">Section 5.3</a>). Any other value is converted with <code>str()</code>.</li>
+  <li><code>m</code> states the claim that holds when <code>p</code> is a verity. It renders after <code>witnessed:</code> or <code>refuted:</code>.</li>
+  <li><code>m</code> is evaluated only if the testimony is observed (<a href="testimony.html#observation">Section 5.9</a>). A program must therefore not rely on side effects in <code>m</code>.</li>
+  <li><code>because</code> does not chain. <code>p because a because b</code> is a syntax error.</li>
 </ul>
 <pre class="ity">
 from testimony import explain
 
-is_even = n -> (n % 2 == 0 because f"{n} is even")
-is_even(7) |> explain |> print
+def is_even(n):
+    return n % 2 == 0 because f"{n} is even"
+
+print(explain(is_even(7)))
 </pre>
 <pre class="out">
 falsity
@@ -149,17 +81,18 @@ falsity
 <pre class="ebnf">
 quantifier ::= ("forall" | "exists") NAME "in" or_test "," expression
 </pre>
-<p>A quantifier evaluates its iterable expression once, then iterates over it in order. For each element it binds the name to the element in a new scope local to the quantifier, and evaluates the body, which must yield a truth or liftable bool. [[settled]]</p>
+<p>A quantifier evaluates its iterable expression once, then iterates over it in order. For each element it binds the name to the element in a new scope local to the quantifier, and evaluates the body, which must yield a truth or a <code>bool</code>. [[settled]]</p>
 <ul>
   <li><code>forall</code> stops at the first falsity and yields a falsity whose testimony is a <em>counterexample</em> node. If the iterable is exhausted, it yields a verity with a <em>universal</em> node.</li>
   <li><code>exists</code> stops at the first verity and yields a verity whose testimony is a <em>witness</em> node. If the iterable is exhausted, it yields a falsity with a <em>no-element</em> node.</li>
 </ul>
 <p>Over an empty iterable, <code>forall</code> yields a verity and <code>exists</code> a falsity. Infinite iterables are permitted: evaluation terminates if and when a deciding element is found. The bound name must be a single identifier. Destructuring targets such as <code>forall (k, v) in d.items(), ...</code> are [[open]].</p>
+<p>Python's <code>all(...)</code> and <code>any(...)</code> still work and return <code>bool</code>s, which lift with only <code>all(...) returned False</code> as testimony. Prefer <code>forall</code> and <code>exists</code> when the answer may need explaining.</p>
 <pre class="ity">
 from testimony import explain
 
 grid = [[1, 0], [0, 2], [3, 4]]
-(forall row in grid, exists x in row, x == 0) |> explain |> print
+print(explain(forall row in grid, exists x in row, x == 0))
 </pre>
 <pre class="out">
 falsity
@@ -168,4 +101,4 @@ falsity
 </pre>
 
 <h2 id="conditional">Conditional expressions</h2>
-<p><code>x if c else y</code> has Python's semantics. <code>c</code> may be a truth. Its testimony is not observed by the conditional expression itself, so it is eligible for erasure (<a href="testimony.html#erasure">Section 5.5</a>).</p>
+<p><code>x if c else y</code> has Python's semantics. <code>c</code> may be a truth. It is only branched on, so its testimony is not built (<a href="testimony.html#erasure">Section 5.10</a>). [[settled]]</p>

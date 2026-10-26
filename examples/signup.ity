@@ -1,0 +1,18 @@
+# Every failed check at once, with stable reasons, a secret, and JSON for tools.
+import json
+from testimony import all_of, explain, reason, secret, to_json
+
+INVITE = secret("garden-42")
+
+def valid_signup(name, age, invite):
+    return all_of(
+        len(name) >= 3 because reason("name.length", f"{name!r} has at least 3 characters"),
+        name.isalnum() because reason("name.charset", f"{name!r} is alphanumeric", hint="use only letters and digits"),
+        age >= 13 because reason("age.minimum", "the user is at least 13"),
+        invite == INVITE because reason("invite.valid", "the invite code is valid"),
+    )
+
+result = valid_signup("ada_l", 12, "garden-41")
+print(explain(result))
+print(explain(result, audience="user"))
+print(json.dumps(to_json(result), indent=2))

@@ -1,0 +1,27 @@
+# Verity
+
+> Verity is Python whose truth values explain themselves. Python 3.12 syntax plus the literals `verity`/`falsity`, `p because m`, and `forall`/`exists` quantifiers; every truth carries testimony (why it holds), rendered as text or as JSON (schema verity.testimony/0). Compiles to Python.
+
+Status markers: [settled] is spec, [proposed] and [open] are not yet.
+
+## Reference
+
+- [About These Docs](https://www.verity.garden/book/about.html): This is the reference documentation for the Verity programming language. It describes the language's syntax and semantics, the testimony model, the machine interface, the boundary with Python, the standard library, the command-line tool and the compiler's architecture. It is written for people and for language models alike, and is published in plain text as llms.txt and verity.txt. It is written to be precise rather than introductory: each section states rules, then gives examples.
+- [1. Overview](https://www.verity.garden/book/overview.html): Verity is Python whose truth values explain themselves. When a check fails, a Verity program can say which comparison, element or claim decided it, both as text for people and as JSON for tools and agents. It compiles to Python and runs on CPython.
+- [2. Lexical Analysis](https://www.verity.garden/book/lexical.html): A Verity program is read by the lexer as a sequence of tokens. Verity's lexical structure is Python 3.12's, with five extra keywords.
+- [3. Data Model](https://www.verity.garden/book/data-model.html): Every value in a running Verity program is a Python object. This section describes the objects Verity adds: truths, testimony, reasons and secrets.
+- [4. Expressions](https://www.verity.garden/book/expressions.html): This section specifies the expressions whose meaning differs from Python's. Every other expression (literals, displays, comprehensions, calls, subscriptions, slicing, attribute references, arithmetic, bitwise operators, lambda, conditional expressions, f-strings) has Python 3.12's syntax and semantics.
+- [5. Testimony Semantics](https://www.verity.garden/book/testimony.html): This section specifies the testimony carried by truths: the node kinds, how each operator constructs them, reasons and hints, the two renderings (text and JSON), secrets, bounds, and when the compiler may skip building testimony.
+- [6. Statements](https://www.verity.garden/book/statements.html): Verity's statements are Python 3.12's. This section specifies the one statement whose meaning differs, assert, and notes how the others interact with truths.
+- [7. Python Interoperability](https://www.verity.garden/book/python.html): Verity programs run on CPython and use Python libraries directly, and Python programs can use Verity's testimony. This section specifies the boundary in both directions.
+- [8. Standard Library](https://www.verity.garden/book/stdlib.html): The standard library consists of the modules testimony and string_ops. They are always importable from Verity, and they are the Python package verity-testimony. Module and function names are snake_case.
+- [9. Command-Line Interface](https://www.verity.garden/book/cli.html): The verity executable checks, compiles, runs and tests Verity programs. Every command accepts --json, which switches its reports to the machine-readable records of Section 10.
+- [10. Machine Interface](https://www.verity.garden/book/machine.html): Verity is meant to be read and checked by programs as well as people: test runners, editors, CI systems and coding agents. This section specifies everything a program can rely on: JSON record formats, diagnostic codes, fixes, determinism, and plain-text documentation.
+- [11. Implementation](https://www.verity.garden/book/implementation.html): This section describes the reference implementation: a compiler written in Rust and a runtime written in Python. It is informative. Other implementations need only conform to Sections 2 through 10.
+- [Appendix A. Grammar](https://www.verity.garden/book/grammar.html): Verity's grammar is Python 3.12's grammar (Python Language Reference, section 10) with the changes below, in the notation of About These Docs. Rule names follow Python's grammar where they exist.
+- [Appendix B. Glossary](https://www.verity.garden/book/glossary.html): Glossary of Verity terms.
+
+## Optional
+
+- [Full reference as one text file](https://www.verity.garden/book/verity.txt)
+- [Source repository](https://github.com/Henrik66/verity): spec in CLAUDE.md, conformance examples in examples/

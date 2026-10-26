@@ -1,15 +1,15 @@
 # Verity
 
-**Code that tells the truth.**
+**Checks that explain themselves.**
 
-Verity is a quirky functional take on Python. It borrows its syntax from [Coconut](https://coconut-lang.org/): `x -> x + 1` lambdas, `|>` pipes, `$` partial application, `match`, `data` types and pattern-matched `def`. It compiles to plain Python, so all of CPython and its libraries come along. Verity's booleans are different. They are called `verity` and `falsity`, and they *testify*: every verity carries a witness, and every falsity carries a refutation. `and`, `or`, `not`, comparisons, `forall` and `exists` assemble that testimony for you, and `because` lets you write your own. When something is false, Verity can tell you why. When nobody asks, the compiler erases the testimony, so ordinary control flow costs nothing extra.
+Verity is Python whose truth values explain themselves, to people and to agents. It is Python 3.12 plus a few keywords: the truth literals `verity` and `falsity`, `p because m`, and the quantifiers `forall` and `exists`. Every truth carries *testimony*: a verity carries a witness, and a falsity carries a refutation. Comparisons, `and`, `or`, `not`, `forall`, `exists` and `all_of` assemble it for you, and `because` lets you state your own claims, with stable reason IDs and hints. Testimony renders as an indented tree for people and as JSON (schema `verity.testimony/0`) for tools and coding agents. When nobody looks, the compiler skips building it, so ordinary control flow costs nothing extra.
 
-```coconut
+```python
 from testimony import explain
 
 primes = [2, 3, 5, 7, 11, 13]
 
-(forall p in primes, p % 2 == 1) |> explain |> print
+print(explain(forall p in primes, p % 2 == 1))
 ```
 
 ```
@@ -18,11 +18,13 @@ falsity
     p % 2 == 1: 0 != 1
 ```
 
-More in [`examples/`](examples/), and in the reference documentation, [*Verity Programming*](https://www.verity.garden/book/cover.html).
+Verity compiles to plain Python, so all of CPython and its libraries come along. The runtime is also a Python package, `verity-testimony`, so Python code and test suites can use testimony without `.ity` files.
+
+More in [`examples/`](examples/), and in the reference documentation, [*Verity Programming*](https://www.verity.garden/book/cover.html) (also as plain text for language models: [`llms.txt`](https://www.verity.garden/book/llms.txt), [`verity.txt`](https://www.verity.garden/book/verity.txt)).
 
 ## Status
 
-**Early design.** Nothing compiles yet. The compiler is being written in Rust (hand-written lexer and parser) and will emit Python plus a small embedded runtime. See [CLAUDE.md](CLAUDE.md) for the spec and milestones.
+**Early.** The compiler is being written in Rust (hand-written lexer and parser) and will emit Python. Milestone 1, the runtime library in [`runtime/`](runtime/), comes first. See [CLAUDE.md](CLAUDE.md) for the spec and milestones.
 
 ## Homepage development
 

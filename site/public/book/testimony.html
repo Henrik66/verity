@@ -34,11 +34,12 @@
 <li><a href="data-model.html"><span class="toc-num">3</span>Data Model</a></li>
 <li><a href="expressions.html"><span class="toc-num">4</span>Expressions</a></li>
 <li><a href="testimony.html" aria-current="page"><span class="toc-num">5</span>Testimony Semantics</a></li>
-<li><a href="statements.html"><span class="toc-num">6</span>Statements and Definitions</a></li>
+<li><a href="statements.html"><span class="toc-num">6</span>Statements</a></li>
 <li><a href="python.html"><span class="toc-num">7</span>Python Interoperability</a></li>
 <li><a href="stdlib.html"><span class="toc-num">8</span>Standard Library</a></li>
 <li><a href="cli.html"><span class="toc-num">9</span>Command-Line Interface</a></li>
-<li><a href="implementation.html"><span class="toc-num">10</span>Implementation</a></li>
+<li><a href="machine.html"><span class="toc-num">10</span>Machine Interface</a></li>
+<li><a href="implementation.html"><span class="toc-num">11</span>Implementation</a></li>
 </ul>
 <p class="toc-heading">Appendices</p><ul>
 <li><a href="grammar.html"><span class="toc-num">A</span>Grammar</a></li>
@@ -48,33 +49,36 @@
   <main id="content" class="content">
     <article>
 <h1><span class="h1-num">Section 5</span>Testimony Semantics</h1>
-<p>This section specifies the testimony carried by truths: the node kinds, how each operator constructs them, how <code>testimony.explain</code> renders them, and when the compiler may omit them.</p>
+<p>This section specifies the testimony carried by truths: the node kinds, how each operator constructs them, reasons and hints, the two renderings (text and JSON), secrets, bounds, and when the compiler may skip building testimony.</p>
 
 <h2 id="nodes"><span class="secnum">5.1</span> Node kinds<a class="anchor" href="#nodes" aria-label="Link to this section">#</a></h2>
-<p>A testimony is a tree of nodes. The kinds are:</p>
+<p>A testimony is a tree of nodes. Every node records the truth value it testifies to. The kinds are:</p>
 <div class="table-wrap">
 <table>
   <thead><tr><th>Kind</th><th>Produced by</th><th>Data</th><th>Children</th><th>Status</th></tr></thead>
   <tbody>
     <tr><td>comparison</td><td><code>a op b</code></td><td>source text, left value, relation, right value</td><td>none</td><td><span class="status status-settled">Settled</span></td></tr>
-    <tr><td>all</td><td>verity from <code>and</code></td><td>none</td><td>one per conjunct</td><td><span class="status status-settled">Settled</span></td></tr>
-    <tr><td>none</td><td>falsity from <code>or</code></td><td>none</td><td>one per disjunct</td><td><span class="status status-settled">Settled</span></td></tr>
-    <tr><td>not</td><td><code>not p</code></td><td>none</td><td><code>p</code>'s testimony</td><td><span class="status status-proposed">Proposed</span></td></tr>
-    <tr><td>because</td><td><code>p because m</code></td><td>message, truth value</td><td><code>p</code>'s testimony, unless it is literal</td><td><span class="status status-settled">Settled</span></td></tr>
-    <tr><td>counterexample</td><td>falsity from <code>forall</code></td><td>name, element, position</td><td>the body's refutation</td><td><span class="status status-settled">Settled</span></td></tr>
+    <tr><td>all</td><td>verity from <code>and</code> or <code>all_of</code></td><td>none</td><td>one per operand</td><td><span class="status status-settled">Settled</span></td></tr>
+    <tr><td>none</td><td>falsity from <code>or</code></td><td>none</td><td>one per operand</td><td><span class="status status-settled">Settled</span></td></tr>
+    <tr><td>failures</td><td>falsity from <code>all_of</code></td><td>failed count, total count</td><td>one per failing operand</td><td><span class="status status-settled">Settled</span></td></tr>
+    <tr><td>not</td><td><code>not p</code></td><td>none</td><td><code>p</code>'s testimony</td><td><span class="status status-settled">Settled</span></td></tr>
+    <tr><td>because</td><td><code>p because m</code></td><td>claim, reason ID, hint</td><td><code>p</code>'s testimony, unless it is literal</td><td><span class="status status-settled">Settled</span></td></tr>
+    <tr><td>counterexample</td><td>falsity from <code>forall</code></td><td>name, element, position, index</td><td>the body's refutation</td><td><span class="status status-settled">Settled</span></td></tr>
     <tr><td>universal</td><td>verity from <code>forall</code></td><td>count, iterable source, body source</td><td>none</td><td><span class="status status-settled">Settled</span></td></tr>
-    <tr><td>witness</td><td>verity from <code>exists</code></td><td>name, element, position</td><td>the body's witness</td><td><span class="status status-settled">Settled</span></td></tr>
-    <tr><td>no-element</td><td>falsity from <code>exists</code></td><td>iterable source, body source</td><td>none</td><td><span class="status status-proposed">Proposed</span></td></tr>
-    <tr><td>literal</td><td><code>verity</code>, <code>falsity</code></td><td>none</td><td>none</td><td><span class="status status-proposed">Proposed</span></td></tr>
-    <tr><td>lifted</td><td>a Python <code>bool</code> used as a truth</td><td>source text, value</td><td>none</td><td><span class="status status-proposed">Proposed</span></td></tr>
+    <tr><td>witness</td><td>verity from <code>exists</code></td><td>name, element, position, index</td><td>the body's witness</td><td><span class="status status-settled">Settled</span></td></tr>
+    <tr><td>no-element</td><td>falsity from <code>exists</code></td><td>iterable source, body source</td><td>none</td><td><span class="status status-settled">Settled</span></td></tr>
+    <tr><td>literal</td><td><code>verity</code>, <code>falsity</code></td><td>none</td><td>none</td><td><span class="status status-settled">Settled</span></td></tr>
+    <tr><td>lifted</td><td>a Python <code>bool</code> used as a truth</td><td>source text, result</td><td>none</td><td><span class="status status-settled">Settled</span></td></tr>
     <tr><td>text</td><td>library functions</td><td>a sentence</td><td>none</td><td><span class="status status-settled">Settled</span></td></tr>
+    <tr><td>truncated</td><td>the bounds in <a href="#bounds">Section 5.8</a></td><td>number of nodes omitted</td><td>none</td><td><span class="status status-settled">Settled</span></td></tr>
   </tbody>
 </table>
 </div>
 <p>The <em>text</em> kind lets library predicates such as <code>string_ops.is_alnum</code> state evidence directly: <code>'_' at index 5 is not alphanumeric</code>.</p>
+<p>A node is <em>asserted</em> if its content is a claim the program's author made rather than something the runtime computed. <em>because</em> and <em>literal</em> nodes are asserted. All other nodes are computed. <span class="status status-settled">Settled</span></p>
 
 <h2 id="construction"><span class="secnum">5.2</span> Construction rules<a class="anchor" href="#construction" aria-label="Link to this section">#</a></h2>
-<p>Below, <code>T(e)</code> is the testimony of a truth <code>e</code>, and <code>V(e)</code> its value.</p>
+<p>Below, <code>T(e)</code> is the testimony of a truth <code>e</code>, and <code>V(e)</code> its value. <span class="status status-settled">Settled</span></p>
 <h3>Comparison</h3>
 <p>For <code>a op b</code> whose Python result <code>r</code> is a <code>bool</code>: <code>V = r</code>, and <code>T</code> is <code>comparison(src, a, rel, b)</code>, where <code>src</code> is the exact source text of the comparison, and <code>rel</code> is <code>op</code> when <code>r</code> is true and <code>negate(op)</code> otherwise:</p>
 <div class="table-wrap">
@@ -85,11 +89,12 @@
   </tbody>
 </table>
 </div>
+<p>Operand values are captured as <code>repr</code> strings when the node is built (<a href="#bounds">Section 5.8</a>).</p>
 
 <h3>Negation</h3>
 <p><code>V(not p) = ¬V(p)</code> and <code>T(not p) = not(T(p))</code>.</p>
 
-<h3>Conjunction</h3>
+<h3>Conjunction (short-circuit)</h3>
 <p>For <code>p₁ and p₂ and … and pₙ</code>, evaluated left to right:</p>
 <ul>
   <li>If some <code>pᵢ</code> is a falsity, let <code>k</code> be the first such index. Then <code>V = falsity</code> and <code>T = T(pₖ)</code>. The operands after <code>pₖ</code> are not evaluated.</li>
@@ -103,8 +108,16 @@
   <li>Otherwise, <code>V = falsity</code> and <code>T = none(T(p₁), …, T(pₙ))</code>, flattened analogously.</li>
 </ul>
 
+<h3>Accumulating conjunction: <code>all_of</code></h3>
+<p><code>testimony.all_of(p₁, …, pₙ)</code> is an ordinary function call, so every operand is evaluated, left to right. Use it when every failure should be reported at once, as in form validation.</p>
+<ul>
+  <li>If every <code>pᵢ</code> is a verity: <code>V = verity</code>, <code>T = all(T(p₁), …, T(pₙ))</code>. Operands are not flattened.</li>
+  <li>Otherwise: <code>V = falsity</code>, <code>T = failures(k, n, T(pᵢ) for each falsity pᵢ in order)</code>, where <code>k</code> is the number of falsities.</li>
+  <li><code>all_of()</code> with no operands is a verity with an empty <em>all</em> node.</li>
+</ul>
+
 <h3><code>because</code></h3>
-<p><code>V(p because m) = V(p)</code>. <code>T = because(str(m), V(p), T(p))</code>, except that when <code>T(p)</code> is <em>literal</em> the node has no child.</p>
+<p><code>V(p because m) = V(p)</code>. If <code>m</code> is a <code>Reason</code> (<a href="#reasons">Section 5.3</a>), <code>T = because(m.message, m.id, m.hint, T(p))</code>. Otherwise <code>T = because(str(m), None, None, T(p))</code>. When <code>T(p)</code> is <em>literal</em> the node has no child.</p>
 
 <h3>Quantifiers</h3>
 <p>For <code>forall x in xs, body</code>, iterate over the elements <code>v₀, v₁, …</code> of <code>xs</code>:</p>
@@ -113,14 +126,35 @@
   <li>If none: <code>V = verity</code>, <code>T = universal(n, src(xs), src(body))</code>, where <code>n</code> is the number of elements.</li>
 </ul>
 <p>For <code>exists</code>, exchange verity and falsity: the first verity <code>b</code> gives <code>witness(x, vᵢ, pos(i), T(b))</code>, and exhaustion gives <code>no-element(src(xs), src(body))</code>.</p>
-<p><code>pos(i)</code> is rendered <code>xs[i]</code> when the iterable expression is a plain name. <span class="status status-settled">Settled</span> Otherwise, it is rendered <code>element i</code>. <span class="status status-proposed">Proposed</span></p>
+<p><code>pos(i)</code> is <code>xs[i]</code> when the iterable expression is a plain name, and <code>element i</code> otherwise.</p>
+<p>The counterexample is the <em>first</em> falsifying element in iteration order, not the smallest or simplest one. Minimal counterexamples need a shrinking test tool such as Hypothesis (<a href="python.html#pytest">Section 7.7</a>).</p>
 
-<h2 id="rendering"><span class="secnum">5.3</span> Rendering<a class="anchor" href="#rendering" aria-label="Link to this section">#</a></h2>
+<h3>Lifting</h3>
+<p>A Python <code>bool</code> <code>r</code> in a position that requires a truth (<a href="python.html#lifting">Section 7.2</a>) becomes a truth with <code>V = r</code> and <code>T = lifted(src, r)</code>, where <code>src</code> is the source text of the expression that produced it.</p>
+
+<h2 id="reasons"><span class="secnum">5.3</span> Reasons and hints<a class="anchor" href="#reasons" aria-label="Link to this section">#</a></h2>
+<p><code>testimony.reason(id, message, hint=None)</code> builds a <code>Reason</code>, used as the right operand of <code>because</code>. <span class="status status-settled">Settled</span></p>
+<ul>
+  <li><code>id</code> is a stable, dotted identifier matching <code>[a-z0-9_]+(\.[a-z0-9_]+)*</code>, such as <code>name.too_short</code>. Anything else raises <code>ValueError</code>. IDs are for programs: tests, logs, translations and agents can match on them while the message wording changes.</li>
+  <li><code>message</code> states the claim that holds when the truth is a verity, like any <code>because</code> message.</li>
+  <li><code>hint</code> says how to make the claim hold. It is rendered only under a falsity.</li>
+</ul>
+<div class="code code-ity"><span class="code-label">verity</span><pre><code><span class="t-kw">from</span> testimony <span class="t-kw">import</span> explain, reason
+
+age = <span class="t-num">12</span>
+print(explain(age &gt;= <span class="t-num">13</span> <span class="t-test">because</span> reason(<span class="t-str">"age.minimum"</span>, <span class="t-str">"the user is at least 13"</span>, hint=<span class="t-str">"ask a parent to sign up"</span>)))</code></pre></div>
+<div class="code code-out"><span class="code-label">output</span><pre><code><span class="t-truth">falsity</span>
+  <span class="t-label">refuted</span>: the user is at least 13 <span class="t-test">[age.minimum]</span>
+    <span class="t-label">hint</span>: ask a parent to sign up
+    age &gt;= 13: 12 &lt; 13</code></pre></div>
+
+<h2 id="rendering"><span class="secnum">5.4</span> Text rendering<a class="anchor" href="#rendering" aria-label="Link to this section">#</a></h2>
 <p><code>testimony.explain(t)</code> returns a string of one or more lines, joined by <code>\n</code>, without a trailing newline: <span class="status status-settled">Settled</span></p>
 <ol>
   <li>The first line is <code>verity</code> or <code>falsity</code>.</li>
   <li>The root node of <code>T(t)</code> is rendered at depth 1. A node at depth <code>d</code> is one line indented by <code>2·d</code> spaces, followed by its children at depth <code>d + 1</code>, in order.</li>
-  <li>Values are rendered with Python's <code>repr()</code>. Source text is reproduced exactly as written.</li>
+  <li>A <em>because</em> node with a hint, under a falsity, is followed by the line <code>hint: {hint}</code> at depth <code>d + 1</code>, before its children.</li>
+  <li>Values appear as their captured <code>repr</code> strings. Source text is reproduced exactly as written.</li>
 </ol>
 <div class="table-wrap">
 <table>
@@ -129,15 +163,17 @@
     <tr><td>comparison</td><td><code>{src}: {repr(a)} {rel} {repr(b)}</code></td><td><code>len(name) &gt;= 3: 2 &lt; 3</code></td></tr>
     <tr><td>all</td><td><code>all of:</code></td><td></td></tr>
     <tr><td>none</td><td><code>none of:</code></td><td></td></tr>
+    <tr><td>failures</td><td><code>failed {k} of {n}:</code></td><td><code>failed 3 of 4:</code></td></tr>
     <tr><td>not</td><td><code>not:</code></td><td></td></tr>
-    <tr><td>because</td><td><code>witnessed: {m}</code> or <code>refuted: {m}</code></td><td><code>refuted: 'al' has at least 3 characters</code></td></tr>
+    <tr><td>because</td><td><code>witnessed: {m}</code> or <code>refuted: {m}</code>, then <code> [{id}]</code> if it has a reason ID</td><td><code>refuted: the user is at least 13 [age.minimum]</code></td></tr>
     <tr><td>counterexample</td><td><code>counterexample: {x} = {repr(v)} ({pos})</code></td><td><code>counterexample: p = 2 (primes[0])</code></td></tr>
     <tr><td>universal</td><td><code>all {n} elements of {src(xs)} satisfy {src(body)}</code></td><td><code>all 4 elements of shapes satisfy area(s) &gt; 3</code></td></tr>
     <tr><td>witness</td><td><code>witness: {x} = {repr(v)} ({pos})</code></td><td><code>witness: p = 11 (primes[4])</code></td></tr>
     <tr><td>no-element</td><td><code>no element of {src(xs)} satisfies {src(body)}</code></td><td><code>no element of row satisfies x == 0</code></td></tr>
     <tr><td>literal</td><td><code>literal</code></td><td></td></tr>
-    <tr><td>lifted</td><td><code>{src} returned {True|False}</code></td><td><code>str.isdigit('4a') returned False</code></td></tr>
+    <tr><td>lifted</td><td><code>{src} returned {True|False}</code></td><td><code>name.isalnum() returned False</code></td></tr>
     <tr><td>text</td><td>the sentence</td><td><code>'_' at index 5 is not alphanumeric</code></td></tr>
+    <tr><td>truncated</td><td><code>... {k} more nodes omitted</code></td><td><code>... 12 more nodes omitted</code></td></tr>
   </tbody>
 </table>
 </div>
@@ -146,10 +182,12 @@
 <div class="code code-ity"><span class="code-label">verity</span><pre><code><span class="t-kw">import</span> string_ops
 <span class="t-kw">from</span> testimony <span class="t-kw">import</span> explain
 
-<span class="t-kw">def</span> valid_username(name) =
-    (len(name) &gt;= <span class="t-num">3</span> <span class="t-test">because</span> <span class="t-str">f"{name!r} has at least 3 characters"</span>)
-    <span class="t-kw">and</span> (len(name) &lt;= <span class="t-num">16</span> <span class="t-test">because</span> <span class="t-str">f"{name!r} has at most 16 characters"</span>)
-    <span class="t-kw">and</span> (string_ops.is_alnum(name) <span class="t-test">because</span> <span class="t-str">f"{name!r} is alphanumeric"</span>)
+<span class="t-kw">def</span> valid_username(name):
+    <span class="t-kw">return</span> (
+        (len(name) &gt;= <span class="t-num">3</span> <span class="t-test">because</span> <span class="t-str">f"{name!r} has at least 3 characters"</span>)
+        <span class="t-kw">and</span> (len(name) &lt;= <span class="t-num">16</span> <span class="t-test">because</span> <span class="t-str">f"{name!r} has at most 16 characters"</span>)
+        <span class="t-kw">and</span> (string_ops.is_alnum(name) <span class="t-test">because</span> <span class="t-str">f"{name!r} is alphanumeric"</span>)
+    )
 
 <span class="t-kw">for</span> name <span class="t-kw">in</span> [<span class="t-str">"ada"</span>, <span class="t-str">"al"</span>, <span class="t-str">"grace_hopper"</span>]:
     print(<span class="t-str">f"{name!r}: {explain(valid_username(name))}"</span>)</code></pre></div>
@@ -169,46 +207,178 @@
     '_' at index 5 is not alphanumeric</code></pre></div>
 <p>This is <code>examples/validate.ity</code>. The three <em>because</em> nodes in the first case are not flattened into each other, but the <em>all</em> node of the two-level <code>and</code> chain is.</p>
 
-<h2 id="observation"><span class="secnum">5.4</span> Observation<a class="anchor" href="#observation" aria-label="Link to this section">#</a></h2>
-<p>The testimony of a truth-valued expression is <em>observed</em> if the truth can reach any of the following: <span class="status status-proposed">Proposed</span></p>
-<ul>
-  <li>an argument to <code>testimony.explain</code> or any other function of the <code>testimony</code> module;</li>
-  <li>an attribute access on the truth object;</li>
-  <li>a <code>return</code> statement, <code>yield</code>, or the value of a short-form <code>def</code>;</li>
-  <li>a variable, attribute, container element or data field that is itself used other than as a condition;</li>
-  <li>an argument to any function that the compiler cannot see into, including all Python functions;</li>
-  <li>the operand of <code>because</code>, <code>and</code>, <code>or</code> or <code>not</code>, or the body of a quantifier, whose result is itself observed.</li>
-</ul>
-<p>A truth whose only use is as the condition of <code>if</code>, <code>elif</code> or <code>while</code>, the test of a conditional expression, or a <code>case</code> guard is not observed.</p>
+<h2 id="audiences"><span class="secnum">5.5</span> Audiences<a class="anchor" href="#audiences" aria-label="Link to this section">#</a></h2>
+<p><code>explain</code> and <code>to_json</code> take an <code>audience</code> argument. <span class="status status-settled">Settled</span></p>
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Audience</th><th>Shows</th><th>Use</th></tr></thead>
+  <tbody>
+    <tr><td><code>"developer"</code> (default)</td><td>The full tree: source text, operand values, claims</td><td>Logs, tests, agents</td></tr>
+    <tr><td><code>"user"</code></td><td>Only the outermost <em>because</em> claims, with reason IDs and hints. Never source text, operand values or computed nodes.</td><td>Messages shown to end users</td></tr>
+  </tbody>
+</table>
+</div>
+<p>For the <code>"user"</code> audience, the claims are the <em>because</em> nodes reached by a pre-order walk that does not descend into a <em>because</em> node's children. Each renders at depth 1 with its hint, if any, at depth 2. A truth with no claims renders as its first line alone. The text of a claim is whatever its author wrote, so a message that interpolates a value shows that value.</p>
+<p>The <code>"user"</code> audience reduces what reaches end users. It does not make an explanation safe by itself: a login check that says <em>which</em> of user name and password was wrong still lets an attacker tell whether an account exists. Give such checks a single, generic claim.</p>
+<div class="code code-ity"><span class="code-label">verity</span><pre><code><span class="t-kw">from</span> testimony <span class="t-kw">import</span> all_of, explain, reason
 
-<h2 id="erasure"><span class="secnum">5.5</span> Erasure<a class="anchor" href="#erasure" aria-label="Link to this section">#</a></h2>
-<p>For an expression whose testimony is not observed, the compiler may emit code that computes only the truth value, for example a plain Python comparison, instead of constructing testimony. <span class="status status-settled">Settled</span> An erased expression must: <span class="status status-proposed">Proposed</span></p>
-<ul>
-  <li>evaluate exactly the same subexpressions, in the same order, as the unerased form, including short-circuiting;</li>
-  <li>produce the same truth value;</li>
-  <li>not evaluate the messages of <code>because</code>, which are evaluated only when testimony is observed (<a href="expressions.html#because">Section 4.9</a>).</li>
-</ul>
-<p>Erasure is an optimization. A program's output must be identical with erasure enabled or disabled. When the analysis is uncertain, the compiler must keep testimony.</p>
-<div class="code code-ity"><span class="code-label">verity</span><pre><code><span class="t-kw">def</span> clamp(x) = <span class="t-num">0</span> <span class="t-kw">if</span> x &lt; <span class="t-num">0</span> <span class="t-kw">else</span> <span class="t-num">10</span> <span class="t-kw">if</span> x &gt; <span class="t-num">10</span> <span class="t-kw">else</span> x</code></pre></div>
-<div class="code code-py"><span class="code-label">python</span><pre><code><span class="t-kw">def</span> clamp(x):
-    <span class="t-kw">return</span> <span class="t-num">0</span> <span class="t-kw">if</span> x &lt; <span class="t-num">0</span> <span class="t-kw">else</span> <span class="t-num">10</span> <span class="t-kw">if</span> x &gt; <span class="t-num">10</span> <span class="t-kw">else</span> x</code></pre></div>
+name, age = <span class="t-str">"ada_l"</span>, <span class="t-num">12</span>
+result = all_of(
+    name.isalnum() <span class="t-test">because</span> reason(<span class="t-str">"name.charset"</span>, <span class="t-str">f"{name!r} is alphanumeric"</span>, hint=<span class="t-str">"use only letters and digits"</span>),
+    age &gt;= <span class="t-num">13</span> <span class="t-test">because</span> reason(<span class="t-str">"age.minimum"</span>, <span class="t-str">"the user is at least 13"</span>),
+)
+print(explain(result, audience=<span class="t-str">"user"</span>))</code></pre></div>
+<div class="code code-out"><span class="code-label">output</span><pre><code><span class="t-truth">falsity</span>
+  <span class="t-label">refuted</span>: 'ada_l' is alphanumeric <span class="t-test">[name.charset]</span>
+    <span class="t-label">hint</span>: use only letters and digits
+  <span class="t-label">refuted</span>: the user is at least 13 <span class="t-test">[age.minimum]</span></code></pre></div>
 
-<h2 id="cost"><span class="secnum">5.6</span> Cost model<a class="anchor" href="#cost" aria-label="Link to this section">#</a></h2>
+<h2 id="json"><span class="secnum">5.6</span> JSON<a class="anchor" href="#json" aria-label="Link to this section">#</a></h2>
+<p><code>testimony.to_json(t, audience="developer")</code> returns a dictionary that <code>json.dumps</code> can serialize, in the schema <code>verity.testimony/0</code>. The <code>/0</code> marks the schema as pre-release: it may change in incompatible ways until it becomes <code>/1</code>. <span class="status status-settled">Settled</span></p>
+<h3>Document</h3>
+<p>For the <code>"developer"</code> audience:</p>
+<div class="code code-py"><span class="code-label">python</span><pre><code>{<span class="t-str">"schema"</span>: <span class="t-str">"verity.testimony/0"</span>, <span class="t-str">"value"</span>: <span class="t-str">"verity"</span> | <span class="t-str">"falsity"</span>, <span class="t-str">"testimony"</span>: node}</code></pre></div>
+<p>For the <code>"user"</code> audience, the tree is replaced by the list of claims from <a href="#audiences">Section 5.5</a>:</p>
+<div class="code code-py"><span class="code-label">python</span><pre><code>{<span class="t-str">"schema"</span>: <span class="t-str">"verity.testimony/0"</span>, <span class="t-str">"value"</span>: ..., <span class="t-str">"claims"</span>: [{<span class="t-str">"value"</span>: ..., <span class="t-str">"claim"</span>: str, <span class="t-str">"reason"</span>: str | <span class="t-kw">None</span>, <span class="t-str">"hint"</span>: str | <span class="t-kw">None</span>}, ...]}</code></pre></div>
+<h3>Nodes</h3>
+<p>Every node is an object whose keys appear in this order:</p>
+<ol>
+  <li><code>kind</code>: the node kind, from <a href="#nodes">Section 5.1</a>.</li>
+  <li><code>value</code>: <code>"verity"</code> or <code>"falsity"</code>, the value of the truth this node testifies to.</li>
+  <li><code>asserted</code>: <code>true</code> for <em>because</em> and <em>literal</em> nodes, otherwise <code>false</code>.</li>
+  <li><code>line</code>: the node's text rendering, without indentation.</li>
+  <li>The kind's own fields, in the order of the table below.</li>
+  <li><code>span</code>, only when the source location is known: <code>{"file", "line", "col", "end_line", "end_col"}</code>. Lines and columns are 1-based, columns count Unicode code points, and the end is exclusive. <code>file</code> is the source path as given to <code>verity</code>.</li>
+  <li><code>children</code>: a list of nodes, possibly empty.</li>
+</ol>
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Kind</th><th>Fields</th></tr></thead>
+  <tbody>
+    <tr><td>comparison</td><td><code>src</code>, <code>left</code>, <code>rel</code>, <code>right</code> (operands are repr strings)</td></tr>
+    <tr><td>failures</td><td><code>failed</code>, <code>total</code> (integers)</td></tr>
+    <tr><td>because</td><td><code>claim</code>, <code>reason</code> (string or <code>null</code>), <code>hint</code> (string or <code>null</code>)</td></tr>
+    <tr><td>counterexample, witness</td><td><code>name</code>, <code>element</code> (repr string), <code>position</code>, <code>index</code> (integer)</td></tr>
+    <tr><td>universal</td><td><code>count</code>, <code>iterable</code>, <code>body</code></td></tr>
+    <tr><td>no-element</td><td><code>iterable</code>, <code>body</code></td></tr>
+    <tr><td>lifted</td><td><code>src</code>, <code>result</code> (boolean)</td></tr>
+    <tr><td>text</td><td><code>text</code></td></tr>
+    <tr><td>truncated</td><td><code>omitted</code> (integer)</td></tr>
+    <tr><td>all, none, not, literal</td><td>none</td></tr>
+  </tbody>
+</table>
+</div>
+<div class="code code-ity"><span class="code-label">verity</span><pre><code><span class="t-kw">import</span> json
+<span class="t-kw">from</span> testimony <span class="t-kw">import</span> to_json
+t = <span class="t-num">2</span> + <span class="t-num">2</span> == <span class="t-num">5</span>
+print(json.dumps(to_json(t), indent=<span class="t-num">2</span>))</code></pre></div>
+<div class="code code-out"><span class="code-label">output</span><pre><code>{
+  "schema": "verity.testimony/0",
+  "value": "falsity",
+  "testimony": {
+    "kind": "comparison",
+    "value": "falsity",
+    "asserted": false,
+    "line": "2 + 2 == 5: 4 != 5",
+    "src": "2 + 2 == 5",
+    "left": "4",
+    "rel": "!=",
+    "right": "5",
+    "span": {
+      "file": "demo.ity",
+      "line": 3,
+      "col": 5,
+      "end_line": 3,
+      "end_col": 15
+    },
+    "children": []
+  }
+}</code></pre></div>
+<p>A complete example with every field in use is <code>examples/signup.ity</code>. The record formats that carry this JSON out of <code>verity run</code> and <code>verity test</code> are in <a href="machine.html#records">Section 10.2</a>.</p>
+
+<h2 id="secrets"><span class="secnum">5.7</span> Secrets<a class="anchor" href="#secrets" aria-label="Link to this section">#</a></h2>
+<p><code>testimony.secret(x)</code> wraps a value so that it never appears in testimony. <span class="status status-settled">Settled</span></p>
+<ul>
+  <li>A secret compares (<code>==</code>, <code>!=</code>, <code>&lt;</code>, <code>&lt;=</code>, <code>&gt;</code>, <code>&gt;=</code>, <code>in</code>) and hashes as its value does.</li>
+  <li>Its <code>repr</code> and <code>str</code> are <code>&lt;secret&gt;</code>, so comparison testimony shows <code>&lt;secret&gt;</code> in every audience and format.</li>
+  <li>Secrets do not propagate. Every other operation on a secret raises <code>TypeError</code>. <code>testimony.reveal(s)</code> returns the wrapped value, which is then an ordinary value and is shown like any other.</li>
+</ul>
+<div class="code code-ity"><span class="code-label">verity</span><pre><code><span class="t-kw">from</span> testimony <span class="t-kw">import</span> explain, secret
+
+expected = secret(<span class="t-str">"garden-42"</span>)
+print(explain(<span class="t-str">"garden-41"</span> == expected))</code></pre></div>
+<div class="code code-out"><span class="code-label">output</span><pre><code><span class="t-truth">falsity</span>
+  "garden-41" == expected: 'garden-41' != &lt;secret&gt;</code></pre></div>
+
+<h2 id="bounds"><span class="secnum">5.8</span> Bounds and determinism<a class="anchor" href="#bounds" aria-label="Link to this section">#</a></h2>
+<p>Testimony is built while the program runs, so its size and content must be predictable. <span class="status status-settled">Settled</span></p>
+<ul>
+  <li><strong>Snapshots.</strong> Operand and element values are captured as <code>repr</code> strings when a node is built. Mutating a value later does not change its testimony.</li>
+  <li><strong>Stable text.</strong> Memory addresses are removed from captured reprs: <code>&lt;Foo object at 0x10f3&gt;</code> becomes <code>&lt;Foo object&gt;</code>. <code>verity run</code> and <code>verity test</code> set <code>PYTHONHASHSEED=0</code>, so set and dict reprs are reproducible. The same program on the same input produces byte-identical testimony.</li>
+  <li><strong>Width.</strong> A captured repr longer than <code>max_repr</code> (default 80) characters is cut to <code>max_repr − 3</code> characters followed by <code>...</code>. A node keeps at most <code>max_children</code> (default 50) children. Any further children are replaced by one <em>truncated</em> node counting them.</li>
+  <li><strong>Depth.</strong> Rendering and serialization stop at depth <code>max_depth</code> (default 32). A subtree below that depth is replaced by one <em>truncated</em> node counting its nodes.</li>
+</ul>
+<p><code>testimony.configure(max_repr=..., max_children=..., max_depth=...)</code> changes the limits for the running process (<a href="stdlib.html#testimony">Section 8.1</a>).</p>
+
+<h2 id="observation"><span class="secnum">5.9</span> Observation<a class="anchor" href="#observation" aria-label="Link to this section">#</a></h2>
+<p>The testimony of a truth-valued expression is <em>observed</em> unless the truth is only branched on. A truth is only branched on when its sole use is as: <span class="status status-settled">Settled</span></p>
+<ul>
+  <li>the condition of <code>if</code>, <code>elif</code> or <code>while</code>;</li>
+  <li>the test of a conditional expression;</li>
+  <li>a <code>case</code> guard or a comprehension's <code>if</code> filter;</li>
+  <li>the argument of <code>bool()</code> or <code>testimony.to_bool()</code>;</li>
+  <li>an operand of <code>and</code>, <code>or</code> or <code>not</code>, or the body of a quantifier, whose result is itself only branched on.</li>
+</ul>
+<p>A function's <code>return</code> does not decide observation by itself. Whether a call's result is observed is decided at the call site, by the same rules.</p>
+
+<h2 id="erasure"><span class="secnum">5.10</span> Erasure by dual compilation<a class="anchor" href="#erasure" aria-label="Link to this section">#</a></h2>
+<p>Building testimony costs time: in an early measurement a three-clause check built with testimony ran about 16 times slower than the plain boolean expression. Verity avoids this cost when nobody is listening. <span class="status status-settled">Settled</span></p>
+<ul>
+  <li>Each function that can return a truth is compiled twice: an <em>evidence version</em>, which builds testimony, and a <em>value version</em>, in which every truth-valued expression is a plain Python boolean expression and every call to a Verity function calls that function's value version.</li>
+  <li>A call whose result is only branched on (<a href="#observation">Section 5.9</a>) calls the value version. Every other call, and every call from Python code, calls the evidence version.</li>
+  <li>Expressions outside functions follow the same rule: an expression that is only branched on is compiled without testimony.</li>
+</ul>
+<p>An erased expression must evaluate exactly the same subexpressions, in the same order, as the unerased form, including short-circuiting, and must produce the same truth value. It does not evaluate the messages of <code>because</code>. A program's output must be identical with erasure enabled or disabled. When the analysis is uncertain, the compiler keeps testimony.</p>
+<div class="code code-ity"><span class="code-label">verity</span><pre><code><span class="t-kw">def</span> is_adult(age):
+    <span class="t-kw">return</span> age &gt;= <span class="t-num">18</span>
+
+<span class="t-kw">if</span> is_adult(<span class="t-num">20</span>):
+    print(<span class="t-str">"welcome"</span>)</code></pre></div>
+<div class="code code-py"><span class="code-label">python</span><pre><code><span class="t-kw">def</span> is_adult(age):
+    <span class="t-kw">return</span> _v.compare(age, <span class="t-str">"&gt;="</span>, <span class="t-num">18</span>, src=<span class="t-str">"age &gt;= 18"</span>, span=(...))
+
+<span class="t-kw">def</span> _is_adult__value(age):
+    <span class="t-kw">return</span> age &gt;= <span class="t-num">18</span>
+
+is_adult.__verity_value__ = _is_adult__value
+
+<span class="t-kw">if</span> _is_adult__value(<span class="t-num">20</span>):
+    print(<span class="t-str">"welcome"</span>)</code></pre></div>
+<p>The generated names above are illustrative (<a href="implementation.html#lowering">Section 11.4</a>).</p>
+
+<h2 id="cost"><span class="secnum">5.11</span> Cost model<a class="anchor" href="#cost" aria-label="Link to this section">#</a></h2>
 <p><span class="status status-proposed">Proposed</span> Implementations should meet these bounds:</p>
 <ul>
   <li>An erased truth costs the same as the equivalent Python boolean expression.</li>
-  <li>An observed comparison allocates one node and holds references to its two operands.</li>
+  <li>An observed comparison allocates one node and two strings no longer than <code>max_repr</code>.</li>
   <li>A quantifier's testimony holds only the deciding element (or, for <em>universal</em>, a count). Its size does not grow with the length of the iterable.</li>
   <li>A conjunction's or disjunction's testimony grows with the number of operands, not with the number of evaluations of an enclosing loop.</li>
 </ul>
 
+<h2 id="limits"><span class="secnum">5.12</span> What testimony is not<a class="anchor" href="#limits" aria-label="Link to this section">#</a></h2>
+<ul>
+  <li><strong>Not proof.</strong> Computed nodes (comparisons, quantifier positions, lifted results) report what the program actually evaluated. <em>because</em> claims are whatever their author wrote and are never checked: <code>verity because "the moon is cheese"</code> is accepted. Tools should trust asserted nodes only as far as they trust the author.</li>
+  <li><strong>Not everywhere.</strong> Comparisons that return non-<code>bool</code> values, such as numpy arrays and pandas series, carry no testimony (<a href="python.html#pass-through">Section 7.4</a>). A Python function that returns a <code>bool</code> testifies only <code>... returned False</code>: Verity cannot see inside it.</li>
+  <li><strong>Not minimal.</strong> <code>forall</code> reports the first counterexample, not the simplest.</li>
+</ul>
+
     </article>
-    <nav class="pager" aria-label="Previous and next pages"><a class="pager-prev" href="expressions.html"><span>Previous</span>4. Expressions</a><a class="pager-next" href="statements.html"><span>Next</span>6. Statements and Definitions</a></nav>
+    <nav class="pager" aria-label="Previous and next pages"><a class="pager-prev" href="expressions.html"><span>Previous</span>4. Expressions</a><a class="pager-next" href="statements.html"><span>Next</span>6. Statements</a></nav>
     <footer class="page-footer">
       <p>Verity Programming &middot; Henrik Gombos and Pranav Balakrishnan &middot; <a href="https://github.com/Henrik66/verity/blob/main/book/src/testimony.html">Source for this page</a></p>
     </footer>
   </main>
-  <nav class="on-page" aria-label="On this page"><p>On this page</p><ul><li><a href="#nodes">Node kinds</a></li><li><a href="#construction">Construction rules</a></li><li><a href="#rendering">Rendering</a></li><li><a href="#observation">Observation</a></li><li><a href="#erasure">Erasure</a></li><li><a href="#cost">Cost model</a></li></ul></nav>
+  <nav class="on-page" aria-label="On this page"><p>On this page</p><ul><li><a href="#nodes">Node kinds</a></li><li><a href="#construction">Construction rules</a></li><li><a href="#reasons">Reasons and hints</a></li><li><a href="#rendering">Text rendering</a></li><li><a href="#audiences">Audiences</a></li><li><a href="#json">JSON</a></li><li><a href="#secrets">Secrets</a></li><li><a href="#bounds">Bounds and determinism</a></li><li><a href="#observation">Observation</a></li><li><a href="#erasure">Erasure by dual compilation</a></li><li><a href="#cost">Cost model</a></li><li><a href="#limits">What testimony is not</a></li></ul></nav>
 </div>
 <script src="book.js" defer></script>
 </body>

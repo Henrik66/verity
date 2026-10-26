@@ -34,11 +34,12 @@
 <li><a href="data-model.html"><span class="toc-num">3</span>Data Model</a></li>
 <li><a href="expressions.html"><span class="toc-num">4</span>Expressions</a></li>
 <li><a href="testimony.html"><span class="toc-num">5</span>Testimony Semantics</a></li>
-<li><a href="statements.html"><span class="toc-num">6</span>Statements and Definitions</a></li>
+<li><a href="statements.html"><span class="toc-num">6</span>Statements</a></li>
 <li><a href="python.html"><span class="toc-num">7</span>Python Interoperability</a></li>
 <li><a href="stdlib.html"><span class="toc-num">8</span>Standard Library</a></li>
 <li><a href="cli.html"><span class="toc-num">9</span>Command-Line Interface</a></li>
-<li><a href="implementation.html"><span class="toc-num">10</span>Implementation</a></li>
+<li><a href="machine.html"><span class="toc-num">10</span>Machine Interface</a></li>
+<li><a href="implementation.html"><span class="toc-num">11</span>Implementation</a></li>
 </ul>
 <p class="toc-heading">Appendices</p><ul>
 <li><a href="grammar.html"><span class="toc-num">A</span>Grammar</a></li>
@@ -48,7 +49,7 @@
   <main id="content" class="content">
     <article>
 <h1>About These Docs</h1>
-<p>This is the reference documentation for the Verity programming language. It describes the language's syntax and semantics, the testimony model, the boundary with Python, the standard library, the command-line tool and the compiler's architecture. It is written to be precise rather than introductory: each section states rules, then gives examples.</p>
+<p>This is the reference documentation for the Verity programming language. It describes the language's syntax and semantics, the testimony model, the machine interface, the boundary with Python, the standard library, the command-line tool and the compiler's architecture. It is written for people and for language models alike, and is published in plain text as <a href="llms.txt">llms.txt</a> and <a href="verity.txt">verity.txt</a>. It is written to be precise rather than introductory: each section states rules, then gives examples.</p>
 
 <h2 id="status">Status of this document<a class="anchor" href="#status" aria-label="Link to this section">#</a></h2>
 <p>Verity is in early design and no implementation exists yet. This document describes the language the implementation is being built to accept. Every rule carries one of three markers:</p>
@@ -97,15 +98,15 @@
 <p>Verity source appears in blocks labeled <em>verity</em>, program output in blocks labeled <em>output</em>, generated Python in blocks labeled <em>python</em>, and shell commands, prefixed with <code>$</code>, in blocks labeled <em>shell</em>. Output blocks show exactly what the program prints, including the indentation of testimony.</p>
 <div class="code code-ity"><span class="code-label">verity</span><pre><code><span class="t-kw">from</span> testimony <span class="t-kw">import</span> explain
 
-(<span class="t-num">3</span> &gt; <span class="t-num">5</span>) <span class="t-op">|&gt;</span> explain <span class="t-op">|&gt;</span> print</code></pre></div>
+print(explain(<span class="t-num">3</span> &gt; <span class="t-num">5</span>))</code></pre></div>
 <div class="code code-out"><span class="code-label">output</span><pre><code><span class="t-truth">falsity</span>
   3 &gt; 5: 3 &lt;= 5</code></pre></div>
 
 <h2 id="scope">Scope<a class="anchor" href="#scope" aria-label="Link to this section">#</a></h2>
-<p>This document does not teach programming or functional programming. Readers are assumed to know Python. Constructs that Verity takes unchanged from Python, such as literals, comprehensions, <code>try</code> and <code>with</code>, are listed but not re-specified. Their semantics are those of the corresponding Python construct.</p>
+<p>This document does not teach programming or functional programming. Readers are assumed to know Python. Constructs that Verity takes unchanged from Python, which is nearly all of Python 3.12, are not re-specified. Their semantics are those of the corresponding Python construct.</p>
 
 <h2 id="credits">Authors and license<a class="anchor" href="#credits" aria-label="Link to this section">#</a></h2>
-<p>Written by Henrik Gombos (<a href="https://github.com/Henrik66">Henrik66</a>) and Pranav Balakrishnan (<a href="https://github.com/pranavbalakri">pranavbalakri</a>). Verity's surface syntax derives from <a href="https://coconut-lang.org/">Coconut</a>. The source of this document is in the <a href="https://github.com/Henrik66/verity/tree/main/book/src">repository</a> and is released under the Apache-2.0 license.</p>
+<p>Written by Henrik Gombos (<a href="https://github.com/Henrik66">Henrik66</a>) and Pranav Balakrishnan (<a href="https://github.com/pranavbalakri">pranavbalakri</a>). The source of this document is in the <a href="https://github.com/Henrik66/verity/tree/main/book/src">repository</a> and is released under the Apache-2.0 license.</p>
 
     </article>
     <nav class="pager" aria-label="Previous and next pages"><a class="pager-prev" href="cover.html"><span>Previous</span>Cover</a><a class="pager-next" href="overview.html"><span>Next</span>1. Overview</a></nav>

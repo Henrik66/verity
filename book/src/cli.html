@@ -1,11 +1,21 @@
-<p>The <code>verity</code> executable compiles and runs Verity programs. The command names <code>run</code> and <code>compile</code> are [[settled]]. Everything else in this section is [[proposed]].</p>
+<p>The <code>verity</code> executable checks, compiles, runs and tests Verity programs. Every command accepts <code>--json</code>, which switches its reports to the machine-readable records of <a href="machine.html">Section 10</a>. [[settled]]</p>
 
 <h2 id="synopsis">Synopsis</h2>
 <pre class="sh">
-$ verity run FILE.ity [ARG...]
+$ verity check FILE.ity... [--json]
+$ verity run FILE.ity [ARG...] [--json]
 $ verity compile FILE.ity [-o OUT.py]
+$ verity test [PATH...] [--json]
 $ verity --version
 $ verity --help
+</pre>
+
+<h2 id="check">verity check</h2>
+<p>Parses and compiles each file without running it, and reports every diagnostic. It is the fastest way for a person or an agent to learn whether a program is well formed. Exit status 0 means no errors were reported.</p>
+<pre class="sh">
+$ verity check hello.ity
+hello.ity:3:9: error[E0101]: `True` is not a Verity literal
+  hint: use `verity`
 </pre>
 
 <h2 id="run">verity run</h2>
@@ -13,14 +23,33 @@ $ verity --help
 <ul>
   <li>Generated code and the runtime are written to a cache directory, <code>__verity__/</code>, next to the source file. The directory is reused across runs and can be deleted at any time.</li>
   <li>The program's standard input, output and error are those of the <code>verity</code> process.</li>
-  <li>Imported <code>.ity</code> modules in the same directory are compiled on demand.</li>
+  <li><code>PYTHONHASHSEED</code> is set to <code>0</code>, so output that depends on set or dict ordering of strings is reproducible.</li>
+  <li>An uncaught <code>TestimonyError</code> prints its location and testimony to standard error (<a href="statements.html#assert">Section 6.2</a>). Other uncaught exceptions print a traceback mapped to <code>.ity</code> lines.</li>
 </ul>
 
 <h2 id="compile">verity compile</h2>
-<p>Compiles <code>FILE.ity</code> to Python without running it. By default the generated module is written to standard output. With <code>-o OUT.py</code>, it is written to <code>OUT.py</code> and the runtime module <code>truth.py</code> is written to the same directory.</p>
+<p>Compiles <code>FILE.ity</code> to Python without running it. By default the generated module is written to standard output. With <code>-o OUT.py</code>, it is written to <code>OUT.py</code>, and the runtime modules <code>testimony.py</code> and <code>string_ops.py</code> are written to the same directory.</p>
 <pre class="sh">
 $ verity compile hello.ity -o build/hello.py
 $ python3 build/hello.py
+</pre>
+
+<h2 id="test">verity test</h2>
+<p>Discovers and runs tests, in the style of pytest. [[settled]]</p>
+<ul>
+  <li>A test file is a <code>.ity</code> file named <code>test_*.ity</code> or <code>*_test.ity</code>, found by searching each <code>PATH</code> (default: the current directory) recursively.</li>
+  <li>A test is a top-level function in a test file whose name starts with <code>test_</code> and that takes no arguments.</li>
+  <li>A test passes if it returns without raising and does not return a falsity. It fails if it raises <code>TestimonyError</code> or returns a falsity, and it is an error if it raises anything else.</li>
+  <li>Each test's standard output is captured and reported only for failures and errors.</li>
+</ul>
+<pre class="sh">
+$ verity test
+test_cart.ity::test_prices FAILED
+falsity
+  counterexample: item = Item(name='refund', price=-5) (cart[2])
+    item.price >= 0: -5 < 0
+
+1 failed, 4 passed in 0.08s
 </pre>
 
 <h2 id="exit-status">Exit status</h2>
@@ -28,28 +57,30 @@ $ python3 build/hello.py
 <table>
   <thead><tr><th>Status</th><th>Meaning</th></tr></thead>
   <tbody>
-    <tr><td>0</td><td>Success. For <code>run</code>, the program exited with status 0.</td></tr>
-    <tr><td>1</td><td>A compile error was reported.</td></tr>
+    <tr><td>0</td><td>Success. For <code>run</code>, the program exited with status 0. For <code>test</code>, every test passed.</td></tr>
+    <tr><td>1</td><td>A compile error was reported, or (for <code>test</code>) a test failed or errored.</td></tr>
     <tr><td>2</td><td>Invalid command-line usage.</td></tr>
+    <tr><td>3</td><td>For <code>run</code>, the program ended with an uncaught <code>TestimonyError</code>.</td></tr>
     <tr><td>other</td><td>For <code>run</code>, the exit status of the Python process.</td></tr>
   </tbody>
 </table>
 </div>
 
 <h2 id="diagnostics">Diagnostics</h2>
-<p>Errors are written to standard error, one per diagnostic, in the form:</p>
+<p>Without <code>--json</code>, diagnostics are written to standard error in this form:</p>
 <pre class="out">
-hello.ity:3:14: error: expected ')' to close '(' at 3:5
+FILE:LINE:COL: SEVERITY[CODE]: MESSAGE
+  hint: HINT
 </pre>
-<p>Line and column numbers are 1-based. Columns count Unicode scalar values.</p>
+<p>Line and column numbers are 1-based. Columns count Unicode code points. Severity is <code>error</code> or <code>warning</code>. The codes and the JSON form are in <a href="machine.html#codes">Section 10.3</a>.</p>
 
 <h2 id="environment">Environment</h2>
 <div class="table-wrap">
 <table>
   <thead><tr><th>Variable</th><th>Effect</th></tr></thead>
   <tbody>
-    <tr><td><code>VERITY_PYTHON</code></td><td>Python interpreter used by <code>run</code>. Default: <code>python3</code> on the <code>PATH</code>.</td></tr>
-    <tr><td><code>VERITY_NO_ERASE</code></td><td>If set to <code>1</code>, disables testimony erasure. This is for checking that erasure does not change output.</td></tr>
+    <tr><td><code>VERITY_PYTHON</code></td><td>Python interpreter used by <code>run</code> and <code>test</code>. Default: <code>python3</code> on the <code>PATH</code>.</td></tr>
+    <tr><td><code>VERITY_NO_ERASE</code></td><td>If set to <code>1</code>, disables dual compilation, so every truth builds testimony. This is for checking that erasure does not change output.</td></tr>
   </tbody>
 </table>
 </div>

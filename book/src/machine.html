@@ -1,0 +1,71 @@
+<p>Verity is meant to be read and checked by programs as well as people: test runners, editors, CI systems and coding agents. This section specifies everything a program can rely on: JSON record formats, diagnostic codes, fixes, determinism, and plain-text documentation. [[settled]]</p>
+
+<h2 id="principles">Principles</h2>
+<ul>
+  <li><strong>Every report has a documented machine form.</strong> Testimony has the JSON schema of <a href="testimony.html#json">Section 5.6</a>; diagnostics, failures and test results have the records below.</li>
+  <li><strong>Identifiers are stable.</strong> Diagnostic codes and reason IDs never change meaning. A retired code is never reused.</li>
+  <li><strong>Output is deterministic.</strong> The same program on the same input produces byte-identical reports (<a href="testimony.html#bounds">Section 5.8</a>). Durations are the only exception, and they appear only in their own fields.</li>
+  <li><strong>Computed and claimed are distinguishable.</strong> Every testimony node says whether it was computed or asserted by the author.</li>
+  <li><strong>Fixes are concrete.</strong> Where a diagnostic has one obvious correction, it carries it as an edit.</li>
+</ul>
+
+<h2 id="records">Records</h2>
+<p>With <code>--json</code>, reports are JSON Lines: one JSON object per line, UTF-8, each with a <code>type</code> field. <code>verity check</code> and <code>verity test</code> write records to standard output. <code>verity run</code> writes them to standard error, so the program's own standard output is unchanged.</p>
+<p>A <em>span</em> is <code>{"file", "line", "col", "end_line", "end_col"}</code>, as in <a href="testimony.html#json">Section 5.6</a>.</p>
+<div class="table-wrap">
+<table>
+  <thead><tr><th><code>type</code></th><th>Written by</th><th>Fields</th></tr></thead>
+  <tbody>
+    <tr><td><code>diagnostic</code></td><td>all commands</td><td><code>code</code>, <code>severity</code> (<code>"error"</code> or <code>"warning"</code>), <code>message</code>, <code>span</code>, <code>hint</code> (string or <code>null</code>), <code>fix</code> (object or <code>null</code>)</td></tr>
+    <tr><td><code>failure</code></td><td><code>run</code></td><td><code>span</code> (of the failing <code>assert</code>), <code>testimony</code> (a full <code>verity.testimony/0</code> document)</td></tr>
+    <tr><td><code>exception</code></td><td><code>run</code></td><td><code>exception</code> (class name), <code>message</code>, <code>traceback</code> (list of <code>{"file", "line", "function"}</code>, innermost last, with <code>.ity</code> locations)</td></tr>
+    <tr><td><code>test</code></td><td><code>test</code></td><td><code>id</code> (<code>FILE::NAME</code>), <code>outcome</code> (<code>"passed"</code>, <code>"failed"</code> or <code>"error"</code>), <code>duration_ms</code>, <code>testimony</code> (document or <code>null</code>), <code>exception</code> (as above, or <code>null</code>), <code>stdout</code></td></tr>
+    <tr><td><code>summary</code></td><td><code>test</code></td><td><code>passed</code>, <code>failed</code>, <code>errors</code>, <code>duration_ms</code></td></tr>
+  </tbody>
+</table>
+</div>
+<p>A <code>fix</code> is <code>{"span": span, "replacement": str}</code>: replacing the text in <code>span</code> with <code>replacement</code> applies it. Applying every fix of a <code>verity check</code> run, in any order, never produces overlapping edits.</p>
+<pre class="sh">
+$ verity check --json hello.ity
+</pre>
+<pre class="out">
+{"type": "diagnostic", "code": "E0101", "severity": "error", "message": "`True` is not a Verity literal", "span": {"file": "hello.ity", "line": 3, "col": 9, "end_line": 3, "end_col": 13}, "hint": "use `verity`", "fix": {"span": {"file": "hello.ity", "line": 3, "col": 9, "end_line": 3, "end_col": 13}, "replacement": "verity"}}
+</pre>
+
+<h2 id="codes">Diagnostic codes</h2>
+<p>Codes are <code>E</code> for errors and <code>W</code> for warnings, then four digits. The first two digits give the phase: <code>01</code> lexical, <code>02</code> syntax, <code>03</code> names.</p>
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Code</th><th>Meaning</th><th>Fix</th></tr></thead>
+  <tbody>
+    <tr><td><code>E0101</code></td><td><code>True</code> or <code>False</code> in Verity source</td><td>replace with <code>verity</code> or <code>falsity</code></td></tr>
+    <tr><td><code>E0102</code></td><td>Dedent to a width that matches no enclosing block</td><td>none</td></tr>
+    <tr><td><code>E0103</code></td><td>A file indents with both tabs and spaces</td><td>none</td></tr>
+    <tr><td><code>E0104</code></td><td>Invalid character</td><td>none</td></tr>
+    <tr><td><code>E0105</code></td><td>Unterminated string literal</td><td>none</td></tr>
+    <tr><td><code>E0201</code></td><td>Chained comparison such as <code>a &lt; b &lt; c</code></td><td>rewrite as <code>a &lt; b and b &lt; c</code> (only when <code>b</code> is a name or literal, so it is safe to evaluate twice)</td></tr>
+    <tr><td><code>E0202</code></td><td>Chained <code>because</code></td><td>none</td></tr>
+    <tr><td><code>E0203</code></td><td>Unexpected token</td><td>none</td></tr>
+    <tr><td><code>E0204</code></td><td>Quantifier target is not a single name</td><td>none</td></tr>
+    <tr><td><code>W0301</code></td><td>Name is never defined in this module and is not a builtin</td><td>none</td></tr>
+  </tbody>
+</table>
+</div>
+<p>This table is extended as the compiler grows. Codes are assigned in order and never reused.</p>
+
+<h2 id="agent-loop">Using Verity from an agent</h2>
+<p>[[proposed]] A coding agent working in a Verity project can rely on this loop:</p>
+<ol>
+  <li>Write or edit code.</li>
+  <li>Run <code>verity check --json</code>. Apply every <code>fix</code>, address remaining diagnostics, repeat until there are none.</li>
+  <li>Run <code>verity test --json</code>. For each failed test, read the <code>testimony</code>: the deciding node names the comparison and the values, a <code>because</code> node's <code>reason</code> names the rule, and its <code>hint</code> suggests the change.</li>
+  <li>Treat nodes with <code>"asserted": true</code> as claims, not evidence: a claim that seems wrong may itself be the bug.</li>
+</ol>
+<p>Writing checks with <code>all_of</code> and <code>reason</code> IDs makes this loop more useful, because one run reports every failing rule by name.</p>
+
+<h2 id="plain-text-docs">Plain-text documentation</h2>
+<p>This documentation is also published as plain text for language models and other tools: [[settled]]</p>
+<ul>
+  <li><a href="llms.txt"><code>llms.txt</code></a>: a short index in the <code>llms.txt</code> convention, with a summary of the language and links to each section.</li>
+  <li><a href="verity.txt"><code>verity.txt</code></a>: the complete reference as one plain-text file, generated from the same source as these pages.</li>
+</ul>

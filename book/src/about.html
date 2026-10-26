@@ -1,4 +1,4 @@
-<p>This is the reference documentation for the Verity programming language. It describes the language's syntax and semantics, the testimony model, the boundary with Python, the standard library, the command-line tool and the compiler's architecture. It is written to be precise rather than introductory: each section states rules, then gives examples.</p>
+<p>This is the reference documentation for the Verity programming language. It describes the language's syntax and semantics, the testimony model, the machine interface, the boundary with Python, the standard library, the command-line tool and the compiler's architecture. It is written for people and for language models alike, and is published in plain text as <a href="llms.txt">llms.txt</a> and <a href="verity.txt">verity.txt</a>. It is written to be precise rather than introductory: each section states rules, then gives examples.</p>
 
 <h2 id="status">Status of this document</h2>
 <p>Verity is in early design and no implementation exists yet. This document describes the language the implementation is being built to accept. Every rule carries one of three markers:</p>
@@ -48,7 +48,7 @@
 <pre class="ity">
 from testimony import explain
 
-(3 > 5) |> explain |> print
+print(explain(3 > 5))
 </pre>
 <pre class="out">
 falsity
@@ -56,7 +56,7 @@ falsity
 </pre>
 
 <h2 id="scope">Scope</h2>
-<p>This document does not teach programming or functional programming. Readers are assumed to know Python. Constructs that Verity takes unchanged from Python, such as literals, comprehensions, <code>try</code> and <code>with</code>, are listed but not re-specified. Their semantics are those of the corresponding Python construct.</p>
+<p>This document does not teach programming or functional programming. Readers are assumed to know Python. Constructs that Verity takes unchanged from Python, which is nearly all of Python 3.12, are not re-specified. Their semantics are those of the corresponding Python construct.</p>
 
 <h2 id="credits">Authors and license</h2>
-<p>Written by Henrik Gombos (<a href="https://github.com/Henrik66">Henrik66</a>) and Pranav Balakrishnan (<a href="https://github.com/pranavbalakri">pranavbalakri</a>). Verity's surface syntax derives from <a href="https://coconut-lang.org/">Coconut</a>. The source of this document is in the <a href="https://github.com/Henrik66/verity/tree/main/book/src">repository</a> and is released under the Apache-2.0 license.</p>
+<p>Written by Henrik Gombos (<a href="https://github.com/Henrik66">Henrik66</a>) and Pranav Balakrishnan (<a href="https://github.com/pranavbalakri">pranavbalakri</a>). The source of this document is in the <a href="https://github.com/Henrik66/verity/tree/main/book/src">repository</a> and is released under the Apache-2.0 license.</p>

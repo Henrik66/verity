@@ -1,4 +1,5 @@
-"""Build the Verity textbook: book/src/*.html fragments -> site/public/book/*.html (Vite copies public/ into the build).
+"""Build the Verity reference: book/src/*.html fragments -> site/public/book/*.html (Vite copies public/ into the build),
+plus plain-text versions for language models and other tools: llms.txt (index) and verity.txt (everything).
 
 No dependencies. Run from anywhere:  python3 book/build.py
 
@@ -33,11 +34,12 @@ TOC = [
     ("data-model", "Data Model", 3),
     ("expressions", "Expressions", 4),
     ("testimony", "Testimony Semantics", 5),
-    ("statements", "Statements and Definitions", 6),
+    ("statements", "Statements", 6),
     ("python", "Python Interoperability", 7),
     ("stdlib", "Standard Library", 8),
     ("cli", "Command-Line Interface", 9),
-    ("implementation", "Implementation", 10),
+    ("machine", "Machine Interface", 10),
+    ("implementation", "Implementation", 11),
     ("grammar", "Grammar", "A"),
     ("glossary", "Glossary", "B"),
 ]
@@ -72,12 +74,12 @@ CODE_TOKEN = re.compile(
   | (?P<str>(?<![\w])[rRbBfF]{0,2}(?:\"\"\"[\s\S]*?\"\"\"|'[^'\n]*'|"[^"\n]*"))
   | (?P<truth>\b(?:verity|falsity)\b)
   | (?P<test>\b(?:because|forall|exists)\b)
-  | (?P<kw>\b(?:def|addpattern|data|match|case|if|elif|else|for|in|while|return
+  | (?P<kw>\b(?:def|match|case|if|elif|else|for|in|while|return|assert
                |import|from|as|and|or|not|is|None|True|False|lambda|pass|yield
-               |with|try|except|raise|class)\b)
+               |with|try|except|raise|class|async|await|global|nonlocal|del)\b)
+  | (?P<deco>^\s*@[\w.]+)
   | (?P<num>\b\d+(?:\.\d+)?\b)
   | (?P<sh>^\$(?=\s))
-  | (?P<op>\|>|\.\.>|<\.\.|\$|->)
     """,
     re.VERBOSE | re.MULTILINE,
 )
@@ -92,7 +94,8 @@ EBNF_TOKEN = re.compile(
 
 OUT_TOKEN = re.compile(
     r"(?P<truth>^(?:verity|falsity)\b)"
-    r"|(?P<label>\b(?:witnessed|refuted|counterexample|witness|all of|none of|not|literal)(?=:|$))",
+    r"|(?P<label>\b(?:witnessed|refuted|counterexample|witness|all of|none of|not|literal|hint)(?=:|$)|\bfailed \d+ of \d+:)"
+    r"|(?P<test>\[[a-z0-9_]+(?:\.[a-z0-9_]+)*\]$)",
     re.MULTILINE,
 )
 
@@ -243,6 +246,76 @@ def page(index: int) -> str:
 """
 
 
+# --- plain text (llms.txt, verity.txt) ----------------------------------
+
+SITE = "https://www.verity.garden/book"
+
+
+def to_text(fragment: str, number) -> str:
+    """Render one page fragment as plain text: headings numbered like the HTML, code verbatim."""
+    t = fragment.replace("<!--smiley-->", "")
+    t = re.sub(r"\[\[(settled|proposed|open)\]\]", r"[\1]", t)
+    count = [0]
+
+    def h2(m: re.Match) -> str:
+        count[0] += 1
+        title = re.sub(r"<[^>]+>", "", m.group(1))
+        head = f"{number}.{count[0]} {title}" if number is not None else title
+        return f"\n\n{head}\n{'-' * len(head)}\n"
+
+    def pre(m: re.Match) -> str:
+        code = html.unescape(m.group(2)) if m.group(1) not in ("ity", "out", "py", "sh", "ebnf") else m.group(2)
+        code = code.strip("\n")
+        return "\n\n" + "\n".join("    " + line for line in code.split("\n")) + "\n\n"
+
+    t = re.sub(r'<pre class="([a-z]+)">(.*?)</pre>', pre, t, flags=re.S)
+    t = re.sub(r"<h2[^>]*>(.*?)</h2>", h2, t, flags=re.S)
+    t = re.sub(r"<h3[^>]*>(.*?)</h3>", lambda m: "\n\n" + re.sub(r"<[^>]+>", "", m.group(1)) + "\n", t, flags=re.S)
+    t = re.sub(r"<li[^>]*>", "\n- ", t)
+    t = re.sub(r"<dt[^>]*>", "\n\n", t)
+    t = re.sub(r"<dd[^>]*>", "\n  ", t)
+    t = re.sub(r"<tr[^>]*>", "\n", t)
+    t = re.sub(r"</t[dh]>\s*<t[dh][^>]*>", " | ", t)
+    t = re.sub(r"</?(p|ul|ol|table|thead|tbody|div|aside|dl)[^>]*>", "\n", t)
+    t = re.sub(r"<[^>]+>", "", t)
+    t = html.unescape(t)
+    t = re.sub(r"[ \t]+\n", "\n", t)
+    t = re.sub(r"\n{3,}", "\n\n", t)
+    t = re.sub(r"\n\n(?=- )", "\n", t)
+    for _ in range(2):
+        t = re.sub(r"(\n[^\n]* \| [^\n]*)\n\n(?=[^\n]* \| )", r"\1\n", t)
+    return t.strip()
+
+
+def plain_text() -> tuple[str, str]:
+    parts, index = [], []
+    for slug, title, number in TOC:
+        if slug == "cover":
+            continue
+        heading = label(number, title)
+        body = to_text((SRC / f"{slug}.html").read_text(), number if isinstance(number, (int, str)) else None)
+        parts.append(f"{'=' * len(heading)}\n{heading}\n{'=' * len(heading)}\n\n{body}\n")
+        lede = re.search(r"<p>(.*?)</p>", (SRC / f"{slug}.html").read_text(), re.S)
+        first = re.sub(r"<[^>]+>|\s*\[\[\w+\]\]", "", lede.group(1)) if lede else f"{title} of Verity terms."
+        index.append(f"- [{heading}]({SITE}/{slug}.html): {html.unescape(' '.join(first.split()))}")
+    full = (
+        f"{BOOK_TITLE}\nThe Verity language reference, by Henrik Gombos and Pranav Balakrishnan.\n"
+        f"Generated from {REPO}/tree/main/book/src. HTML version: {SITE}/cover.html\n\n"
+        + "\n\n".join(parts)
+    )
+    llms = (
+        "# Verity\n\n"
+        "> Verity is Python whose truth values explain themselves. Python 3.12 syntax plus the literals "
+        "`verity`/`falsity`, `p because m`, and `forall`/`exists` quantifiers; every truth carries testimony "
+        "(why it holds), rendered as text or as JSON (schema verity.testimony/0). Compiles to Python.\n\n"
+        "Status markers: [settled] is spec, [proposed] and [open] are not yet.\n\n"
+        "## Reference\n\n" + "\n".join(index) + "\n\n"
+        f"## Optional\n\n- [Full reference as one text file]({SITE}/verity.txt)\n"
+        f"- [Source repository]({REPO}): spec in CLAUDE.md, conformance examples in examples/\n"
+    )
+    return llms, full
+
+
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     for asset in (ROOT / "assets").iterdir():
@@ -263,7 +336,10 @@ def main() -> None:
     for stale in OUT.glob("*.html"):
         if stale.stem not in {e[0] for e in TOC} | set(REDIRECTS) | {"index"}:
             stale.unlink()
-    print(f"built {len(TOC)} pages and {len(REDIRECTS)} redirects into {OUT}")
+    llms, full = plain_text()
+    (OUT / "llms.txt").write_text(llms)
+    (OUT / "verity.txt").write_text(full)
+    print(f"built {len(TOC)} pages, {len(REDIRECTS)} redirects, llms.txt and verity.txt into {OUT}")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,1400 @@
+Verity Programming
+The Verity language reference, by Henrik Gombos and Pranav Balakrishnan.
+Generated from https://github.com/Henrik66/verity/tree/main/book/src. HTML version: https://www.verity.garden/book/cover.html
+
+================
+About These Docs
+================
+
+This is the reference documentation for the Verity programming language. It describes the language's syntax and semantics, the testimony model, the machine interface, the boundary with Python, the standard library, the command-line tool and the compiler's architecture. It is written for people and for language models alike, and is published in plain text as llms.txt and verity.txt. It is written to be precise rather than introductory: each section states rules, then gives examples.
+
+Status of this document
+-----------------------
+
+Verity is in early design and no implementation exists yet. This document describes the language the implementation is being built to accept. Every rule carries one of three markers:
+
+Marker | Meaning
+[settled] | Fixed by the language specification or by an expected output in examples/. Changing it requires changing the spec.
+[proposed] | A concrete design this document recommends. It has not yet been adopted by the spec and may change.
+[open] | An unresolved question. Alternatives are listed where they are known.
+
+A section-level marker applies to every rule in that section unless a rule carries its own marker.
+
+Normative sources
+
+In order of precedence:
+- The language specification, CLAUDE.md in the repository root.
+- The conformance examples, examples/*.ity, and their expected output, examples/*.expected. The rendering format of testimony is defined by these files.
+- This document.
+
+Where this document disagrees with a higher source, the higher source is correct and this document has a bug.
+
+Notation
+--------
+
+Grammar
+
+Syntax is given in a variant of EBNF:
+
+Form | Meaning
+name ::= ... | Defines the nonterminal name.
+"text" | A literal terminal: a keyword, operator or delimiter.
+NAME, NEWLINE | A token class produced by the lexer (all capitals).
+a b | Sequence.
+a | b | Alternation.
+[a] | Optional.
+a*, a+ | Zero or more, one or more.
+(* ... *) | Comment.
+
+The complete grammar is collected in Appendix A.
+
+Code and output
+
+Verity source appears in blocks labeled verity, program output in blocks labeled output, generated Python in blocks labeled python, and shell commands, prefixed with $, in blocks labeled shell. Output blocks show exactly what the program prints, including the indentation of testimony.
+
+    from testimony import explain
+
+    print(explain(3 > 5))
+
+    falsity
+      3 > 5: 3 Henrik66) and Pranav Balakrishnan (pranavbalakri). The source of this document is in the repository and is released under the Apache-2.0 license.
+
+
+===========
+1. Overview
+===========
+
+Verity is Python whose truth values explain themselves. When a check fails, a Verity program can say which comparison, element or claim decided it, both as text for people and as JSON for tools and agents. It compiles to Python and runs on CPython.
+
+1.1 Summary
+-----------
+- Syntax. Python 3.12, plus four additions: the truth literals verity and falsity, p because m, the quantifiers forall and exists, and an assert that keeps testimony. Anyone, person or model, who can write Python can write Verity. [settled]
+- Truth values. The type truth has exactly two constructors, verity and falsity. [settled]
+- Testimony. Every truth carries testimony: a verity carries a witness and a falsity a refutation. Comparisons, and, or, not, forall, exists, because and all_of construct it automatically. [settled]
+- Machine-readable. Testimony serializes to a published JSON schema. Compiler diagnostics have stable codes and machine-applicable fixes. verity check, run and test emit JSON Lines with --json. [settled]
+- No cost when unused. Testimony that nobody observes is never built: a check used only as an if condition compiles to a plain Python boolean expression. [settled]
+- A library too. The runtime is the Python package verity-testimony, so Python programs and test suites can use testimony without writing .ity files. [settled]
+
+1.2 Example
+-----------
+
+    from testimony import explain
+
+    primes = [2, 3, 5, 7, 11, 13]
+
+    all_odd = forall p in primes, p % 2 == 1
+    has_big = exists p in primes, p > 10
+
+    print(explain(all_odd))
+    print(explain(has_big))
+
+    if not all_odd:
+        print("not every prime is odd, and Verity can tell you why")
+
+    falsity
+      counterexample: p = 2 (primes[0])
+        p % 2 == 1: 0 != 1
+    verity
+      witness: p = 11 (primes[4])
+        p > 10: 11 > 10
+    not every prime is odd, and Verity can tell you why
+
+This program is examples/counterexample.ity, one of the conformance examples.
+
+1.3 Why
+-------
+
+A failed check in most languages says only that it failed. pytest, for example, explains a failing comparison but reports a failing assert all(x > 0 for x in xs) as assert False. A person can open a debugger. An agent that wrote the code and is trying to fix it has only the output.
+
+Verity's answer is to make the explanation part of the value. A falsity from forall names the element that failed and where it was; a falsity from a validation function names the rule, its stable reason ID and a hint for fixing it. The same tree renders as text for a person and as JSON for a program, so an agent can read why a check failed, change the code and check again without guessing.
+
+1.4 Design goals
+----------------
+- Checks explain themselves. A falsity identifies the comparison, element or claim that decided it, with the values involved.
+- Readable by programs. Every explanation, diagnostic and test result has a documented machine-readable form with stable identifiers, and output is deterministic.
+- Python, not a new syntax. Verity adds as little syntax as possible to Python, so existing knowledge of Python, in people and in language models, carries over.
+- No cost when unused. Programs that never observe testimony run as fast as the equivalent Python.
+- Honest. Testimony distinguishes what was computed from what was claimed, hides secrets, and stays bounded in size.
+
+1.5 Non-goals
+-------------
+- Proof. Testimony explains what a program evaluated. It does not verify claims (Section 5.12).
+- Authorization engines. Explaining an access decision can reveal policy to the person it was denied to. Policy engines built for that purpose are a better fit.
+- Data-frame validation. Vectorised comparisons on numpy arrays and pandas series pass through without testimony. Data-quality tools already report per-row failures.
+
+1.6 Execution model
+-------------------
+
+  file.ity→
+  verity (Rust)→
+  Python module + testimony.py→
+  CPython
+- The compiler, verity, is a standalone executable written in Rust. [settled]
+- A compilation unit is one source file. Each .ity file produces one Python module. [settled]
+- The runtime, testimony.py with string_ops.py, is embedded in the compiler and written next to generated code, so .ity programs need no install and always run with the matching runtime. The same runtime is published as the package verity-testimony for use from Python. [settled]
+- Programs are executed by CPython 3.12 or later. [proposed]
+
+See Section 9 for the command-line interface, Section 10 for the machine interface and Section 11 for the compiler's internals.
+
+1.7 Differences from Python
+---------------------------
+
+Topic | Python | Verity
+Boolean literals | True, False | verity, falsity, of type truth, carrying testimony. True/False are a compile error with an automatic fix.
+Comparisons | Return bool (or any object) | Return a truth when Python would return a bool; otherwise the result passes through unchanged
+and, or, not | Return one of the operands | Return a truth combining the operands' testimony when the operands are truths or bools; Python semantics otherwise
+Quantifiers | all(), any() return bool | Also forall, exists expressions, which name the deciding element
+assert | Raises AssertionError; removed under -O | Raises TestimonyError carrying the falsity; never removed
+
+Earlier designs
+
+Before October 2026 Verity borrowed Coconut's syntax (-> lambdas, |> pipes, $ partial application, data and addpattern). It was dropped so that people and language models who know Python can write Verity without learning new operators. Python already provides lambda, match and data classes.
+
+1.8 Implementation status
+-------------------------
+
+Milestone | Scope | Status
+1 | Runtime library: Truth, testimony, combinators, all_of, reasons, secrets, text and JSON rendering, bounds | in progress
+2 | Python core: literals, def, comparisons, and/or/not, control flow; verity run, compile, check --json | not started
+3 | forall, exists, because, assert; spans; verity test; traceback mapping | not started
+4 | pytest plugin and @testify for plain Python | not started
+5 | The rest of Python 3.12: classes, data classes, match, comprehensions and more | not started
+6 | Dual compilation (erasure) | not started
+
+A milestone is complete when every conformance example within its scope produces exactly its expected output.
+
+
+===================
+2. Lexical Analysis
+===================
+
+A Verity program is read by the lexer as a sequence of tokens. Verity's lexical structure is Python 3.12's, with five extra keywords. [settled]
+
+2.1 Source files
+----------------
+- Source files use the extension .ity. [settled]
+- Source text is UTF-8. A byte order mark is ignored. [settled]
+- Each file is one module. Its module name is the file name without the extension. [settled]
+
+2.2 Line structure
+------------------
+
+A program is a sequence of logical lines, each terminated by a NEWLINE token. The rules are Python's: [settled]
+- A physical line ends at \n, \r\n or \r.
+- Inside ( ), [ ] or { }, line breaks are ignored (implicit line joining).
+- A backslash at the end of a physical line, outside a string or comment, joins it with the next (explicit line joining).
+- A line containing only whitespace and an optional comment produces no tokens.
+- A comment starts with # outside a string literal and ends at the end of the physical line.
+
+2.3 Indentation
+---------------
+
+Leading whitespace on a logical line determines its indentation level. The lexer keeps a stack of indentation widths, initially [0], and at the start of each logical line: [settled]
+- If the width equals the top of the stack, no token is emitted.
+- If it is greater, the width is pushed and one INDENT token is emitted.
+- If it is smaller, widths are popped until it equals the top of the stack, emitting one DEDENT per pop. If no stack entry equals it, the lexer reports E0102.
+
+At end of input, one DEDENT is emitted for every entry above 0, followed by ENDMARKER.
+
+Indentation may use spaces or tabs, but a file that indents with both reports E0103, since their relative widths are ambiguous. [settled]
+
+2.4 Identifiers
+---------------
+
+Identifiers follow Python's rules: a letter or underscore followed by letters, digits or underscores, where "letter" includes Unicode characters with the XID_Start property and NFKC normalization applies. [settled]
+
+Standard library modules and functions are named in snake_case, for example string_ops and testimony.explain. [settled]
+
+2.5 Keywords
+------------
+
+Verity reserves Python's keywords and soft keywords, plus these: [settled]
+
+Keyword | Use | Section
+verity, falsity | truth literals | 4.2
+because | attach a claim to a truth | 4.5
+forall, exists | quantifiers | 4.6
+
+A Python module that uses one of these names as an identifier can still be imported. Only Verity source cannot spell them as names. True and False are lexed as names, and the compiler reports E0101 for them (Section 10.3).
+
+2.6 Literals
+------------
+- Numbers, strings and bytes, including f-strings, raw strings and triple-quoted strings: as in Python.
+- Truth: verity and falsity. These are the only truth literals. [settled]
+- None: None.
+
+2.7 Operators and delimiters
+----------------------------
+
+Verity's operators and delimiters are exactly Python's. It adds no operator tokens. [settled]
+
+
+=============
+3. Data Model
+=============
+
+Every value in a running Verity program is a Python object. This section describes the objects Verity adds: truths, testimony, reasons and secrets.
+
+3.1 Objects
+-----------
+
+Verity has no object model of its own. Integers, strings, lists, functions, classes, data classes, modules and all other values are the corresponding Python objects, with Python's identity, type and mutability rules. [settled]
+
+3.2 The truth type
+------------------
+
+truth is the type of truth values. [settled]
+- It has exactly two constructors: verity (true) and falsity (false).
+- Every truth carries a testimony tree (Section 5). A verity's testimony is called its witness, and a falsity's its refutation.
+- At run time, truths are instances of the runtime class testimony.Truth (Section 8.2).
+- Truths are immutable.
+- bool(t) is True for a verity and False for a falsity. Truths are accepted anywhere Python accepts a condition.
+- Equality and hashing consider only the truth value, never the testimony. Two verities with different witnesses are equal, and a truth equals the bool with the same value.
+- str(t) and repr(t) are "verity" or "falsity". Testimony is shown only by explain and to_json.
+- truth is not a subclass of Python's bool or int, so arithmetic on truths raises TypeError.
+
+3.3 Testimony
+-------------
+
+A testimony is a finite tree of immutable nodes. Each node has a kind, a truth value, the data for that kind (source text, captured values, a claim, a position) and an ordered tuple of children. The node kinds, how they are constructed and how they are rendered are specified in Section 5. [settled]
+
+Nodes hold repr strings of the values they mention, captured when the node is built, not references to the values. Testimony therefore does not keep large objects alive and does not change when a value is mutated (Section 5.8). [settled]
+
+3.4 Reasons
+-----------
+
+A Reason is an immutable value with three attributes: id, a dotted identifier; message, the claim; and hint, a string or None. It is built by testimony.reason(id, message, hint=None) and used as the right operand of because (Section 5.3). [settled]
+
+3.5 Secrets
+-----------
+
+A Secret wraps one value. It compares and hashes like that value, renders as <secret>, and supports no other operations. testimony.reveal(s) returns the wrapped value (Section 5.7). [settled]
+
+3.6 TestimonyError
+------------------
+
+testimony.TestimonyError is a subclass of Python's AssertionError. It is raised by a failing assert (Section 6.2) and by Truth.expect(). Its attribute truth holds the falsity, and str(e) is explain(e.truth). [settled]
+
+
+==============
+4. Expressions
+==============
+
+This section specifies the expressions whose meaning differs from Python's. Every other expression (literals, displays, comprehensions, calls, subscriptions, slicing, attribute references, arithmetic, bitwise operators, lambda, conditional expressions, f-strings) has Python 3.12's syntax and semantics.
+
+4.1 Operator precedence
+-----------------------
+
+Python's precedence table, with two additions. From highest (binds tightest) to lowest; operators in the same row have equal precedence. [settled]
+
+Operators | Description | Associativity
+x(...), x[...], x.name | call, subscription, attribute | left
+** | exponentiation | right
++x, -x, ~x | unary | n/a
+*, @, /, //, % | multiplicative | left
++, - | additive | left
+<<, >> | shifts | left
+&, ^, | | bitwise and, xor, or (three levels, as in Python) | left
+== != < <= > >= in not in is is not | comparisons | see 4.3
+not | negation | n/a
+because | attach a claim (Verity) | none (not chainable)
+and | conjunction | left
+or | disjunction | left
+x if c else y | conditional expression | right
+lambda | lambda | n/a
+forall, exists | quantifiers (Verity) | body extends right
+
+Consequences worth noting:
+- n % 2 == 0 because m parses as (n % 2 == 0) because m, and not p because m as (not p) because m.
+- p because m and q parses as (p because m) and q. The conformance examples parenthesize such operands anyway, and this document recommends doing so.
+- A quantifier's body extends as far right as possible. Inside a call it stops at the next top-level comma, so f(forall x in xs, p, y) passes two arguments.
+
+4.2 Truth literals
+------------------
+
+verity and falsity evaluate to truths with literal testimony (Section 5.1). [settled] True and False in Verity source are compile error E0101, whose diagnostic carries a fix replacing them (Section 10.3). Python code still produces and receives Python bools; see Section 7.
+
+4.3 Comparisons
+---------------
+
+A comparison a op b evaluates a and then b, and applies Python's comparison protocol. Then: [settled]
+- If the result r is a Python bool, the value of the comparison is a truth with the same truth value. Its testimony is a comparison node recording the source text of the whole comparison, both operand values and the relation that held (Section 5.2).
+- Otherwise, for example a numpy array or pandas Series, the value of the comparison is r, unchanged.
+
+The meaning and testimony of chained comparisons such as a < b < c are [open]. Until they are settled, the compiler rejects chains with E0201, whose hint suggests a < b and b < c.
+
+4.4 Boolean operations
+----------------------
+
+Operands of not, and and or that are truths or Python bools produce truths. A bool operand is first lifted (Section 7.2). [settled]
+- not p is a truth with the opposite value. Its testimony wraps p's.
+- p and q evaluates p. If p is a falsity, the result is p's value and testimony, and q is not evaluated. Otherwise q is evaluated. A falsity q gives a falsity with q's testimony, and a verity gives a verity whose testimony lists both.
+- p or q is the dual: it short-circuits on the first verity, and a falsity lists every operand's refutation.
+
+If an operand is neither a truth nor a bool, as in name or "anonymous", the operation has Python's semantics and returns one of its operands. This keeps ordinary Python idioms working. [settled]
+
+To report every failing check rather than the first, use testimony.all_of instead of and (Section 5.2).
+
+4.5 Attaching claims: because
+-----------------------------
+
+    because_test ::= not_test ["because" not_test]
+
+p because m evaluates p, which must be a truth or a bool, and yields a truth with the same value. [settled]
+- m is a string or a Reason built by testimony.reason (Section 5.3). Any other value is converted with str().
+- m states the claim that holds when p is a verity. It renders after witnessed: or refuted:.
+- m is evaluated only if the testimony is observed (Section 5.9). A program must therefore not rely on side effects in m.
+- because does not chain. p because a because b is a syntax error.
+
+    from testimony import explain
+
+    def is_even(n):
+        return n % 2 == 0 because f"{n} is even"
+
+    print(explain(is_even(7)))
+
+    falsity
+      refuted: 7 is even
+        n % 2 == 0: 1 != 0
+
+4.6 Quantifiers
+---------------
+
+    quantifier ::= ("forall" | "exists") NAME "in" or_test "," expression
+
+A quantifier evaluates its iterable expression once, then iterates over it in order. For each element it binds the name to the element in a new scope local to the quantifier, and evaluates the body, which must yield a truth or a bool. [settled]
+- forall stops at the first falsity and yields a falsity whose testimony is a counterexample node. If the iterable is exhausted, it yields a verity with a universal node.
+- exists stops at the first verity and yields a verity whose testimony is a witness node. If the iterable is exhausted, it yields a falsity with a no-element node.
+
+Over an empty iterable, forall yields a verity and exists a falsity. Infinite iterables are permitted: evaluation terminates if and when a deciding element is found. The bound name must be a single identifier. Destructuring targets such as forall (k, v) in d.items(), ... are [open].
+
+Python's all(...) and any(...) still work and return bools, which lift with only all(...) returned False as testimony. Prefer forall and exists when the answer may need explaining.
+
+    from testimony import explain
+
+    grid = [[1, 0], [0, 2], [3, 4]]
+    print(explain(forall row in grid, exists x in row, x == 0))
+
+    falsity
+      counterexample: row = [3, 4] (grid[2])
+        no element of row satisfies x == 0
+
+4.7 Conditional expressions
+---------------------------
+
+x if c else y has Python's semantics. c may be a truth. It is only branched on, so its testimony is not built (Section 5.10). [settled]
+
+
+======================
+5. Testimony Semantics
+======================
+
+This section specifies the testimony carried by truths: the node kinds, how each operator constructs them, reasons and hints, the two renderings (text and JSON), secrets, bounds, and when the compiler may skip building testimony.
+
+5.1 Node kinds
+--------------
+
+A testimony is a tree of nodes. Every node records the truth value it testifies to. The kinds are:
+
+Kind | Produced by | Data | Children | Status
+comparison | a op b | source text, left value, relation, right value | none | [settled]
+all | verity from and or all_of | none | one per operand | [settled]
+none | falsity from or | none | one per operand | [settled]
+failures | falsity from all_of | failed count, total count | one per failing operand | [settled]
+not | not p | none | p's testimony | [settled]
+because | p because m | claim, reason ID, hint | p's testimony, unless it is literal | [settled]
+counterexample | falsity from forall | name, element, position, index | the body's refutation | [settled]
+universal | verity from forall | count, iterable source, body source | none | [settled]
+witness | verity from exists | name, element, position, index | the body's witness | [settled]
+no-element | falsity from exists | iterable source, body source | none | [settled]
+literal | verity, falsity | none | none | [settled]
+lifted | a Python bool used as a truth | source text, result | none | [settled]
+text | library functions | a sentence | none | [settled]
+truncated | the bounds in Section 5.8 | number of nodes omitted | none | [settled]
+
+The text kind lets library predicates such as string_ops.is_alnum state evidence directly: '_' at index 5 is not alphanumeric.
+
+A node is asserted if its content is a claim the program's author made rather than something the runtime computed. because and literal nodes are asserted. All other nodes are computed. [settled]
+
+5.2 Construction rules
+----------------------
+
+Below, T(e) is the testimony of a truth e, and V(e) its value. [settled]
+
+Comparison
+
+For a op b whose Python result r is a bool: V = r, and T is comparison(src, a, rel, b), where src is the exact source text of the comparison, and rel is op when r is true and negate(op) otherwise:
+
+op | == | != | < | <= | > | >= | in | is
+negate(op) | != | == | >= | > | <= | < | not in | is not
+
+Operand values are captured as repr strings when the node is built (Section 5.8).
+
+Negation
+
+V(not p) = ¬V(p) and T(not p) = not(T(p)).
+
+Conjunction (short-circuit)
+
+For p₁ and p₂ and … and pₙ, evaluated left to right:
+- If some pᵢ is a falsity, let k be the first such index. Then V = falsity and T = T(pₖ). The operands after pₖ are not evaluated.
+- Otherwise, V = verity and T = all(T(p₁), …, T(pₙ)). If a T(pᵢ) is itself an all node produced directly by and, its children are spliced in place (flattening). A because node is never flattened.
+
+Disjunction
+
+For p₁ or … or pₙ:
+- If some pᵢ is a verity, let k be the first. Then V = verity and T = T(pₖ).
+- Otherwise, V = falsity and T = none(T(p₁), …, T(pₙ)), flattened analogously.
+
+Accumulating conjunction: all_of
+
+testimony.all_of(p₁, …, pₙ) is an ordinary function call, so every operand is evaluated, left to right. Use it when every failure should be reported at once, as in form validation.
+- If every pᵢ is a verity: V = verity, T = all(T(p₁), …, T(pₙ)). Operands are not flattened.
+- Otherwise: V = falsity, T = failures(k, n, T(pᵢ) for each falsity pᵢ in order), where k is the number of falsities.
+- all_of() with no operands is a verity with an empty all node.
+
+because
+
+V(p because m) = V(p). If m is a Reason (Section 5.3), T = because(m.message, m.id, m.hint, T(p)). Otherwise T = because(str(m), None, None, T(p)). When T(p) is literal the node has no child.
+
+Quantifiers
+
+For forall x in xs, body, iterate over the elements v₀, v₁, … of xs:
+- At the first index i where body[x := vᵢ] is a falsity b: V = falsity, T = counterexample(x, vᵢ, pos(i), T(b)).
+- If none: V = verity, T = universal(n, src(xs), src(body)), where n is the number of elements.
+
+For exists, exchange verity and falsity: the first verity b gives witness(x, vᵢ, pos(i), T(b)), and exhaustion gives no-element(src(xs), src(body)).
+
+pos(i) is xs[i] when the iterable expression is a plain name, and element i otherwise.
+
+The counterexample is the first falsifying element in iteration order, not the smallest or simplest one. Minimal counterexamples need a shrinking test tool such as Hypothesis (Section 7.7).
+
+Lifting
+
+A Python bool r in a position that requires a truth (Section 7.2) becomes a truth with V = r and T = lifted(src, r), where src is the source text of the expression that produced it.
+
+5.3 Reasons and hints
+---------------------
+
+testimony.reason(id, message, hint=None) builds a Reason, used as the right operand of because. [settled]
+- id is a stable, dotted identifier matching [a-z0-9_]+(\.[a-z0-9_]+)*, such as name.too_short. Anything else raises ValueError. IDs are for programs: tests, logs, translations and agents can match on them while the message wording changes.
+- message states the claim that holds when the truth is a verity, like any because message.
+- hint says how to make the claim hold. It is rendered only under a falsity.
+
+    from testimony import explain, reason
+
+    age = 12
+    print(explain(age >= 13 because reason("age.minimum", "the user is at least 13", hint="ask a parent to sign up")))
+
+    falsity
+      refuted: the user is at least 13 [age.minimum]
+        hint: ask a parent to sign up
+        age >= 13: 12 testimony.explain(t) returns a string of one or more lines, joined by \n, without a trailing newline: [settled]
+- The first line is verity or falsity.
+- The root node of T(t) is rendered at depth 1. A node at depth d is one line indented by 2·d spaces, followed by its children at depth d + 1, in order.
+- A because node with a hint, under a falsity, is followed by the line hint: {hint} at depth d + 1, before its children.
+- Values appear as their captured repr strings. Source text is reproduced exactly as written.
+
+Kind | Line | Example
+comparison | {src}: {repr(a)} {rel} {repr(b)} | len(name) >= 3: 2 < 3
+all | all of: |
+none | none of: |
+failures | failed {k} of {n}: | failed 3 of 4:
+not | not: |
+because | witnessed: {m} or refuted: {m}, then  [{id}] if it has a reason ID | refuted: the user is at least 13 [age.minimum]
+counterexample | counterexample: {x} = {repr(v)} ({pos}) | counterexample: p = 2 (primes[0])
+universal | all {n} elements of {src(xs)} satisfy {src(body)} | all 4 elements of shapes satisfy area(s) > 3
+witness | witness: {x} = {repr(v)} ({pos}) | witness: p = 11 (primes[4])
+no-element | no element of {src(xs)} satisfies {src(body)} | no element of row satisfies x == 0
+literal | literal |
+lifted | {src} returned {True|False} | name.isalnum() returned False
+text | the sentence | '_' at index 5 is not alphanumeric
+truncated | ... {k} more nodes omitted | ... 12 more nodes omitted
+
+Conformance example
+
+    import string_ops
+    from testimony import explain
+
+    def valid_username(name):
+        return (
+            (len(name) >= 3 because f"{name!r} has at least 3 characters")
+            and (len(name) = 3: 3 >= 3
+        witnessed: 'ada' has at most 16 characters
+          len(name) = 3: 2 examples/validate.ity. The three because nodes in the first case are not flattened into each other, but the all node of the two-level and chain is.
+
+5.5 Audiences
+-------------
+
+explain and to_json take an audience argument. [settled]
+
+Audience | Shows | Use
+"developer" (default) | The full tree: source text, operand values, claims | Logs, tests, agents
+"user" | Only the outermost because claims, with reason IDs and hints. Never source text, operand values or computed nodes. | Messages shown to end users
+
+For the "user" audience, the claims are the because nodes reached by a pre-order walk that does not descend into a because node's children. Each renders at depth 1 with its hint, if any, at depth 2. A truth with no claims renders as its first line alone. The text of a claim is whatever its author wrote, so a message that interpolates a value shows that value.
+
+The "user" audience reduces what reaches end users. It does not make an explanation safe by itself: a login check that says which of user name and password was wrong still lets an attacker tell whether an account exists. Give such checks a single, generic claim.
+
+    from testimony import all_of, explain, reason
+
+    name, age = "ada_l", 12
+    result = all_of(
+        name.isalnum() because reason("name.charset", f"{name!r} is alphanumeric", hint="use only letters and digits"),
+        age >= 13 because reason("age.minimum", "the user is at least 13"),
+    )
+    print(explain(result, audience="user"))
+
+    falsity
+      refuted: 'ada_l' is alphanumeric [name.charset]
+        hint: use only letters and digits
+      refuted: the user is at least 13 [age.minimum]
+
+5.6 JSON
+--------
+
+testimony.to_json(t, audience="developer") returns a dictionary that json.dumps can serialize, in the schema verity.testimony/0. The /0 marks the schema as pre-release: it may change in incompatible ways until it becomes /1. [settled]
+
+Document
+
+For the "developer" audience:
+
+    {"schema": "verity.testimony/0", "value": "verity" | "falsity", "testimony": node}
+
+For the "user" audience, the tree is replaced by the list of claims from Section 5.5:
+
+    {"schema": "verity.testimony/0", "value": ..., "claims": [{"value": ..., "claim": str, "reason": str | None, "hint": str | None}, ...]}
+
+Nodes
+
+Every node is an object whose keys appear in this order:
+- kind: the node kind, from Section 5.1.
+- value: "verity" or "falsity", the value of the truth this node testifies to.
+- asserted: true for because and literal nodes, otherwise false.
+- line: the node's text rendering, without indentation.
+- The kind's own fields, in the order of the table below.
+- span, only when the source location is known: {"file", "line", "col", "end_line", "end_col"}. Lines and columns are 1-based, columns count Unicode code points, and the end is exclusive. file is the source path as given to verity.
+- children: a list of nodes, possibly empty.
+
+Kind | Fields
+comparison | src, left, rel, right (operands are repr strings)
+failures | failed, total (integers)
+because | claim, reason (string or null), hint (string or null)
+counterexample, witness | name, element (repr string), position, index (integer)
+universal | count, iterable, body
+no-element | iterable, body
+lifted | src, result (boolean)
+text | text
+truncated | omitted (integer)
+all, none, not, literal | none
+
+    import json
+    from testimony import to_json
+    t = 2 + 2 == 5
+    print(json.dumps(to_json(t), indent=2))
+
+    {
+      "schema": "verity.testimony/0",
+      "value": "falsity",
+      "testimony": {
+        "kind": "comparison",
+        "value": "falsity",
+        "asserted": false,
+        "line": "2 + 2 == 5: 4 != 5",
+        "src": "2 + 2 == 5",
+        "left": "4",
+        "rel": "!=",
+        "right": "5",
+        "span": {
+          "file": "demo.ity",
+          "line": 3,
+          "col": 5,
+          "end_line": 3,
+          "end_col": 15
+        },
+        "children": []
+      }
+    }
+
+A complete example with every field in use is examples/signup.ity. The record formats that carry this JSON out of verity run and verity test are in Section 10.2.
+
+5.7 Secrets
+-----------
+
+testimony.secret(x) wraps a value so that it never appears in testimony. [settled]
+- A secret compares (==, !=, <, <=, >, >=, in) and hashes as its value does.
+- Its repr and str are <secret>, so comparison testimony shows <secret> in every audience and format.
+- Secrets do not propagate. Every other operation on a secret raises TypeError. testimony.reveal(s) returns the wrapped value, which is then an ordinary value and is shown like any other.
+
+    from testimony import explain, secret
+
+    expected = secret("garden-42")
+    print(explain("garden-41" == expected))
+
+    falsity
+      "garden-41" == expected: 'garden-41' !=
+
+5.8 Bounds and determinism
+--------------------------
+
+Testimony is built while the program runs, so its size and content must be predictable. [settled]
+- Snapshots. Operand and element values are captured as repr strings when a node is built. Mutating a value later does not change its testimony.
+- Stable text. Memory addresses are removed from captured reprs: <Foo object at 0x10f3> becomes <Foo object>. verity run and verity test set PYTHONHASHSEED=0, so set and dict reprs are reproducible. The same program on the same input produces byte-identical testimony.
+- Width. A captured repr longer than max_repr (default 80) characters is cut to max_repr − 3 characters followed by .... A node keeps at most max_children (default 50) children. Any further children are replaced by one truncated node counting them.
+- Depth. Rendering and serialization stop at depth max_depth (default 32). A subtree below that depth is replaced by one truncated node counting its nodes.
+
+testimony.configure(max_repr=..., max_children=..., max_depth=...) changes the limits for the running process (Section 8.1).
+
+5.9 Observation
+---------------
+
+The testimony of a truth-valued expression is observed unless the truth is only branched on. A truth is only branched on when its sole use is as: [settled]
+- the condition of if, elif or while;
+- the test of a conditional expression;
+- a case guard or a comprehension's if filter;
+- the argument of bool() or testimony.to_bool();
+- an operand of and, or or not, or the body of a quantifier, whose result is itself only branched on.
+
+A function's return does not decide observation by itself. Whether a call's result is observed is decided at the call site, by the same rules.
+
+5.10 Erasure by dual compilation
+--------------------------------
+
+Building testimony costs time: in an early measurement a three-clause check built with testimony ran about 16 times slower than the plain boolean expression. Verity avoids this cost when nobody is listening. [settled]
+- Each function that can return a truth is compiled twice: an evidence version, which builds testimony, and a value version, in which every truth-valued expression is a plain Python boolean expression and every call to a Verity function calls that function's value version.
+- A call whose result is only branched on (Section 5.9) calls the value version. Every other call, and every call from Python code, calls the evidence version.
+- Expressions outside functions follow the same rule: an expression that is only branched on is compiled without testimony.
+
+An erased expression must evaluate exactly the same subexpressions, in the same order, as the unerased form, including short-circuiting, and must produce the same truth value. It does not evaluate the messages of because. A program's output must be identical with erasure enabled or disabled. When the analysis is uncertain, the compiler keeps testimony.
+
+    def is_adult(age):
+        return age >= 18
+
+    if is_adult(20):
+        print("welcome")
+
+    def is_adult(age):
+        return _v.compare(age, ">=", 18, src="age >= 18", span=(...))
+
+    def _is_adult__value(age):
+        return age >= 18
+
+    is_adult.__verity_value__ = _is_adult__value
+
+    if _is_adult__value(20):
+        print("welcome")
+
+The generated names above are illustrative (Section 11.4).
+
+5.11 Cost model
+---------------
+
+[proposed] Implementations should meet these bounds:
+- An erased truth costs the same as the equivalent Python boolean expression.
+- An observed comparison allocates one node and two strings no longer than max_repr.
+- A quantifier's testimony holds only the deciding element (or, for universal, a count). Its size does not grow with the length of the iterable.
+- A conjunction's or disjunction's testimony grows with the number of operands, not with the number of evaluations of an enclosing loop.
+
+5.12 What testimony is not
+--------------------------
+- Not proof. Computed nodes (comparisons, quantifier positions, lifted results) report what the program actually evaluated. because claims are whatever their author wrote and are never checked: verity because "the moon is cheese" is accepted. Tools should trust asserted nodes only as far as they trust the author.
+- Not everywhere. Comparisons that return non-bool values, such as numpy arrays and pandas series, carry no testimony (Section 7.4). A Python function that returns a bool testifies only ... returned False: Verity cannot see inside it.
+- Not minimal. forall reports the first counterexample, not the simplest.
+
+
+=============
+6. Statements
+=============
+
+Verity's statements are Python 3.12's. This section specifies the one statement whose meaning differs, assert, and notes how the others interact with truths.
+
+6.1 Simple statements
+---------------------
+
+Expression statements, assignment (including augmented and annotated assignment and unpacking), return, pass, break, continue, raise, del, global, nonlocal, import and type aliases are as in Python. [settled]
+
+6.2 The assert statement
+------------------------
+
+    assert_stmt ::= "assert" expression ["," expression]
+
+assert p evaluates p. [settled]
+- If p is a truth or a bool (which is lifted) and is a falsity, it raises TestimonyError carrying the falsity (Section 3.6). If it is a verity, nothing happens.
+- If p is any other value, Python truthiness applies and a false value raises TestimonyError carrying a lifted falsity.
+- assert p, m means assert (p because m).
+- Unlike Python's, a Verity assert is never removed by python -O. Checks that explain themselves should not silently disappear.
+
+An uncaught TestimonyError ends the program with the testimony on standard error, or as a JSON record with --json (Section 10.2). verity test reports it as a test failure.
+
+    def withdraw(balance, amount):
+        assert amount  50
+
+6.3 Function definitions
+------------------------
+
+def, lambda, decorators, default and keyword-only parameters, *args, **kwargs and annotations are as in Python. [settled] A function that can return a truth is compiled in two versions so that unobserved testimony costs nothing (Section 5.10). This is invisible to callers: the function object is the evidence version.
+
+    def in_range(x, lo, hi):
+        return (lo class statements, inheritance, methods and @dataclass are as in Python. [settled] Data classes are the recommended way to define plain data: @dataclass(frozen=True) gives immutable values with structural equality, a readable repr such as Circle(r=1), and positional patterns for match.
+
+6.5 The match statement
+-----------------------
+
+As in Python (PEP 634). [settled] A case guard may be a truth, and its testimony is not built. A function that returns a truth from several case blocks returns whichever testimony that branch built.
+
+    def is_square(shape):
+        match shape:
+            case Square(_):
+                return verity because "it was built as a Square"
+            case Rect(w, h):
+                return w == h
+            case _:
+                return falsity because f"{shape} is a rectangle"
+
+6.6 Conditionals and loops
+--------------------------
+
+if/elif/else, while and for are as in Python. [settled] Conditions may be truths or any Python value, with Python truthiness applying to non-truths. A condition is only branched on, so its testimony is not built (Section 5.9).
+
+6.7 Imports
+-----------
+
+import and from … import are as in Python. [settled] Any importable Python module may be imported. The standard library modules (testimony, string_ops) are always importable and are the copies embedded in the compiler, even if a different version of verity-testimony is installed. Importing one .ity module from another compiles the imported module on demand. Whether a local module may shadow a standard library module is [open].
+
+6.8 Other statements
+--------------------
+
+try/except/finally, with, async forms and yield are as in Python. [settled]
+
+
+==========================
+7. Python Interoperability
+==========================
+
+Verity programs run on CPython and use Python libraries directly, and Python programs can use Verity's testimony. This section specifies the boundary in both directions.
+
+7.1 Calling Python from Verity
+------------------------------
+
+Any module importable by the executing Python interpreter can be imported. Python functions, classes and values are used with ordinary call, attribute and subscription syntax. [settled]
+
+    import json
+    from statistics import mean
+
+    scores = json.loads("[61, 74, 88]")
+    print(mean(scores))
+
+    74.33333333333333
+
+7.2 Rule 1: lifting Python booleans
+-----------------------------------
+
+A Python bool that appears where a truth is required is lifted into a truth with the same value. The positions that require a truth are: the operands of not, and and or (when the other operand is a truth or bool), the left operand of because, the body of a quantifier, the operand of assert, the arguments of all_of, and the argument of explain or to_json. [settled]
+
+The lifted truth's testimony is a lifted node that quotes the source text of the expression and its result: [settled]
+
+    from testimony import explain
+
+    code = "4a"
+    print(explain(code.isdigit()))
+
+    falsity
+      code.isdigit() returned False
+
+When the runtime is used directly from Python, there is no source text, so the node reads <bool> returned False.
+
+7.3 Rule 2: truths as Python values
+-----------------------------------
+
+A truth passed to Python code is a Truth object. It defines __bool__, so it behaves correctly in Python conditions, all(), any(), filter(), sorting keys and anywhere else truthiness is used. [settled]
+
+Code that requires an actual bool (json.dumps, isinstance(x, bool) checks, some C extensions) must convert explicitly with testimony.to_bool, or serialize the testimony with to_json: [settled]
+
+    import json
+    from testimony import to_bool
+
+    passed = forall s in [61, 74, 88], s >= 50
+    print(json.dumps({"passed": to_bool(passed)}))
+
+    {"passed": true}
+
+7.4 Rule 3: non-boolean comparisons
+-----------------------------------
+
+If a comparison's Python result is not a bool, it is returned unchanged and no truth is created. Libraries that overload comparisons, such as numpy and pandas, therefore work unmodified, and their results carry no testimony. [settled]
+
+    import numpy as np
+
+    a = np.array([3, -1, 4])
+    print(a[a > 0])
+
+    [3 4]
+
+7.5 Rule 4: non-truth operands
+------------------------------
+
+If an operand of and or or is neither a truth nor a bool, the operation has Python's semantics and returns one of its operands, so name or "anonymous" works as in Python. not x on such a value is Python's not x, lifted. to_bool accepts any value and applies Python truthiness. [settled]
+
+7.6 Rule 5: runtime requirements
+--------------------------------
+
+The compiler is a standalone executable. Running a compiled program requires a Python 3.12 or later interpreter. The compiler writes its embedded runtime next to generated code, so .ity programs need no package installed. [settled]
+
+7.7 Using testimony from Python
+-------------------------------
+
+The runtime is published as the Python package verity-testimony, which provides the module testimony and the module string_ops. [settled]
+
+    $ pip install verity-testimony
+
+Without the compiler, Python's and, or and not and its comparisons build no testimony. The library offers the same constructions as functions:
+
+    from testimony import all_of, check, explain, forall, reason
+
+    def valid_order(order):
+        return all_of(
+            check(order.qty, ">", 0, src="order.qty > 0").because(reason("qty.positive", "the quantity is positive")),
+            forall(order.items, lambda item: check(item.price, ">=", 0, src="item.price >= 0"), name="item", src="order.items"),
+        )
+
+    result = valid_order(order)
+    if not result:
+        log.warning(explain(result))
+
+The Python API is listed in Section 8.1. A compiled Verity module is also an ordinary Python module: Python code can import it and call its functions, which return Truth objects with full testimony.
+
+7.8 The @testify decorator
+--------------------------
+
+[proposed] for milestone 4. @testify rewrites a plain Python predicate function at decoration time, as pytest rewrites asserts, so that its comparisons, and/or/not, and all()/any() over generator expressions build testimony:
+
+    from testimony import explain, testify
+
+    @testify
+    def all_positive(xs):
+        return all(x > 0 for x in xs)
+
+    print(explain(all_positive([3, -1, 4])))
+
+    falsity
+      counterexample: x = -1 (xs[1])
+        x > 0: -1 pytest-verity extends pytest's assertion rewriting so that a failing assert reports testimony. In particular, assert all(...) and assert any(...) over a generator report the counterexample or the absence of a witness, where pytest alone reports assert False.
+
+        def test_prices():
+    >       assert all(item.price >= 0 for item in cart)
+    E       falsity
+    E         counterexample: item = Item(name='refund', price=-5) (cart[2])
+    E           item.price >= 0: -5 --verity-json=PATH, the plugin writes one JSON Lines test record per test in the format of Section 10.2. When used with Hypothesis, the reported counterexample is Hypothesis's shrunk example, so it is minimal in Hypothesis's sense.
+
+7.10 Tracebacks
+---------------
+
+verity run and verity test map tracebacks of uncaught exceptions to .ity file and line numbers. [settled] for milestone 3. Before that milestone, tracebacks refer to the generated Python file.
+
+
+===================
+8. Standard Library
+===================
+
+The standard library consists of the modules testimony and string_ops. They are always importable from Verity, and they are the Python package verity-testimony. Module and function names are snake_case. [settled]
+
+In the signatures below, truthy means a Truth or a Python bool (which is lifted). Optional src and span arguments are filled in by the compiler; Python callers may pass them to get the same testimony a compiled program would.
+
+8.1 Module testimony
+--------------------
+
+Rendering
+
+explain(t: truthy, audience: str = "developer") -> str [settled]
+
+Return the text rendering of t defined in Section 5.4, for the given audience (Section 5.5): "verity" or "falsity" on the first line, followed by the indented testimony tree, without a trailing newline.
+
+    from testimony import explain
+    print(explain(2 + 2 == 5))
+
+    falsity
+      2 + 2 == 5: 4 != 5
+
+to_json(t: truthy, audience: str = "developer") -> dict [settled]
+
+Return the testimony as a JSON-serializable dictionary in the schema verity.testimony/0 (Section 5.6).
+
+to_bool(x: object) -> bool [settled]
+
+Return True for a verity and False for a falsity, discarding testimony. Any other value is converted by Python truthiness. Use it when passing truth values to Python code that requires a bool.
+
+Building truths
+
+verity, falsity [settled]
+
+The two truths with literal testimony. In Verity source these are keywords; from Python they are module constants.
+
+all_of(*operands: truthy) -> Truth [settled]
+
+The accumulating conjunction (Section 5.2). Every operand has already been evaluated by the call. A falsity reports every failing operand under failed k of n:.
+
+reason(id: str, message: str, hint: str | None = None) -> Reason [settled]
+
+A claim with a stable dotted ID and an optional hint, for use with because (Section 5.3). Raises ValueError if id does not match [a-z0-9_]+(\.[a-z0-9_]+)*.
+
+secret(value) -> Secret, reveal(s: Secret) -> object [settled]
+
+Wrap a value so that testimony shows <secret>, and unwrap it (Section 5.7).
+
+text(value: bool, sentence: str) -> Truth [settled]
+
+A truth whose testimony is a text node. Library predicates use it to state evidence in their own words, as string_ops.is_alnum does.
+
+Python API for operators
+
+These functions are what compiled code calls. Python code can call them directly to build the testimony that Verity syntax builds (Section 7.7). [settled]
+
+check(left, op: str, right, src: str | None = None, span=None) -> Truth | object
+
+Apply the comparison op (one of == != < <= > >= in not in is is not). Returns a truth with a comparison node if Python's result is a bool, and Python's result unchanged otherwise. Secrets are unwrapped for the comparison and shown as <secret>. Without src, the node's source text is left op right with the captured reprs.
+
+lift(value: bool, src: str | None = None, span=None) -> Truth
+
+Lift a bool. A Truth is returned unchanged.
+
+and_(*operands), or_(*operands)
+
+Short-circuit conjunction and disjunction. Each operand is a truthy value or a zero-argument callable returning one; callables are called only when needed, which preserves short-circuiting. If an operand is neither, Python's semantics apply (Section 7.5).
+
+not_(operand)
+
+Negation.
+
+because(t: truthy, m, span=None) -> Truth, also Truth.because(m)
+
+Attach a claim. m is a string, a Reason, or a zero-argument callable returning one, called only when the testimony is built.
+
+forall(iterable, body, name="x", src=None, body_src=None), exists(...)
+
+Quantifiers. body is a one-argument callable returning a truthy value. src is the iterable's source text: when it is a plain name, positions render as src[i].
+
+Configuration and errors
+
+configure(max_repr: int = 80, max_children: int = 50, max_depth: int = 32) -> None [settled]
+
+Set the bounds of Section 5.8 for the current process. Arguments not given keep their current values.
+
+class TestimonyError(AssertionError) [settled]
+
+Raised by a failing assert and by Truth.expect(). Attribute truth holds the falsity, and str(e) is explain(e.truth).
+
+8.2 Class Truth
+---------------
+
+The runtime class of truths. It is not normally named in Verity source: values are created by literals, comparisons and the operators in Section 4. [settled]
+
+bool(t), t.value
+
+True for a verity, False for a falsity.
+
+str(t), repr(t)
+
+"verity" or "falsity".
+
+t == u, hash(t)
+
+Compare and hash by truth value only.
+
+t.testimony
+
+The root testimony node. Nodes are read-only objects with attributes kind, value, asserted, line, children (a tuple of nodes), span and the fields of their kind (Section 5.6).
+
+t.because(m)
+
+Same as t because m.
+
+t.expect()
+
+Return t if it is a verity. Raise TestimonyError if it is a falsity.
+
+8.3 Module string_ops
+---------------------
+
+String predicates with character-level testimony. [settled]
+
+is_alnum(s: str) -> Truth
+
+A verity if s is non-empty and every character is alphanumeric in the sense of Python's str.isalnum. Testimony, as a text node:
+- verity: every character of {repr(s)} is alphanumeric
+- falsity at the first offending character c at index i: {repr(c)} at index {i} is not alphanumeric
+- falsity for the empty string: '' is empty
+
+    import string_ops
+    from testimony import explain
+    print(explain(string_ops.is_alnum("grace_hopper")))
+
+    falsity
+      '_' at index 5 is not alphanumeric
+
+is_alpha(s), is_digit(s), is_space(s), is_lower(s), is_upper(s)
+
+[proposed] Testifying counterparts of the other str.is* predicates, with the same testimony forms.
+
+
+=========================
+9. Command-Line Interface
+=========================
+
+The verity executable checks, compiles, runs and tests Verity programs. Every command accepts --json, which switches its reports to the machine-readable records of Section 10. [settled]
+
+9.1 Synopsis
+------------
+
+    $ verity check FILE.ity... [--json]
+    $ verity run FILE.ity [ARG...] [--json]
+    $ verity compile FILE.ity [-o OUT.py]
+    $ verity test [PATH...] [--json]
+    $ verity --version
+    $ verity --help
+
+9.2 verity check
+----------------
+
+Parses and compiles each file without running it, and reports every diagnostic. It is the fastest way for a person or an agent to learn whether a program is well formed. Exit status 0 means no errors were reported.
+
+    $ verity check hello.ity
+    hello.ity:3:9: error[E0101]: `True` is not a Verity literal
+      hint: use `verity`
+
+9.3 verity run
+--------------
+
+Compiles FILE.ity and executes it with Python. Arguments after the file name are passed to the program as sys.argv[1:], and sys.argv[0] is the source path.
+- Generated code and the runtime are written to a cache directory, __verity__/, next to the source file. The directory is reused across runs and can be deleted at any time.
+- The program's standard input, output and error are those of the verity process.
+- PYTHONHASHSEED is set to 0, so output that depends on set or dict ordering of strings is reproducible.
+- An uncaught TestimonyError prints its location and testimony to standard error (Section 6.2). Other uncaught exceptions print a traceback mapped to .ity lines.
+
+9.4 verity compile
+------------------
+
+Compiles FILE.ity to Python without running it. By default the generated module is written to standard output. With -o OUT.py, it is written to OUT.py, and the runtime modules testimony.py and string_ops.py are written to the same directory.
+
+    $ verity compile hello.ity -o build/hello.py
+    $ python3 build/hello.py
+
+9.5 verity test
+---------------
+
+Discovers and runs tests, in the style of pytest. [settled]
+- A test file is a .ity file named test_*.ity or *_test.ity, found by searching each PATH (default: the current directory) recursively.
+- A test is a top-level function in a test file whose name starts with test_ and that takes no arguments.
+- A test passes if it returns without raising and does not return a falsity. It fails if it raises TestimonyError or returns a falsity, and it is an error if it raises anything else.
+- Each test's standard output is captured and reported only for failures and errors.
+
+    $ verity test
+    test_cart.ity::test_prices FAILED
+    falsity
+      counterexample: item = Item(name='refund', price=-5) (cart[2])
+        item.price >= 0: -5 Status | Meaning
+0 | Success. For run, the program exited with status 0. For test, every test passed.
+1 | A compile error was reported, or (for test) a test failed or errored.
+2 | Invalid command-line usage.
+3 | For run, the program ended with an uncaught TestimonyError.
+other | For run, the exit status of the Python process.
+
+9.7 Diagnostics
+---------------
+
+Without --json, diagnostics are written to standard error in this form:
+
+    FILE:LINE:COL: SEVERITY[CODE]: MESSAGE
+      hint: HINT
+
+Line and column numbers are 1-based. Columns count Unicode code points. Severity is error or warning. The codes and the JSON form are in Section 10.3.
+
+9.8 Environment
+---------------
+
+Variable | Effect
+VERITY_PYTHON | Python interpreter used by run and test. Default: python3 on the PATH.
+VERITY_NO_ERASE | If set to 1, disables dual compilation, so every truth builds testimony. This is for checking that erasure does not change output.
+
+
+=====================
+10. Machine Interface
+=====================
+
+Verity is meant to be read and checked by programs as well as people: test runners, editors, CI systems and coding agents. This section specifies everything a program can rely on: JSON record formats, diagnostic codes, fixes, determinism, and plain-text documentation. [settled]
+
+10.1 Principles
+---------------
+- Every report has a documented machine form. Testimony has the JSON schema of Section 5.6; diagnostics, failures and test results have the records below.
+- Identifiers are stable. Diagnostic codes and reason IDs never change meaning. A retired code is never reused.
+- Output is deterministic. The same program on the same input produces byte-identical reports (Section 5.8). Durations are the only exception, and they appear only in their own fields.
+- Computed and claimed are distinguishable. Every testimony node says whether it was computed or asserted by the author.
+- Fixes are concrete. Where a diagnostic has one obvious correction, it carries it as an edit.
+
+10.2 Records
+------------
+
+With --json, reports are JSON Lines: one JSON object per line, UTF-8, each with a type field. verity check and verity test write records to standard output. verity run writes them to standard error, so the program's own standard output is unchanged.
+
+A span is {"file", "line", "col", "end_line", "end_col"}, as in Section 5.6.
+
+type | Written by | Fields
+diagnostic | all commands | code, severity ("error" or "warning"), message, span, hint (string or null), fix (object or null)
+failure | run | span (of the failing assert), testimony (a full verity.testimony/0 document)
+exception | run | exception (class name), message, traceback (list of {"file", "line", "function"}, innermost last, with .ity locations)
+test | test | id (FILE::NAME), outcome ("passed", "failed" or "error"), duration_ms, testimony (document or null), exception (as above, or null), stdout
+summary | test | passed, failed, errors, duration_ms
+
+A fix is {"span": span, "replacement": str}: replacing the text in span with replacement applies it. Applying every fix of a verity check run, in any order, never produces overlapping edits.
+
+    $ verity check --json hello.ity
+
+    {"type": "diagnostic", "code": "E0101", "severity": "error", "message": "`True` is not a Verity literal", "span": {"file": "hello.ity", "line": 3, "col": 9, "end_line": 3, "end_col": 13}, "hint": "use `verity`", "fix": {"span": {"file": "hello.ity", "line": 3, "col": 9, "end_line": 3, "end_col": 13}, "replacement": "verity"}}
+
+10.3 Diagnostic codes
+---------------------
+
+Codes are E for errors and W for warnings, then four digits. The first two digits give the phase: 01 lexical, 02 syntax, 03 names.
+
+Code | Meaning | Fix
+E0101 | True or False in Verity source | replace with verity or falsity
+E0102 | Dedent to a width that matches no enclosing block | none
+E0103 | A file indents with both tabs and spaces | none
+E0104 | Invalid character | none
+E0105 | Unterminated string literal | none
+E0201 | Chained comparison such as a < b < c | rewrite as a < b and b < c (only when b is a name or literal, so it is safe to evaluate twice)
+E0202 | Chained because | none
+E0203 | Unexpected token | none
+E0204 | Quantifier target is not a single name | none
+W0301 | Name is never defined in this module and is not a builtin | none
+
+This table is extended as the compiler grows. Codes are assigned in order and never reused.
+
+10.4 Using Verity from an agent
+-------------------------------
+
+[proposed] A coding agent working in a Verity project can rely on this loop:
+- Write or edit code.
+- Run verity check --json. Apply every fix, address remaining diagnostics, repeat until there are none.
+- Run verity test --json. For each failed test, read the testimony: the deciding node names the comparison and the values, a because node's reason names the rule, and its hint suggests the change.
+- Treat nodes with "asserted": true as claims, not evidence: a claim that seems wrong may itself be the bug.
+
+Writing checks with all_of and reason IDs makes this loop more useful, because one run reports every failing rule by name.
+
+10.5 Plain-text documentation
+-----------------------------
+
+This documentation is also published as plain text for language models and other tools: [settled]
+- llms.txt: a short index in the llms.txt convention, with a summary of the language and links to each section.
+- verity.txt: the complete reference as one plain-text file, generated from the same source as these pages.
+
+
+==================
+11. Implementation
+==================
+
+This section describes the reference implementation: a compiler written in Rust and a runtime written in Python. It is informative. Other implementations need only conform to Sections 2 through 10.
+
+11.1 Architecture
+-----------------
+
+  source→lexer→tokens→parser→AST→compiler→Python
+
+Path | Responsibility
+src/lexer.rs | Tokens, indentation (INDENT/DEDENT), source spans
+src/parser.rs | Recursive descent for statements, Pratt parsing for expressions
+src/ast.rs | Syntax tree types. Every node carries a span.
+src/compiler.rs | Lowering to Python, testimony construction, dual compilation
+src/cli.rs | The verity command (Section 9) and JSON records (Section 10)
+src/runtime.rs | Embeds the runtime modules via include_str!
+runtime/testimony.py | Truth, testimony nodes, combinators, rendering, JSON
+runtime/string_ops.py | The string_ops module
+runtime/pyproject.toml | Packaging as verity-testimony
+runtime/tests/ | Runtime tests (python3 -m unittest discover runtime/tests)
+
+The compiler has no run-time dependencies. The parser is hand-written rather than generated, because the grammar is indentation-sensitive and adds keywords to Python's.
+
+11.2 Lexer
+----------
+
+The lexer implements Section 2. It tracks bracket depth so that line breaks inside brackets produce no NEWLINE, and maintains the indentation stack described in Section 2.3. Each token records a byte span, converted to line and code-point column for diagnostics and testimony. Spans are also used to recover the exact source text quoted by comparison, lifted, universal and no-element testimony.
+
+11.3 Parser
+-----------
+
+Statements are parsed by recursive descent, with one function per grammar rule in Appendix A. Expressions use a Pratt parser driven by a single binding-power table, which is the precedence table in Section 4.1. On an error the parser reports a diagnostic, skips to the next line at the same or lower indentation, and continues, so that one run of verity check reports as many independent errors as possible.
+
+11.4 Lowering
+-------------
+
+Verity | Generated Python (illustrative)
+verity | _v.verity
+a < b (observed) | _v.check(a, "<", b, src="a < b", span=S)
+a < b (branched on) | a < b
+p and q (observed) | _v.and_(lambda: p, lambda: q)
+p because m (observed) | _v.because(p, lambda: m, span=S)
+forall x in xs, b (observed) | _v.forall(xs, lambda x: b, name="x", src="xs", body_src="b")
+assert p, m | _v.assert_(p, lambda: m, span=S)
+name.isalnum() where a truth is required | _v.lift(name.isalnum(), src="name.isalnum()", span=S)
+
+Operands of and/or and the messages of because are wrapped in thunks to preserve short-circuiting and laziness. Generated modules import the runtime as _v; the import is placed after a sys.path entry for the __verity__ directory, so the embedded runtime is used even if another version of verity-testimony is installed. The names _v.check and so on are the public Python API of Section 8.1.
+
+11.5 Dual compilation
+---------------------
+
+Dual compilation (Section 5.10) runs on the AST after name resolution.
+- A function is truth-returning if any return expression can produce a truth. The analysis is conservative: a return of a call to an unknown function counts.
+- For each truth-returning function f, the compiler emits the evidence version as f and the value version as _f__value, and sets f.__verity_value__ = _f__value.
+- At each call site whose result is only branched on, a call to a known truth-returning function becomes a call to its value version. A call through an unknown callable uses getattr(callee, "__verity_value__", callee).
+
+VERITY_NO_ERASE=1 disables the pass. The conformance suite is run in both modes.
+
+11.6 Runtime
+------------
+
+runtime/testimony.py implements the Truth class, the node kinds of Section 5.1, the combinators targeted by lowering, lifting, the text and JSON renderers, secrets and bounds. It has no dependencies outside the Python standard library. The compiler embeds it at build time and writes it next to generated code, so the compiler and runtime versions always match. The same files are published as verity-testimony, versioned with the compiler.
+
+11.7 Conformance
+----------------
+
+The files examples/*.ity with expected output examples/*.expected form the conformance suite. An implementation conforms to a milestone when each example within that milestone's scope prints exactly its expected output, byte for byte, with and without erasure, when run from the repository root as verity run examples/NAME.ity. Before the compiler exists, the runtime's tests rebuild each example's testimony by calling the runtime directly.
+
+
+===================
+Appendix A. Grammar
+===================
+
+Verity's grammar is Python 3.12's grammar (Python Language Reference, section 10) with the changes below, in the notation of About These Docs. [settled] Rule names follow Python's grammar where they exist.
+
+A.1 Changed rules
+-----------------
+
+    (* Two new atoms. *)
+    atom          ::= (* Python's atoms *) | "verity" | "falsity"
+
+    (* because sits between not and and. *)
+    conjunction   ::= because_test ("and" because_test)*
+    because_test  ::= inversion ["because" inversion]
+    inversion     ::= "not" inversion | comparison
+
+    (* Quantifiers are expressions with the lowest precedence. *)
+    expression    ::= quantifier | (* Python's expression *)
+    quantifier    ::= ("forall" | "exists") NAME "in" disjunction "," expression
+
+A.2 Unchanged rules with new meaning
+------------------------------------
+
+    assert_stmt   ::= "assert" expression ["," expression]   (* raises TestimonyError *)
+    comparison    ::= bitwise_or (compare_op bitwise_or)*     (* at most one compare_op until chains are settled *)
+
+A.3 Keywords
+------------
+
+Python's keywords, plus verity, falsity, because, forall and exists (Section 2.5).
+
+A.4 Notes
+---------
+- In a call, f(forall x in xs, p, y) passes two arguments: the quantifier (body p) and y. The body is an expression, not an expression list, so it stops at the next comma.
+- In because_test, at most one because is permitted (E0202).
+- A chained comparison is syntactically a comparison with several operators. The compiler rejects it with E0201 (Section 4.3).
+- True and False parse as names and are rejected after parsing with E0101, so the diagnostic can carry a fix.
+
+
+====================
+Appendix B. Glossary
+====================
+
+all_of
+
+  The accumulating conjunction: evaluates every operand and reports every failure. Section 5.2.
+
+asserted
+
+  Said of a testimony node whose content is the author's claim (because, literal) rather than a computed fact. Section 5.1.
+
+audience
+
+  Who a rendering is for: "developer" (the full tree) or "user" (claims only). Section 5.5.
+
+because
+
+  Operator attaching a claim to a truth: p because m. Renders as witnessed: m or refuted: m. Section 4.5.
+
+branched on
+
+  Said of a truth whose only use is as a condition. Its testimony is not built. Section 5.9.
+
+conformance suite
+
+  The programs in examples/ and their expected outputs. They define testimony rendering. Section 11.7.
+
+counterexample
+
+  The testimony node of a falsity produced by forall: the first element that refuted the body. Section 5.2.
+
+diagnostic code
+
+  A stable identifier such as E0101 for a kind of compiler message. Section 10.3.
+
+dual compilation
+
+  Compiling each truth-returning function into an evidence version and a value version, so that unobserved testimony costs nothing. Section 5.10.
+
+falsity
+
+  The false constructor of truth. Its testimony is a refutation.
+
+fix
+
+  A machine-applicable edit attached to a diagnostic. Section 10.2.
+
+hint
+
+  Text attached to a reason that says how to make a refuted claim hold. Section 5.3.
+
+lifting
+
+  Converting a Python bool into a truth with a lifted testimony node. Section 7.2.
+
+observed
+
+  Said of testimony that is not only branched on. Observed testimony is built. Section 5.9.
+
+reason
+
+  A claim with a stable dotted ID and an optional hint, used with because. Section 5.3.
+
+record
+
+  One JSON Lines object written by verity with --json. Section 10.2.
+
+refutation
+
+  The testimony of a falsity.
+
+runtime
+
+  The Python modules testimony and string_ops, embedded in the compiler and published as verity-testimony. Section 11.6.
+
+secret
+
+  A wrapped value that testimony shows as <secret>. Section 5.7.
+
+testimony
+
+  The tree of evidence carried by every truth. Section 5.
+
+TestimonyError
+
+  The AssertionError subclass raised by a failing assert, carrying the falsity. Section 3.6.
+
+truth
+
+  Verity's type of truth values, with constructors verity and falsity. Section 3.2.
+
+verity
+
+  The true constructor of truth. Its testimony is a witness.
+
+witness
+
+  The testimony of a verity. Also the node kind produced by exists, naming the first element that satisfied the body.

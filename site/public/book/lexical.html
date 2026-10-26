@@ -34,11 +34,12 @@
 <li><a href="data-model.html"><span class="toc-num">3</span>Data Model</a></li>
 <li><a href="expressions.html"><span class="toc-num">4</span>Expressions</a></li>
 <li><a href="testimony.html"><span class="toc-num">5</span>Testimony Semantics</a></li>
-<li><a href="statements.html"><span class="toc-num">6</span>Statements and Definitions</a></li>
+<li><a href="statements.html"><span class="toc-num">6</span>Statements</a></li>
 <li><a href="python.html"><span class="toc-num">7</span>Python Interoperability</a></li>
 <li><a href="stdlib.html"><span class="toc-num">8</span>Standard Library</a></li>
 <li><a href="cli.html"><span class="toc-num">9</span>Command-Line Interface</a></li>
-<li><a href="implementation.html"><span class="toc-num">10</span>Implementation</a></li>
+<li><a href="machine.html"><span class="toc-num">10</span>Machine Interface</a></li>
+<li><a href="implementation.html"><span class="toc-num">11</span>Implementation</a></li>
 </ul>
 <p class="toc-heading">Appendices</p><ul>
 <li><a href="grammar.html"><span class="toc-num">A</span>Grammar</a></li>
@@ -48,17 +49,17 @@
   <main id="content" class="content">
     <article>
 <h1><span class="h1-num">Section 2</span>Lexical Analysis</h1>
-<p>A Verity program is read by the lexer as a sequence of tokens. Except where this section says otherwise, Verity's lexical structure is Python's.</p>
+<p>A Verity program is read by the lexer as a sequence of tokens. Verity's lexical structure is Python 3.12's, with five extra keywords. <span class="status status-settled">Settled</span></p>
 
 <h2 id="source-files"><span class="secnum">2.1</span> Source files<a class="anchor" href="#source-files" aria-label="Link to this section">#</a></h2>
 <ul>
   <li>Source files use the extension <code>.ity</code>. <span class="status status-settled">Settled</span></li>
-  <li>Source text is UTF-8. A byte order mark is ignored. <span class="status status-proposed">Proposed</span></li>
-  <li>Each file is one module. Its module name is the file name without the extension. <span class="status status-proposed">Proposed</span></li>
+  <li>Source text is UTF-8. A byte order mark is ignored. <span class="status status-settled">Settled</span></li>
+  <li>Each file is one module. Its module name is the file name without the extension. <span class="status status-settled">Settled</span></li>
 </ul>
 
 <h2 id="lines"><span class="secnum">2.2</span> Line structure<a class="anchor" href="#lines" aria-label="Link to this section">#</a></h2>
-<p>A program is a sequence of <em>logical lines</em>, each terminated by a <code>NEWLINE</code> token. The rules are Python's: <span class="status status-proposed">Proposed</span></p>
+<p>A program is a sequence of <em>logical lines</em>, each terminated by a <code>NEWLINE</code> token. The rules are Python's: <span class="status status-settled">Settled</span></p>
 <ul>
   <li>A physical line ends at <code>\n</code>, <code>\r\n</code> or <code>\r</code>.</li>
   <li>Inside <code>( )</code>, <code>[ ]</code> or <code>{ }</code>, line breaks are ignored (implicit line joining).</li>
@@ -72,53 +73,38 @@
 <ol>
   <li>If the width equals the top of the stack, no token is emitted.</li>
   <li>If it is greater, the width is pushed and one <code>INDENT</code> token is emitted.</li>
-  <li>If it is smaller, widths are popped until it equals the top of the stack, emitting one <code>DEDENT</code> per pop. If no stack entry equals it, the lexer reports an error.</li>
+  <li>If it is smaller, widths are popped until it equals the top of the stack, emitting one <code>DEDENT</code> per pop. If no stack entry equals it, the lexer reports <code>E0102</code>.</li>
 </ol>
 <p>At end of input, one <code>DEDENT</code> is emitted for every entry above 0, followed by <code>ENDMARKER</code>.</p>
-<p>Indentation may use spaces or tabs, but a file that indents with both reports an error, since their relative widths are ambiguous. <span class="status status-proposed">Proposed</span></p>
+<p>Indentation may use spaces or tabs, but a file that indents with both reports <code>E0103</code>, since their relative widths are ambiguous. <span class="status status-settled">Settled</span></p>
 
 <h2 id="identifiers"><span class="secnum">2.4</span> Identifiers<a class="anchor" href="#identifiers" aria-label="Link to this section">#</a></h2>
-<p>Identifiers follow Python's rules: a letter or underscore followed by letters, digits or underscores, where "letter" includes Unicode characters with the XID_Start property and NFKC normalization applies. <span class="status status-proposed">Proposed</span></p>
-<p>Standard library modules and functions are named in snake_case, for example <code>list_ops</code>, <code>string_ops</code> and <code>testimony.explain</code>. <span class="status status-settled">Settled</span></p>
+<p>Identifiers follow Python's rules: a letter or underscore followed by letters, digits or underscores, where "letter" includes Unicode characters with the XID_Start property and NFKC normalization applies. <span class="status status-settled">Settled</span></p>
+<p>Standard library modules and functions are named in snake_case, for example <code>string_ops</code> and <code>testimony.explain</code>. <span class="status status-settled">Settled</span></p>
 
 <h2 id="keywords"><span class="secnum">2.5</span> Keywords<a class="anchor" href="#keywords" aria-label="Link to this section">#</a></h2>
-<p>The following identifiers are reserved and cannot be used as ordinary names:</p>
+<p>Verity reserves Python's keywords and soft keywords, plus these: <span class="status status-settled">Settled</span></p>
 <div class="table-wrap">
 <table>
-  <thead><tr><th>Origin</th><th>Keywords</th></tr></thead>
+  <thead><tr><th>Keyword</th><th>Use</th><th>Section</th></tr></thead>
   <tbody>
-    <tr><td>Verity</td><td><code>verity</code> <code>falsity</code> <code>because</code> <code>forall</code> <code>exists</code></td></tr>
-    <tr><td>Coconut</td><td><code>data</code> <code>addpattern</code></td></tr>
-    <tr><td>Python</td><td><code>and</code> <code>as</code> <code>assert</code> <code>break</code> <code>class</code> <code>continue</code> <code>def</code> <code>del</code> <code>elif</code> <code>else</code> <code>except</code> <code>finally</code> <code>for</code> <code>from</code> <code>global</code> <code>if</code> <code>import</code> <code>in</code> <code>is</code> <code>lambda</code> <code>None</code> <code>nonlocal</code> <code>not</code> <code>or</code> <code>pass</code> <code>raise</code> <code>return</code> <code>try</code> <code>while</code> <code>with</code> <code>yield</code></td></tr>
+    <tr><td><code>verity</code>, <code>falsity</code></td><td>truth literals</td><td><a href="expressions.html#truth-literals">4.2</a></td></tr>
+    <tr><td><code>because</code></td><td>attach a claim to a truth</td><td><a href="expressions.html#because">4.5</a></td></tr>
+    <tr><td><code>forall</code>, <code>exists</code></td><td>quantifiers</td><td><a href="expressions.html#quantifiers">4.6</a></td></tr>
   </tbody>
 </table>
 </div>
-<p><code>match</code> and <code>case</code> are soft keywords. They are keywords only at the start of a <code>match</code> statement or case clause, as in Python. <span class="status status-proposed">Proposed</span></p>
-<p>Whether Python keywords that Verity does not otherwise use (<code>class</code>, <code>lambda</code>, <code>global</code>, <code>nonlocal</code>, <code>async</code>, <code>await</code>) are supported, rejected or merely reserved is <span class="status status-open">Open</span>.</p>
+<p>A Python module that uses one of these names as an identifier can still be imported. Only Verity source cannot spell them as names. <code>True</code> and <code>False</code> are lexed as names, and the compiler reports <code>E0101</code> for them (<a href="machine.html#codes">Section 10.3</a>).</p>
 
 <h2 id="literals"><span class="secnum">2.6</span> Literals<a class="anchor" href="#literals" aria-label="Link to this section">#</a></h2>
 <ul>
-  <li><strong>Numbers</strong>: integer, floating-point and imaginary literals, as in Python, including underscores and base prefixes.</li>
-  <li><strong>Strings</strong>: Python string and bytes literals, including raw strings, triple-quoted strings and f-strings.</li>
+  <li><strong>Numbers</strong>, <strong>strings</strong> and <strong>bytes</strong>, including f-strings, raw strings and triple-quoted strings: as in Python.</li>
   <li><strong>Truth</strong>: <code>verity</code> and <code>falsity</code>. These are the only truth literals. <span class="status status-settled">Settled</span></li>
   <li><strong>None</strong>: <code>None</code>.</li>
 </ul>
 
 <h2 id="operators"><span class="secnum">2.7</span> Operators and delimiters<a class="anchor" href="#operators" aria-label="Link to this section">#</a></h2>
-<p>Verity uses Python's operators and delimiters, plus these:</p>
-<div class="table-wrap">
-<table>
-  <thead><tr><th>Token</th><th>Name</th><th>Use</th><th>Section</th></tr></thead>
-  <tbody>
-    <tr><td><code>|&gt;</code></td><td>pipe</td><td><code>x |&gt; f</code></td><td><a href="expressions.html#pipes">4.5</a></td></tr>
-    <tr><td><code>..&gt;</code></td><td>forward composition</td><td><code>f ..&gt; g</code></td><td><a href="expressions.html#composition">4.6</a></td></tr>
-    <tr><td><code>$</code></td><td>partial application</td><td><code>f$(x)</code></td><td><a href="expressions.html#partial">4.3</a></td></tr>
-    <tr><td><code>-&gt;</code></td><td>lambda arrow</td><td><code>x -&gt; x + 1</code></td><td><a href="expressions.html#lambdas">4.4</a></td></tr>
-  </tbody>
-</table>
-</div>
-<p>The tokenizer uses longest match, so <code>..&gt;</code> is one token, and <code>|&gt;</code> is not <code>|</code> followed by <code>&gt;</code>.</p>
-<p>Python uses <code>-&gt;</code> for return annotations. In Verity, <code>-&gt;</code> after a parameter list in a <code>def</code> header is a return annotation. Elsewhere, it is a lambda arrow. <span class="status status-proposed">Proposed</span></p>
+<p>Verity's operators and delimiters are exactly Python's. It adds no operator tokens. <span class="status status-settled">Settled</span></p>
 
     </article>
     <nav class="pager" aria-label="Previous and next pages"><a class="pager-prev" href="overview.html"><span>Previous</span>1. Overview</a><a class="pager-next" href="data-model.html"><span>Next</span>3. Data Model</a></nav>

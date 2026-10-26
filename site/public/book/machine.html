@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script>document.documentElement.classList.add("js")</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>10. Machine Interface | Verity Programming</title>
+<meta name="description" content="Verity Programming: the reference documentation for Verity, a functional language that compiles to Python and whose booleans testify.">
+<link rel="icon" href="../favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Oxygen+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="book.css">
+</head>
+<body class="page-machine">
+<a class="skip" href="#content">Skip to content</a>
+<header class="topbar">
+  <button class="menu-btn" type="button" aria-controls="sidebar" aria-expanded="false">
+    <span aria-hidden="true">&#9776;</span> Contents
+  </button>
+  <a class="topbar-title" href="cover.html"><svg class="smiley" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="#ffda46"/><g fill="#243e30"><ellipse cx="35" cy="41" rx="4.1" ry="7.5"/><ellipse cx="65" cy="41" rx="4.1" ry="7.5"/></g><path d="M25 57 C35 78 66 78 77 55" fill="none" stroke="#243e30" stroke-width="4" stroke-linecap="round"/></svg><span>Verity Programming</span></a>
+  <a class="topbar-link" href="../index.html">Verity home</a>
+</header>
+<div class="layout">
+  <aside class="sidebar" id="sidebar" aria-label="Book contents">
+    <a class="sidebar-cover" href="cover.html"><svg class="smiley" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="#ffda46"/><g fill="#243e30"><ellipse cx="35" cy="41" rx="4.1" ry="7.5"/><ellipse cx="65" cy="41" rx="4.1" ry="7.5"/></g><path d="M25 57 C35 78 66 78 77 55" fill="none" stroke="#243e30" stroke-width="4" stroke-linecap="round"/></svg><span>Verity Programming</span></a>
+    <nav><p class="toc-heading">Front matter</p><ul>
+<li><a href="cover.html">Cover</a></li>
+<li><a href="about.html">About These Docs</a></li>
+</ul>
+<p class="toc-heading">Reference</p><ul>
+<li><a href="overview.html"><span class="toc-num">1</span>Overview</a></li>
+<li><a href="lexical.html"><span class="toc-num">2</span>Lexical Analysis</a></li>
+<li><a href="data-model.html"><span class="toc-num">3</span>Data Model</a></li>
+<li><a href="expressions.html"><span class="toc-num">4</span>Expressions</a></li>
+<li><a href="testimony.html"><span class="toc-num">5</span>Testimony Semantics</a></li>
+<li><a href="statements.html"><span class="toc-num">6</span>Statements</a></li>
+<li><a href="python.html"><span class="toc-num">7</span>Python Interoperability</a></li>
+<li><a href="stdlib.html"><span class="toc-num">8</span>Standard Library</a></li>
+<li><a href="cli.html"><span class="toc-num">9</span>Command-Line Interface</a></li>
+<li><a href="machine.html" aria-current="page"><span class="toc-num">10</span>Machine Interface</a></li>
+<li><a href="implementation.html"><span class="toc-num">11</span>Implementation</a></li>
+</ul>
+<p class="toc-heading">Appendices</p><ul>
+<li><a href="grammar.html"><span class="toc-num">A</span>Grammar</a></li>
+<li><a href="glossary.html"><span class="toc-num">B</span>Glossary</a></li>
+</ul></nav>
+  </aside>
+  <main id="content" class="content">
+    <article>
+<h1><span class="h1-num">Section 10</span>Machine Interface</h1>
+<p>Verity is meant to be read and checked by programs as well as people: test runners, editors, CI systems and coding agents. This section specifies everything a program can rely on: JSON record formats, diagnostic codes, fixes, determinism, and plain-text documentation. <span class="status status-settled">Settled</span></p>
+
+<h2 id="principles"><span class="secnum">10.1</span> Principles<a class="anchor" href="#principles" aria-label="Link to this section">#</a></h2>
+<ul>
+  <li><strong>Every report has a documented machine form.</strong> Testimony has the JSON schema of <a href="testimony.html#json">Section 5.6</a>; diagnostics, failures and test results have the records below.</li>
+  <li><strong>Identifiers are stable.</strong> Diagnostic codes and reason IDs never change meaning. A retired code is never reused.</li>
+  <li><strong>Output is deterministic.</strong> The same program on the same input produces byte-identical reports (<a href="testimony.html#bounds">Section 5.8</a>). Durations are the only exception, and they appear only in their own fields.</li>
+  <li><strong>Computed and claimed are distinguishable.</strong> Every testimony node says whether it was computed or asserted by the author.</li>
+  <li><strong>Fixes are concrete.</strong> Where a diagnostic has one obvious correction, it carries it as an edit.</li>
+</ul>
+
+<h2 id="records"><span class="secnum">10.2</span> Records<a class="anchor" href="#records" aria-label="Link to this section">#</a></h2>
+<p>With <code>--json</code>, reports are JSON Lines: one JSON object per line, UTF-8, each with a <code>type</code> field. <code>verity check</code> and <code>verity test</code> write records to standard output. <code>verity run</code> writes them to standard error, so the program's own standard output is unchanged.</p>
+<p>A <em>span</em> is <code>{"file", "line", "col", "end_line", "end_col"}</code>, as in <a href="testimony.html#json">Section 5.6</a>.</p>
+<div class="table-wrap">
+<table>
+  <thead><tr><th><code>type</code></th><th>Written by</th><th>Fields</th></tr></thead>
+  <tbody>
+    <tr><td><code>diagnostic</code></td><td>all commands</td><td><code>code</code>, <code>severity</code> (<code>"error"</code> or <code>"warning"</code>), <code>message</code>, <code>span</code>, <code>hint</code> (string or <code>null</code>), <code>fix</code> (object or <code>null</code>)</td></tr>
+    <tr><td><code>failure</code></td><td><code>run</code></td><td><code>span</code> (of the failing <code>assert</code>), <code>testimony</code> (a full <code>verity.testimony/0</code> document)</td></tr>
+    <tr><td><code>exception</code></td><td><code>run</code></td><td><code>exception</code> (class name), <code>message</code>, <code>traceback</code> (list of <code>{"file", "line", "function"}</code>, innermost last, with <code>.ity</code> locations)</td></tr>
+    <tr><td><code>test</code></td><td><code>test</code></td><td><code>id</code> (<code>FILE::NAME</code>), <code>outcome</code> (<code>"passed"</code>, <code>"failed"</code> or <code>"error"</code>), <code>duration_ms</code>, <code>testimony</code> (document or <code>null</code>), <code>exception</code> (as above, or <code>null</code>), <code>stdout</code></td></tr>
+    <tr><td><code>summary</code></td><td><code>test</code></td><td><code>passed</code>, <code>failed</code>, <code>errors</code>, <code>duration_ms</code></td></tr>
+  </tbody>
+</table>
+</div>
+<p>A <code>fix</code> is <code>{"span": span, "replacement": str}</code>: replacing the text in <code>span</code> with <code>replacement</code> applies it. Applying every fix of a <code>verity check</code> run, in any order, never produces overlapping edits.</p>
+<div class="code code-sh"><span class="code-label">shell</span><pre><code><span class="t-sh">$</span> <span class="t-truth">verity</span> check --json hello.ity</code></pre></div>
+<div class="code code-out"><span class="code-label">output</span><pre><code>{"type": "diagnostic", "code": "E0101", "severity": "error", "message": "`True` is not a Verity literal", "span": {"file": "hello.ity", "line": 3, "col": 9, "end_line": 3, "end_col": 13}, "hint": "use `verity`", "fix": {"span": {"file": "hello.ity", "line": 3, "col": 9, "end_line": 3, "end_col": 13}, "replacement": "verity"}}</code></pre></div>
+
+<h2 id="codes"><span class="secnum">10.3</span> Diagnostic codes<a class="anchor" href="#codes" aria-label="Link to this section">#</a></h2>
+<p>Codes are <code>E</code> for errors and <code>W</code> for warnings, then four digits. The first two digits give the phase: <code>01</code> lexical, <code>02</code> syntax, <code>03</code> names.</p>
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Code</th><th>Meaning</th><th>Fix</th></tr></thead>
+  <tbody>
+    <tr><td><code>E0101</code></td><td><code>True</code> or <code>False</code> in Verity source</td><td>replace with <code>verity</code> or <code>falsity</code></td></tr>
+    <tr><td><code>E0102</code></td><td>Dedent to a width that matches no enclosing block</td><td>none</td></tr>
+    <tr><td><code>E0103</code></td><td>A file indents with both tabs and spaces</td><td>none</td></tr>
+    <tr><td><code>E0104</code></td><td>Invalid character</td><td>none</td></tr>
+    <tr><td><code>E0105</code></td><td>Unterminated string literal</td><td>none</td></tr>
+    <tr><td><code>E0201</code></td><td>Chained comparison such as <code>a &lt; b &lt; c</code></td><td>rewrite as <code>a &lt; b and b &lt; c</code> (only when <code>b</code> is a name or literal, so it is safe to evaluate twice)</td></tr>
+    <tr><td><code>E0202</code></td><td>Chained <code>because</code></td><td>none</td></tr>
+    <tr><td><code>E0203</code></td><td>Unexpected token</td><td>none</td></tr>
+    <tr><td><code>E0204</code></td><td>Quantifier target is not a single name</td><td>none</td></tr>
+    <tr><td><code>W0301</code></td><td>Name is never defined in this module and is not a builtin</td><td>none</td></tr>
+  </tbody>
+</table>
+</div>
+<p>This table is extended as the compiler grows. Codes are assigned in order and never reused.</p>
+
+<h2 id="agent-loop"><span class="secnum">10.4</span> Using Verity from an agent<a class="anchor" href="#agent-loop" aria-label="Link to this section">#</a></h2>
+<p><span class="status status-proposed">Proposed</span> A coding agent working in a Verity project can rely on this loop:</p>
+<ol>
+  <li>Write or edit code.</li>
+  <li>Run <code>verity check --json</code>. Apply every <code>fix</code>, address remaining diagnostics, repeat until there are none.</li>
+  <li>Run <code>verity test --json</code>. For each failed test, read the <code>testimony</code>: the deciding node names the comparison and the values, a <code>because</code> node's <code>reason</code> names the rule, and its <code>hint</code> suggests the change.</li>
+  <li>Treat nodes with <code>"asserted": true</code> as claims, not evidence: a claim that seems wrong may itself be the bug.</li>
+</ol>
+<p>Writing checks with <code>all_of</code> and <code>reason</code> IDs makes this loop more useful, because one run reports every failing rule by name.</p>
+
+<h2 id="plain-text-docs"><span class="secnum">10.5</span> Plain-text documentation<a class="anchor" href="#plain-text-docs" aria-label="Link to this section">#</a></h2>
+<p>This documentation is also published as plain text for language models and other tools: <span class="status status-settled">Settled</span></p>
+<ul>
+  <li><a href="llms.txt"><code>llms.txt</code></a>: a short index in the <code>llms.txt</code> convention, with a summary of the language and links to each section.</li>
+  <li><a href="verity.txt"><code>verity.txt</code></a>: the complete reference as one plain-text file, generated from the same source as these pages.</li>
+</ul>
+
+    </article>
+    <nav class="pager" aria-label="Previous and next pages"><a class="pager-prev" href="cli.html"><span>Previous</span>9. Command-Line Interface</a><a class="pager-next" href="implementation.html"><span>Next</span>11. Implementation</a></nav>
+    <footer class="page-footer">
+      <p>Verity Programming &middot; Henrik Gombos and Pranav Balakrishnan &middot; <a href="https://github.com/Henrik66/verity/blob/main/book/src/machine.html">Source for this page</a></p>
+    </footer>
+  </main>
+  <nav class="on-page" aria-label="On this page"><p>On this page</p><ul><li><a href="#principles">Principles</a></li><li><a href="#records">Records</a></li><li><a href="#codes">Diagnostic codes</a></li><li><a href="#agent-loop">Using Verity from an agent</a></li><li><a href="#plain-text-docs">Plain-text documentation</a></li></ul></nav>
+</div>
+<script src="book.js" defer></script>
+</body>
+</html>

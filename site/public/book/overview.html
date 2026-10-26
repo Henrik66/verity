@@ -34,11 +34,12 @@
 <li><a href="data-model.html"><span class="toc-num">3</span>Data Model</a></li>
 <li><a href="expressions.html"><span class="toc-num">4</span>Expressions</a></li>
 <li><a href="testimony.html"><span class="toc-num">5</span>Testimony Semantics</a></li>
-<li><a href="statements.html"><span class="toc-num">6</span>Statements and Definitions</a></li>
+<li><a href="statements.html"><span class="toc-num">6</span>Statements</a></li>
 <li><a href="python.html"><span class="toc-num">7</span>Python Interoperability</a></li>
 <li><a href="stdlib.html"><span class="toc-num">8</span>Standard Library</a></li>
 <li><a href="cli.html"><span class="toc-num">9</span>Command-Line Interface</a></li>
-<li><a href="implementation.html"><span class="toc-num">10</span>Implementation</a></li>
+<li><a href="machine.html"><span class="toc-num">10</span>Machine Interface</a></li>
+<li><a href="implementation.html"><span class="toc-num">11</span>Implementation</a></li>
 </ul>
 <p class="toc-heading">Appendices</p><ul>
 <li><a href="grammar.html"><span class="toc-num">A</span>Grammar</a></li>
@@ -48,15 +49,16 @@
   <main id="content" class="content">
     <article>
 <h1><span class="h1-num">Section 1</span>Overview</h1>
-<p>Verity is a functional programming language that compiles to Python. Its truth values carry evidence for why they are true or false.</p>
+<p>Verity is Python whose truth values explain themselves. When a check fails, a Verity program can say which comparison, element or claim decided it, both as text for people and as JSON for tools and agents. It compiles to Python and runs on CPython.</p>
 
 <h2 id="summary"><span class="secnum">1.1</span> Summary<a class="anchor" href="#summary" aria-label="Link to this section">#</a></h2>
 <ul>
-  <li><strong>Syntax.</strong> Python's statement and expression syntax, extended with Coconut's functional forms: <code>x -&gt; x + 1</code> lambdas, <code>|&gt;</code> pipes, <code>f$(args)</code> partial application, <code>..&gt;</code> composition, <code>match</code>, <code>data</code> types, and pattern-matched <code>def</code> extended by <code>addpattern def</code>. <span class="status status-settled">Settled</span></li>
+  <li><strong>Syntax.</strong> Python 3.12, plus four additions: the truth literals <code>verity</code> and <code>falsity</code>, <code>p because m</code>, the quantifiers <code>forall</code> and <code>exists</code>, and an <code>assert</code> that keeps testimony. Anyone, person or model, who can write Python can write Verity. <span class="status status-settled">Settled</span></li>
   <li><strong>Truth values.</strong> The type <code>truth</code> has exactly two constructors, <code>verity</code> and <code>falsity</code>. <span class="status status-settled">Settled</span></li>
-  <li><strong>Testimony.</strong> Every truth carries testimony: a verity carries a <em>witness</em> and a falsity a <em>refutation</em>. Comparisons, <code>and</code>, <code>or</code>, <code>not</code>, <code>forall</code>, <code>exists</code> and <code>because</code> construct testimony automatically. <span class="status status-settled">Settled</span></li>
-  <li><strong>Erasure.</strong> Testimony that is never observed is not constructed. A truth used only as a branch condition compiles to a plain Python boolean expression. <span class="status status-settled">Settled</span></li>
-  <li><strong>Target.</strong> Each <code>.ity</code> file compiles to one Python module that runs on CPython and imports a small runtime module. <span class="status status-settled">Settled</span></li>
+  <li><strong>Testimony.</strong> Every truth carries testimony: a verity carries a <em>witness</em> and a falsity a <em>refutation</em>. Comparisons, <code>and</code>, <code>or</code>, <code>not</code>, <code>forall</code>, <code>exists</code>, <code>because</code> and <code>all_of</code> construct it automatically. <span class="status status-settled">Settled</span></li>
+  <li><strong>Machine-readable.</strong> Testimony serializes to a published JSON schema. Compiler diagnostics have stable codes and machine-applicable fixes. <code>verity check</code>, <code>run</code> and <code>test</code> emit JSON Lines with <code>--json</code>. <span class="status status-settled">Settled</span></li>
+  <li><strong>No cost when unused.</strong> Testimony that nobody observes is never built: a check used only as an <code>if</code> condition compiles to a plain Python boolean expression. <span class="status status-settled">Settled</span></li>
+  <li><strong>A library too.</strong> The runtime is the Python package <code>verity-testimony</code>, so Python programs and test suites can use testimony without writing <code>.ity</code> files. <span class="status status-settled">Settled</span></li>
 </ul>
 
 <h2 id="example"><span class="secnum">1.2</span> Example<a class="anchor" href="#example" aria-label="Link to this section">#</a></h2>
@@ -67,8 +69,8 @@ primes = [<span class="t-num">2</span>, <span class="t-num">3</span>, <span clas
 all_odd = <span class="t-test">forall</span> p <span class="t-kw">in</span> primes, p % <span class="t-num">2</span> == <span class="t-num">1</span>
 has_big = <span class="t-test">exists</span> p <span class="t-kw">in</span> primes, p &gt; <span class="t-num">10</span>
 
-all_odd <span class="t-op">|&gt;</span> explain <span class="t-op">|&gt;</span> print
-has_big <span class="t-op">|&gt;</span> explain <span class="t-op">|&gt;</span> print
+print(explain(all_odd))
+print(explain(has_big))
 
 <span class="t-kw">if</span> <span class="t-kw">not</span> all_odd:
     print(<span class="t-str">"not every prime is odd, and Verity can tell you why"</span>)</code></pre></div>
@@ -81,59 +83,70 @@ has_big <span class="t-op">|&gt;</span> explain <span class="t-op">|&gt;</span> 
 not every prime is odd, and Verity can tell you why</code></pre></div>
 <p>This program is <code>examples/counterexample.ity</code>, one of the conformance examples.</p>
 
-<h2 id="goals"><span class="secnum">1.3</span> Design goals<a class="anchor" href="#goals" aria-label="Link to this section">#</a></h2>
+<h2 id="why"><span class="secnum">1.3</span> Why<a class="anchor" href="#why" aria-label="Link to this section">#</a></h2>
+<p>A failed check in most languages says only that it failed. pytest, for example, explains a failing comparison but reports a failing <code>assert all(x > 0 for x in xs)</code> as <code>assert False</code>. A person can open a debugger. An agent that wrote the code and is trying to fix it has only the output.</p>
+<p>Verity's answer is to make the explanation part of the value. A falsity from <code>forall</code> names the element that failed and where it was; a falsity from a validation function names the rule, its stable reason ID and a hint for fixing it. The same tree renders as text for a person and as JSON for a program, so an agent can read why a check failed, change the code and check again without guessing.</p>
+
+<h2 id="goals"><span class="secnum">1.4</span> Design goals<a class="anchor" href="#goals" aria-label="Link to this section">#</a></h2>
 <ol>
-  <li><strong>Truth values explain themselves.</strong> A falsity identifies the comparison, element or claim that decided it, together with the values involved.</li>
+  <li><strong>Checks explain themselves.</strong> A falsity identifies the comparison, element or claim that decided it, with the values involved.</li>
+  <li><strong>Readable by programs.</strong> Every explanation, diagnostic and test result has a documented machine-readable form with stable identifiers, and output is deterministic.</li>
+  <li><strong>Python, not a new syntax.</strong> Verity adds as little syntax as possible to Python, so existing knowledge of Python, in people and in language models, carries over.</li>
   <li><strong>No cost when unused.</strong> Programs that never observe testimony run as fast as the equivalent Python.</li>
-  <li><strong>Python compatibility.</strong> Any Python module can be imported, and compiled Verity modules can be imported from Python.</li>
-  <li><strong>Functional by default.</strong> Short function definitions, pipelines, algebraic data types and pattern matching are the primary style.</li>
-  <li><strong>Readable output.</strong> Generated Python stays structurally close to its source.</li>
+  <li><strong>Honest.</strong> Testimony distinguishes what was computed from what was claimed, hides secrets, and stays bounded in size.</li>
 </ol>
 
-<h2 id="execution"><span class="secnum">1.4</span> Execution model<a class="anchor" href="#execution" aria-label="Link to this section">#</a></h2>
-<div class="flow" role="img" aria-label="Pipeline: a .ity source file is compiled by the verity compiler, written in Rust, into a Python module plus the truth.py runtime, which CPython executes.">
+<h2 id="non-goals"><span class="secnum">1.5</span> Non-goals<a class="anchor" href="#non-goals" aria-label="Link to this section">#</a></h2>
+<ul>
+  <li><strong>Proof.</strong> Testimony explains what a program evaluated. It does not verify claims (<a href="testimony.html#limits">Section 5.12</a>).</li>
+  <li><strong>Authorization engines.</strong> Explaining an access decision can reveal policy to the person it was denied to. Policy engines built for that purpose are a better fit.</li>
+  <li><strong>Data-frame validation.</strong> Vectorised comparisons on numpy arrays and pandas series pass through without testimony. Data-quality tools already report per-row failures.</li>
+</ul>
+
+<h2 id="execution"><span class="secnum">1.6</span> Execution model<a class="anchor" href="#execution" aria-label="Link to this section">#</a></h2>
+<div class="flow" role="img" aria-label="Pipeline: a .ity source file is compiled by the verity compiler, written in Rust, into a Python module plus the testimony runtime, which CPython executes.">
   <span><code>file.ity</code></span><span class="arrow">→</span>
   <span><code>verity</code> (Rust)</span><span class="arrow">→</span>
-  <span>Python module + <code>truth.py</code></span><span class="arrow">→</span>
+  <span>Python module + <code>testimony.py</code></span><span class="arrow">→</span>
   <span>CPython</span>
 </div>
 <ul>
   <li>The compiler, <code>verity</code>, is a standalone executable written in Rust. <span class="status status-settled">Settled</span></li>
   <li>A compilation unit is one source file. Each <code>.ity</code> file produces one Python module. <span class="status status-settled">Settled</span></li>
-  <li>Generated modules import the runtime module <code>truth.py</code>, which is embedded in the compiler binary and written next to generated code. <span class="status status-settled">Settled</span></li>
-  <li>Programs are executed by CPython. The minimum supported Python version is not yet fixed. <span class="status status-open">Open</span></li>
+  <li>The runtime, <code>testimony.py</code> with <code>string_ops.py</code>, is embedded in the compiler and written next to generated code, so <code>.ity</code> programs need no install and always run with the matching runtime. The same runtime is published as the package <code>verity-testimony</code> for use from Python. <span class="status status-settled">Settled</span></li>
+  <li>Programs are executed by CPython 3.12 or later. <span class="status status-proposed">Proposed</span></li>
 </ul>
-<p>See <a href="cli.html">Section 9</a> for the command-line interface and <a href="implementation.html">Section 10</a> for the compiler's internals.</p>
+<p>See <a href="cli.html">Section 9</a> for the command-line interface, <a href="machine.html">Section 10</a> for the machine interface and <a href="implementation.html">Section 11</a> for the compiler's internals.</p>
 
-<h2 id="differences"><span class="secnum">1.5</span> Differences from Python and Coconut<a class="anchor" href="#differences" aria-label="Link to this section">#</a></h2>
+<h2 id="differences"><span class="secnum">1.7</span> Differences from Python<a class="anchor" href="#differences" aria-label="Link to this section">#</a></h2>
 <div class="table-wrap">
 <table>
   <thead><tr><th>Topic</th><th>Python</th><th>Verity</th></tr></thead>
   <tbody>
-    <tr><td>Boolean values</td><td><code>True</code>, <code>False</code> of type <code>bool</code></td><td><code>verity</code>, <code>falsity</code> of type <code>truth</code>, carrying testimony</td></tr>
-    <tr><td>Comparisons</td><td>Return <code>bool</code> (or any object)</td><td>Return a <code>truth</code> when Python would return a <code>bool</code>; otherwise the result passes through unchanged (<a href="python.html#pass-through">Section 7.4</a>)</td></tr>
-    <tr><td><code>and</code>, <code>or</code></td><td>Return one of the operands</td><td>Return a <code>truth</code> combining the operands' testimony</td></tr>
-    <tr><td>Quantifiers</td><td><code>all()</code>, <code>any()</code> return <code>bool</code></td><td><code>forall</code>, <code>exists</code> expressions return a <code>truth</code> naming the deciding element</td></tr>
-    <tr><td>Function definitions</td><td><code>def</code> blocks, <code>lambda</code></td><td>Additionally <code>def f(x) = expr</code>, <code>x -&gt; expr</code>, pattern parameters and <code>addpattern def</code></td></tr>
+    <tr><td>Boolean literals</td><td><code>True</code>, <code>False</code></td><td><code>verity</code>, <code>falsity</code>, of type <code>truth</code>, carrying testimony. <code>True</code>/<code>False</code> are a compile error with an automatic fix.</td></tr>
+    <tr><td>Comparisons</td><td>Return <code>bool</code> (or any object)</td><td>Return a <code>truth</code> when Python would return a <code>bool</code>; otherwise the result passes through unchanged</td></tr>
+    <tr><td><code>and</code>, <code>or</code>, <code>not</code></td><td>Return one of the operands</td><td>Return a <code>truth</code> combining the operands' testimony when the operands are truths or bools; Python semantics otherwise</td></tr>
+    <tr><td>Quantifiers</td><td><code>all()</code>, <code>any()</code> return <code>bool</code></td><td>Also <code>forall</code>, <code>exists</code> expressions, which name the deciding element</td></tr>
+    <tr><td><code>assert</code></td><td>Raises <code>AssertionError</code>; removed under <code>-O</code></td><td>Raises <code>TestimonyError</code> carrying the falsity; never removed</td></tr>
   </tbody>
 </table>
 </div>
-<p>Relative to Coconut, Verity adopts only the functional forms listed in the summary. Other Coconut operators and features (for example, the <code>|*&gt;</code> family of pipes, <code>&lt;..</code>, <code>::</code> and the <code>?</code> placeholder in partial application) are not part of Verity. Whether any will be added is <span class="status status-open">Open</span>.</p>
 <aside class="note">
-  <p class="callout-title"><svg class="smiley" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="#ffda46"/><g fill="#243e30"><ellipse cx="35" cy="41" rx="4.1" ry="7.5"/><ellipse cx="65" cy="41" rx="4.1" ry="7.5"/></g><path d="M25 57 C35 78 66 78 77 55" fill="none" stroke="#243e30" stroke-width="4" stroke-linecap="round"/></svg> Lambda arrow</p>
-  <p>Current Coconut documentation describes <code>-&gt;</code> lambdas as deprecated in favor of <code>=&gt;</code>. Verity's specification uses <code>-&gt;</code>, and this document follows the specification.</p>
+  <p class="callout-title">Earlier designs</p>
+  <p>Before October 2026 Verity borrowed Coconut's syntax (<code>-&gt;</code> lambdas, <code>|&gt;</code> pipes, <code>$</code> partial application, <code>data</code> and <code>addpattern</code>). It was dropped so that people and language models who know Python can write Verity without learning new operators. Python already provides <code>lambda</code>, <code>match</code> and data classes.</p>
 </aside>
 
-<h2 id="status"><span class="secnum">1.6</span> Implementation status<a class="anchor" href="#status" aria-label="Link to this section">#</a></h2>
+<h2 id="status"><span class="secnum">1.8</span> Implementation status<a class="anchor" href="#status" aria-label="Link to this section">#</a></h2>
 <div class="table-wrap">
 <table>
   <thead><tr><th>Milestone</th><th>Scope</th><th>Status</th></tr></thead>
   <tbody>
-    <tr><td>1</td><td>Runtime: <code>Truth</code>, testimony, combinators, rendering</td><td>not started</td></tr>
-    <tr><td>2</td><td>Literals, <code>def</code>, comparisons, <code>and</code>/<code>or</code>/<code>not</code>; <code>verity run</code></td><td>not started</td></tr>
-    <tr><td>3</td><td><code>forall</code>, <code>exists</code>, <code>because</code></td><td>not started</td></tr>
-    <tr><td>4</td><td>Coconut features, one at a time</td><td>not started</td></tr>
-    <tr><td>5</td><td>Testimony erasure</td><td>not started</td></tr>
+    <tr><td>1</td><td>Runtime library: <code>Truth</code>, testimony, combinators, <code>all_of</code>, reasons, secrets, text and JSON rendering, bounds</td><td>in progress</td></tr>
+    <tr><td>2</td><td>Python core: literals, <code>def</code>, comparisons, <code>and</code>/<code>or</code>/<code>not</code>, control flow; <code>verity run</code>, <code>compile</code>, <code>check --json</code></td><td>not started</td></tr>
+    <tr><td>3</td><td><code>forall</code>, <code>exists</code>, <code>because</code>, <code>assert</code>; spans; <code>verity test</code>; traceback mapping</td><td>not started</td></tr>
+    <tr><td>4</td><td>pytest plugin and <code>@testify</code> for plain Python</td><td>not started</td></tr>
+    <tr><td>5</td><td>The rest of Python 3.12: classes, data classes, <code>match</code>, comprehensions and more</td><td>not started</td></tr>
+    <tr><td>6</td><td>Dual compilation (erasure)</td><td>not started</td></tr>
   </tbody>
 </table>
 </div>
@@ -145,7 +158,7 @@ not every prime is odd, and Verity can tell you why</code></pre></div>
       <p>Verity Programming &middot; Henrik Gombos and Pranav Balakrishnan &middot; <a href="https://github.com/Henrik66/verity/blob/main/book/src/overview.html">Source for this page</a></p>
     </footer>
   </main>
-  <nav class="on-page" aria-label="On this page"><p>On this page</p><ul><li><a href="#summary">Summary</a></li><li><a href="#example">Example</a></li><li><a href="#goals">Design goals</a></li><li><a href="#execution">Execution model</a></li><li><a href="#differences">Differences from Python and Coconut</a></li><li><a href="#status">Implementation status</a></li></ul></nav>
+  <nav class="on-page" aria-label="On this page"><p>On this page</p><ul><li><a href="#summary">Summary</a></li><li><a href="#example">Example</a></li><li><a href="#why">Why</a></li><li><a href="#goals">Design goals</a></li><li><a href="#non-goals">Non-goals</a></li><li><a href="#execution">Execution model</a></li><li><a href="#differences">Differences from Python</a></li><li><a href="#status">Implementation status</a></li></ul></nav>
 </div>
 <script src="book.js" defer></script>
 </body>

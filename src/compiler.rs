@@ -5,8 +5,7 @@
 //!   overload the boolean operators. Comparisons whose operands return
 //!   non-bool values (numpy arrays, pandas series) must pass through
 //!   untouched.
-//! * Lowers Coconut-style features (pipes, partial application,
-//!   composition, `match`, `data`, `addpattern`) to plain Python.
-//! * Runs the testimony-erasure pass: where a `truth` is only used for
-//!   control flow and its testimony is never observed, emits plain Python
-//!   booleans so ordinary branching costs nothing extra.
+//! * Rewrites `assert` to raise `TestimonyError` carrying the falsity.
+//! * Dual compilation: each truth-returning function gets an evidence
+//!   version and a value version, and calls that are only branched on use
+//!   the value version, so ordinary branching costs nothing extra.

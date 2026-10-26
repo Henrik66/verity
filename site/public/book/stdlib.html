@@ -34,11 +34,12 @@
 <li><a href="data-model.html"><span class="toc-num">3</span>Data Model</a></li>
 <li><a href="expressions.html"><span class="toc-num">4</span>Expressions</a></li>
 <li><a href="testimony.html"><span class="toc-num">5</span>Testimony Semantics</a></li>
-<li><a href="statements.html"><span class="toc-num">6</span>Statements and Definitions</a></li>
+<li><a href="statements.html"><span class="toc-num">6</span>Statements</a></li>
 <li><a href="python.html"><span class="toc-num">7</span>Python Interoperability</a></li>
 <li><a href="stdlib.html" aria-current="page"><span class="toc-num">8</span>Standard Library</a></li>
 <li><a href="cli.html"><span class="toc-num">9</span>Command-Line Interface</a></li>
-<li><a href="implementation.html"><span class="toc-num">10</span>Implementation</a></li>
+<li><a href="machine.html"><span class="toc-num">10</span>Machine Interface</a></li>
+<li><a href="implementation.html"><span class="toc-num">11</span>Implementation</a></li>
 </ul>
 <p class="toc-heading">Appendices</p><ul>
 <li><a href="grammar.html"><span class="toc-num">A</span>Grammar</a></li>
@@ -48,64 +49,102 @@
   <main id="content" class="content">
     <article>
 <h1><span class="h1-num">Section 8</span>Standard Library</h1>
-<p>The standard library consists of modules that are always importable from Verity. Their functions return truths whose testimony is meaningful at the library's level, not the level of its implementation. Module and function names are snake_case. <span class="status status-settled">Settled</span></p>
+<p>The standard library consists of the modules <code>testimony</code> and <code>string_ops</code>. They are always importable from Verity, and they are the Python package <code>verity-testimony</code>. Module and function names are snake_case. <span class="status status-settled">Settled</span></p>
+<p>In the signatures below, <code>truthy</code> means a <code>Truth</code> or a Python <code>bool</code> (which is lifted). Optional <code>src</code> and <code>span</code> arguments are filled in by the compiler; Python callers may pass them to get the same testimony a compiled program would.</p>
 
 <h2 id="testimony"><span class="secnum">8.1</span> Module <code>testimony</code><a class="anchor" href="#testimony" aria-label="Link to this section">#</a></h2>
-<p>Functions for working with truths and their testimony.</p>
+<h3>Rendering</h3>
 <dl class="api">
-  <dt><code>explain(t: truth) -&gt; str</code> <span class="status status-settled">Settled</span></dt>
+  <dt><code>explain(t: truthy, audience: str = "developer") -&gt; str</code> <span class="status status-settled">Settled</span></dt>
   <dd>
-    <p>Return the rendering of <code>t</code> defined in <a href="testimony.html#rendering">Section 5.3</a>: <code>"verity"</code> or <code>"falsity"</code> on the first line, followed by the indented testimony tree, without a trailing newline. A Python <code>bool</code> argument is lifted first (<a href="python.html#lifting">Section 7.2</a>).</p>
+    <p>Return the text rendering of <code>t</code> defined in <a href="testimony.html#rendering">Section 5.4</a>, for the given audience (<a href="testimony.html#audiences">Section 5.5</a>): <code>"verity"</code> or <code>"falsity"</code> on the first line, followed by the indented testimony tree, without a trailing newline.</p>
 <div class="code code-ity"><span class="code-label">verity</span><pre><code><span class="t-kw">from</span> testimony <span class="t-kw">import</span> explain
 print(explain(<span class="t-num">2</span> + <span class="t-num">2</span> == <span class="t-num">5</span>))</code></pre></div>
 <div class="code code-out"><span class="code-label">output</span><pre><code><span class="t-truth">falsity</span>
   2 + 2 == 5: 4 != 5</code></pre></div>
   </dd>
+  <dt><code>to_json(t: truthy, audience: str = "developer") -&gt; dict</code> <span class="status status-settled">Settled</span></dt>
+  <dd><p>Return the testimony as a JSON-serializable dictionary in the schema <code>verity.testimony/0</code> (<a href="testimony.html#json">Section 5.6</a>).</p></dd>
+  <dt><code>to_bool(x: object) -&gt; bool</code> <span class="status status-settled">Settled</span></dt>
+  <dd><p>Return <code>True</code> for a verity and <code>False</code> for a falsity, discarding testimony. Any other value is converted by Python truthiness. Use it when passing truth values to Python code that requires a <code>bool</code>.</p></dd>
+</dl>
 
-  <dt><code>to_bool(t: truth) -&gt; bool</code> <span class="status status-settled">Settled</span></dt>
-  <dd><p>Return <code>True</code> if <code>t</code> is a verity and <code>False</code> if it is a falsity, discarding testimony. Use it when passing truth values to Python code that requires a <code>bool</code> (<a href="python.html#lowering">Section 7.3</a>).</p></dd>
+<h3>Building truths</h3>
+<dl class="api">
+  <dt><code>verity</code>, <code>falsity</code> <span class="status status-settled">Settled</span></dt>
+  <dd><p>The two truths with <em>literal</em> testimony. In Verity source these are keywords; from Python they are module constants.</p></dd>
+  <dt><code>all_of(*operands: truthy) -&gt; Truth</code> <span class="status status-settled">Settled</span></dt>
+  <dd><p>The accumulating conjunction (<a href="testimony.html#construction">Section 5.2</a>). Every operand has already been evaluated by the call. A falsity reports every failing operand under <code>failed k of n:</code>.</p></dd>
+  <dt><code>reason(id: str, message: str, hint: str | None = None) -&gt; Reason</code> <span class="status status-settled">Settled</span></dt>
+  <dd><p>A claim with a stable dotted ID and an optional hint, for use with <code>because</code> (<a href="testimony.html#reasons">Section 5.3</a>). Raises <code>ValueError</code> if <code>id</code> does not match <code>[a-z0-9_]+(\.[a-z0-9_]+)*</code>.</p></dd>
+  <dt><code>secret(value) -&gt; Secret</code>, <code>reveal(s: Secret) -&gt; object</code> <span class="status status-settled">Settled</span></dt>
+  <dd><p>Wrap a value so that testimony shows <code>&lt;secret&gt;</code>, and unwrap it (<a href="testimony.html#secrets">Section 5.7</a>).</p></dd>
+  <dt><code>text(value: bool, sentence: str) -&gt; Truth</code> <span class="status status-settled">Settled</span></dt>
+  <dd><p>A truth whose testimony is a <em>text</em> node. Library predicates use it to state evidence in their own words, as <code>string_ops.is_alnum</code> does.</p></dd>
+</dl>
 
-  <dt><code>as_dict(t: truth) -&gt; dict</code> <span class="status status-proposed">Proposed</span></dt>
-  <dd>
-    <p>Return the testimony as a JSON-serializable structure, for logging and tooling: <code>{"value": "falsity", "testimony": node}</code>, where each node is <code>{"kind": str, "line": str, "children": [node, ...]}</code> and <code>line</code> is the node's rendered line without indentation. Values appear only in their <code>repr()</code> form.</p>
-  </dd>
+<h3>Python API for operators</h3>
+<p>These functions are what compiled code calls. Python code can call them directly to build the testimony that Verity syntax builds (<a href="python.html#library">Section 7.7</a>). <span class="status status-settled">Settled</span></p>
+<dl class="api">
+  <dt><code>check(left, op: str, right, src: str | None = None, span=None) -&gt; Truth | object</code></dt>
+  <dd><p>Apply the comparison <code>op</code> (one of <code>==</code> <code>!=</code> <code>&lt;</code> <code>&lt;=</code> <code>&gt;</code> <code>&gt;=</code> <code>in</code> <code>not in</code> <code>is</code> <code>is not</code>). Returns a truth with a <em>comparison</em> node if Python's result is a <code>bool</code>, and Python's result unchanged otherwise. Secrets are unwrapped for the comparison and shown as <code>&lt;secret&gt;</code>. Without <code>src</code>, the node's source text is <code>left op right</code> with the captured reprs.</p></dd>
+  <dt><code>lift(value: bool, src: str | None = None, span=None) -&gt; Truth</code></dt>
+  <dd><p>Lift a <code>bool</code>. A <code>Truth</code> is returned unchanged.</p></dd>
+  <dt><code>and_(*operands)</code>, <code>or_(*operands)</code></dt>
+  <dd><p>Short-circuit conjunction and disjunction. Each operand is a truthy value or a zero-argument callable returning one; callables are called only when needed, which preserves short-circuiting. If an operand is neither, Python's semantics apply (<a href="python.html#operands">Section 7.5</a>).</p></dd>
+  <dt><code>not_(operand)</code></dt>
+  <dd><p>Negation.</p></dd>
+  <dt><code>because(t: truthy, m, span=None) -&gt; Truth</code>, also <code>Truth.because(m)</code></dt>
+  <dd><p>Attach a claim. <code>m</code> is a string, a <code>Reason</code>, or a zero-argument callable returning one, called only when the testimony is built.</p></dd>
+  <dt><code>forall(iterable, body, name="x", src=None, body_src=None)</code>, <code>exists(...)</code></dt>
+  <dd><p>Quantifiers. <code>body</code> is a one-argument callable returning a truthy value. <code>src</code> is the iterable's source text: when it is a plain name, positions render as <code>src[i]</code>.</p></dd>
+</dl>
+
+<h3>Configuration and errors</h3>
+<dl class="api">
+  <dt><code>configure(max_repr: int = 80, max_children: int = 50, max_depth: int = 32) -&gt; None</code> <span class="status status-settled">Settled</span></dt>
+  <dd><p>Set the bounds of <a href="testimony.html#bounds">Section 5.8</a> for the current process. Arguments not given keep their current values.</p></dd>
+  <dt><code>class TestimonyError(AssertionError)</code> <span class="status status-settled">Settled</span></dt>
+  <dd><p>Raised by a failing <code>assert</code> and by <code>Truth.expect()</code>. Attribute <code>truth</code> holds the falsity, and <code>str(e)</code> is <code>explain(e.truth)</code>.</p></dd>
 </dl>
 
 <h2 id="truth-class"><span class="secnum">8.2</span> Class <code>Truth</code><a class="anchor" href="#truth-class" aria-label="Link to this section">#</a></h2>
-<p>The runtime class of truths. It is not normally named in Verity source: values are created by literals, comparisons and the operators in <a href="expressions.html">Section 4</a>.</p>
+<p>The runtime class of truths. It is not normally named in Verity source: values are created by literals, comparisons and the operators in <a href="expressions.html">Section 4</a>. <span class="status status-settled">Settled</span></p>
 <dl class="api">
-  <dt><code>bool(t)</code> <span class="status status-settled">Settled</span></dt>
+  <dt><code>bool(t)</code>, <code>t.value</code></dt>
   <dd><p><code>True</code> for a verity, <code>False</code> for a falsity.</p></dd>
-  <dt><code>str(t)</code>, <code>repr(t)</code> <span class="status status-proposed">Proposed</span></dt>
+  <dt><code>str(t)</code>, <code>repr(t)</code></dt>
   <dd><p><code>"verity"</code> or <code>"falsity"</code>.</p></dd>
-  <dt><code>t == u</code>, <code>hash(t)</code> <span class="status status-proposed">Proposed</span></dt>
+  <dt><code>t == u</code>, <code>hash(t)</code></dt>
   <dd><p>Compare and hash by truth value only.</p></dd>
-  <dt><code>t.testimony</code> <span class="status status-proposed">Proposed</span></dt>
-  <dd><p>The root testimony node. Nodes are read-only objects with attributes <code>kind</code> (one of the kinds in <a href="testimony.html#nodes">Section 5.1</a>), <code>line</code> (the rendered line) and <code>children</code> (a tuple of nodes). Accessing this attribute counts as observing the testimony.</p></dd>
+  <dt><code>t.testimony</code></dt>
+  <dd><p>The root testimony node. Nodes are read-only objects with attributes <code>kind</code>, <code>value</code>, <code>asserted</code>, <code>line</code>, <code>children</code> (a tuple of nodes), <code>span</code> and the fields of their kind (<a href="testimony.html#json">Section 5.6</a>).</p></dd>
+  <dt><code>t.because(m)</code></dt>
+  <dd><p>Same as <code>t because m</code>.</p></dd>
+  <dt><code>t.expect()</code></dt>
+  <dd><p>Return <code>t</code> if it is a verity. Raise <code>TestimonyError</code> if it is a falsity.</p></dd>
 </dl>
 
 <h2 id="string-ops"><span class="secnum">8.3</span> Module <code>string_ops</code><a class="anchor" href="#string-ops" aria-label="Link to this section">#</a></h2>
-<p>String predicates with character-level testimony.</p>
+<p>String predicates with character-level testimony. <span class="status status-settled">Settled</span></p>
 <dl class="api">
-  <dt><code>is_alnum(s: str) -&gt; truth</code> <span class="status status-settled">Settled</span></dt>
+  <dt><code>is_alnum(s: str) -&gt; Truth</code></dt>
   <dd>
     <p>A verity if <code>s</code> is non-empty and every character is alphanumeric in the sense of Python's <code>str.isalnum</code>. Testimony, as a <em>text</em> node:</p>
     <ul>
       <li>verity: <code>every character of {repr(s)} is alphanumeric</code></li>
       <li>falsity at the first offending character <code>c</code> at index <code>i</code>: <code>{repr(c)} at index {i} is not alphanumeric</code></li>
-      <li>falsity for the empty string: <code>'' is empty</code> <span class="status status-proposed">Proposed</span></li>
+      <li>falsity for the empty string: <code>'' is empty</code></li>
     </ul>
 <div class="code code-ity"><span class="code-label">verity</span><pre><code><span class="t-kw">import</span> string_ops
 <span class="t-kw">from</span> testimony <span class="t-kw">import</span> explain
-string_ops.is_alnum(<span class="t-str">"grace_hopper"</span>) <span class="t-op">|&gt;</span> explain <span class="t-op">|&gt;</span> print</code></pre></div>
+print(explain(string_ops.is_alnum(<span class="t-str">"grace_hopper"</span>)))</code></pre></div>
 <div class="code code-out"><span class="code-label">output</span><pre><code><span class="t-truth">falsity</span>
   '_' at index 5 is not alphanumeric</code></pre></div>
   </dd>
+  <dt><code>is_alpha(s)</code>, <code>is_digit(s)</code>, <code>is_space(s)</code>, <code>is_lower(s)</code>, <code>is_upper(s)</code></dt>
+  <dd><p><span class="status status-proposed">Proposed</span> Testifying counterparts of the other <code>str.is*</code> predicates, with the same testimony forms.</p></dd>
 </dl>
-<p>Further <code>string_ops</code> functions are <span class="status status-open">Open</span>. Testifying counterparts of the <code>str.is*</code> predicates are the expected first additions.</p>
-
-<h2 id="list-ops"><span class="secnum">8.4</span> Module <code>list_ops</code><a class="anchor" href="#list-ops" aria-label="Link to this section">#</a></h2>
-<p>The module name is reserved for functional list helpers. Its contents are <span class="status status-open">Open</span>.</p>
 
     </article>
     <nav class="pager" aria-label="Previous and next pages"><a class="pager-prev" href="python.html"><span>Previous</span>7. Python Interoperability</a><a class="pager-next" href="cli.html"><span>Next</span>9. Command-Line Interface</a></nav>
@@ -113,7 +152,7 @@ string_ops.is_alnum(<span class="t-str">"grace_hopper"</span>) <span class="t-op
       <p>Verity Programming &middot; Henrik Gombos and Pranav Balakrishnan &middot; <a href="https://github.com/Henrik66/verity/blob/main/book/src/stdlib.html">Source for this page</a></p>
     </footer>
   </main>
-  <nav class="on-page" aria-label="On this page"><p>On this page</p><ul><li><a href="#testimony">Module testimony</a></li><li><a href="#truth-class">Class Truth</a></li><li><a href="#string-ops">Module string_ops</a></li><li><a href="#list-ops">Module list_ops</a></li></ul></nav>
+  <nav class="on-page" aria-label="On this page"><p>On this page</p><ul><li><a href="#testimony">Module testimony</a></li><li><a href="#truth-class">Class Truth</a></li><li><a href="#string-ops">Module string_ops</a></li></ul></nav>
 </div>
 <script src="book.js" defer></script>
 </body>

@@ -34,11 +34,12 @@
 <li><a href="data-model.html"><span class="toc-num">3</span>Data Model</a></li>
 <li><a href="expressions.html"><span class="toc-num">4</span>Expressions</a></li>
 <li><a href="testimony.html"><span class="toc-num">5</span>Testimony Semantics</a></li>
-<li><a href="statements.html"><span class="toc-num">6</span>Statements and Definitions</a></li>
+<li><a href="statements.html"><span class="toc-num">6</span>Statements</a></li>
 <li><a href="python.html" aria-current="page"><span class="toc-num">7</span>Python Interoperability</a></li>
 <li><a href="stdlib.html"><span class="toc-num">8</span>Standard Library</a></li>
 <li><a href="cli.html"><span class="toc-num">9</span>Command-Line Interface</a></li>
-<li><a href="implementation.html"><span class="toc-num">10</span>Implementation</a></li>
+<li><a href="machine.html"><span class="toc-num">10</span>Machine Interface</a></li>
+<li><a href="implementation.html"><span class="toc-num">11</span>Implementation</a></li>
 </ul>
 <p class="toc-heading">Appendices</p><ul>
 <li><a href="grammar.html"><span class="toc-num">A</span>Grammar</a></li>
@@ -48,7 +49,7 @@
   <main id="content" class="content">
     <article>
 <h1><span class="h1-num">Section 7</span>Python Interoperability</h1>
-<p>Verity programs run on CPython and use Python libraries directly. This section specifies the conversions at the boundary between Verity truths and Python values.</p>
+<p>Verity programs run on CPython and use Python libraries directly, and Python programs can use Verity's testimony. This section specifies the boundary in both directions.</p>
 
 <h2 id="calling-python"><span class="secnum">7.1</span> Calling Python from Verity<a class="anchor" href="#calling-python" aria-label="Link to this section">#</a></h2>
 <p>Any module importable by the executing Python interpreter can be imported. Python functions, classes and values are used with ordinary call, attribute and subscription syntax. <span class="status status-settled">Settled</span></p>
@@ -60,22 +61,19 @@ print(mean(scores))</code></pre></div>
 <div class="code code-out"><span class="code-label">output</span><pre><code>74.33333333333333</code></pre></div>
 
 <h2 id="lifting"><span class="secnum">7.2</span> Rule 1: lifting Python booleans<a class="anchor" href="#lifting" aria-label="Link to this section">#</a></h2>
-<p>A Python <code>bool</code> that appears where a truth is required is <em>lifted</em> into a truth with the same value. The positions that require a truth are: the operands of <code>not</code>, <code>and</code> and <code>or</code>, the left operand of <code>because</code>, the body of a quantifier, and the argument of <code>testimony.explain</code>. <span class="status status-settled">Settled</span></p>
-<p>The lifted truth's testimony is a <em>lifted</em> node: <span class="status status-proposed">Proposed</span></p>
-<ul>
-  <li>When the bool is the direct result of a call, the node renders the callee and argument values: <code>str.isdigit('4a') returned False</code>.</li>
-  <li>Otherwise it renders the source text: <code>flag returned True</code>.</li>
-</ul>
+<p>A Python <code>bool</code> that appears where a truth is required is <em>lifted</em> into a truth with the same value. The positions that require a truth are: the operands of <code>not</code>, <code>and</code> and <code>or</code> (when the other operand is a truth or bool), the left operand of <code>because</code>, the body of a quantifier, the operand of <code>assert</code>, the arguments of <code>all_of</code>, and the argument of <code>explain</code> or <code>to_json</code>. <span class="status status-settled">Settled</span></p>
+<p>The lifted truth's testimony is a <em>lifted</em> node that quotes the source text of the expression and its result: <span class="status status-settled">Settled</span></p>
 <div class="code code-ity"><span class="code-label">verity</span><pre><code><span class="t-kw">from</span> testimony <span class="t-kw">import</span> explain
 
 code = <span class="t-str">"4a"</span>
-code.isdigit() <span class="t-op">|&gt;</span> explain <span class="t-op">|&gt;</span> print</code></pre></div>
+print(explain(code.isdigit()))</code></pre></div>
 <div class="code code-out"><span class="code-label">output</span><pre><code><span class="t-truth">falsity</span>
-  str.isdigit('4a') returned False</code></pre></div>
+  code.isdigit() returned False</code></pre></div>
+<p>When the runtime is used directly from Python, there is no source text, so the node reads <code>&lt;bool&gt; returned False</code>.</p>
 
 <h2 id="lowering"><span class="secnum">7.3</span> Rule 2: truths as Python values<a class="anchor" href="#lowering" aria-label="Link to this section">#</a></h2>
 <p>A truth passed to Python code is a <code>Truth</code> object. It defines <code>__bool__</code>, so it behaves correctly in Python conditions, <code>all()</code>, <code>any()</code>, <code>filter()</code>, sorting keys and anywhere else truthiness is used. <span class="status status-settled">Settled</span></p>
-<p>Code that requires an actual <code>bool</code> (<code>json.dumps</code>, <code>isinstance(x, bool)</code> checks, some C extensions) must convert explicitly with <code>testimony.to_bool</code>: <span class="status status-settled">Settled</span></p>
+<p>Code that requires an actual <code>bool</code> (<code>json.dumps</code>, <code>isinstance(x, bool)</code> checks, some C extensions) must convert explicitly with <code>testimony.to_bool</code>, or serialize the testimony with <code>to_json</code>: <span class="status status-settled">Settled</span></p>
 <div class="code code-ity"><span class="code-label">verity</span><pre><code><span class="t-kw">import</span> json
 <span class="t-kw">from</span> testimony <span class="t-kw">import</span> to_bool
 
@@ -84,42 +82,68 @@ print(json.dumps({<span class="t-str">"passed"</span>: to_bool(passed)}))</code>
 <div class="code code-out"><span class="code-label">output</span><pre><code>{"passed": true}</code></pre></div>
 
 <h2 id="pass-through"><span class="secnum">7.4</span> Rule 3: non-boolean comparisons<a class="anchor" href="#pass-through" aria-label="Link to this section">#</a></h2>
-<p>If a comparison's Python result is not a <code>bool</code>, it is returned unchanged and no truth is created. Libraries that overload comparisons, such as numpy and pandas, therefore work unmodified. <span class="status status-settled">Settled</span></p>
+<p>If a comparison's Python result is not a <code>bool</code>, it is returned unchanged and no truth is created. Libraries that overload comparisons, such as numpy and pandas, therefore work unmodified, and their results carry no testimony. <span class="status status-settled">Settled</span></p>
 <div class="code code-ity"><span class="code-label">verity</span><pre><code><span class="t-kw">import</span> numpy <span class="t-kw">as</span> np
 
 a = np.array([<span class="t-num">3</span>, -<span class="t-num">1</span>, <span class="t-num">4</span>])
 print(a[a &gt; <span class="t-num">0</span>])</code></pre></div>
 <div class="code code-out"><span class="code-label">output</span><pre><code>[3 4]</code></pre></div>
-<p>Applying <code>and</code>, <code>or</code>, <code>not</code> or <code>because</code> to such a result is subject to the open question in <a href="#open">Section 7.8</a>.</p>
 
-<h2 id="requirements"><span class="secnum">7.5</span> Rule 4: runtime requirements<a class="anchor" href="#requirements" aria-label="Link to this section">#</a></h2>
-<p>The compiler is a standalone executable. Running a compiled program requires a Python 3 interpreter. The runtime module is written by the compiler, so no Python package needs to be installed. <span class="status status-settled">Settled</span></p>
+<h2 id="operands"><span class="secnum">7.5</span> Rule 4: non-truth operands<a class="anchor" href="#operands" aria-label="Link to this section">#</a></h2>
+<p>If an operand of <code>and</code> or <code>or</code> is neither a truth nor a <code>bool</code>, the operation has Python's semantics and returns one of its operands, so <code>name or "anonymous"</code> works as in Python. <code>not x</code> on such a value is Python's <code>not x</code>, lifted. <code>to_bool</code> accepts any value and applies Python truthiness. <span class="status status-settled">Settled</span></p>
 
-<h2 id="tracebacks"><span class="secnum">7.6</span> Rule 5: tracebacks<a class="anchor" href="#tracebacks" aria-label="Link to this section">#</a></h2>
-<p>Exceptions raised by a Verity program produce CPython tracebacks that refer to the generated Python file. <span class="status status-settled">Settled</span> Mapping tracebacks back to <code>.ity</code> source lines is planned but not scheduled.</p>
+<h2 id="requirements"><span class="secnum">7.6</span> Rule 5: runtime requirements<a class="anchor" href="#requirements" aria-label="Link to this section">#</a></h2>
+<p>The compiler is a standalone executable. Running a compiled program requires a Python 3.12 or later interpreter. The compiler writes its embedded runtime next to generated code, so <code>.ity</code> programs need no package installed. <span class="status status-settled">Settled</span></p>
 
-<h2 id="from-python"><span class="secnum">7.7</span> Calling Verity from Python<a class="anchor" href="#from-python" aria-label="Link to this section">#</a></h2>
-<p>A compiled Verity module is a Python module. Python code can import it and call its functions. Functions that return truths return <code>Truth</code> objects, which Python can test for truthiness, pass to <code>to_bool</code>, or render with <code>explain</code>. <span class="status status-proposed">Proposed</span></p>
-<div class="code code-py"><span class="code-label">python</span><pre><code><span class="t-kw">from</span> validate <span class="t-kw">import</span> valid_username
-<span class="t-kw">from</span> truth <span class="t-kw">import</span> explain
+<h2 id="library"><span class="secnum">7.7</span> Using testimony from Python<a class="anchor" href="#library" aria-label="Link to this section">#</a></h2>
+<p>The runtime is published as the Python package <code>verity-testimony</code>, which provides the module <code>testimony</code> and the module <code>string_ops</code>. <span class="status status-settled">Settled</span></p>
+<div class="code code-sh"><span class="code-label">shell</span><pre><code><span class="t-sh">$</span> pip install <span class="t-truth">verity</span>-testimony</code></pre></div>
+<p>Without the compiler, Python's <code>and</code>, <code>or</code> and <code>not</code> and its comparisons build no testimony. The library offers the same constructions as functions:</p>
+<div class="code code-py"><span class="code-label">python</span><pre><code><span class="t-kw">from</span> testimony <span class="t-kw">import</span> all_of, check, explain, <span class="t-test">forall</span>, reason
 
-result = valid_username(form[<span class="t-str">"username"</span>])
+<span class="t-kw">def</span> valid_order(order):
+    <span class="t-kw">return</span> all_of(
+        check(order.qty, <span class="t-str">"&gt;"</span>, <span class="t-num">0</span>, src=<span class="t-str">"order.qty &gt; 0"</span>).<span class="t-test">because</span>(reason(<span class="t-str">"qty.positive"</span>, <span class="t-str">"the quantity is positive"</span>)),
+        <span class="t-test">forall</span>(order.items, <span class="t-kw">lambda</span> item: check(item.price, <span class="t-str">"&gt;="</span>, <span class="t-num">0</span>, src=<span class="t-str">"item.price &gt;= 0"</span>), name=<span class="t-str">"item"</span>, src=<span class="t-str">"order.items"</span>),
+    )
+
+result = valid_order(order)
 <span class="t-kw">if</span> <span class="t-kw">not</span> result:
-    log.info(explain(result))</code></pre></div>
+    log.warning(explain(result))</code></pre></div>
+<p>The Python API is listed in <a href="stdlib.html#testimony">Section 8.1</a>. A compiled Verity module is also an ordinary Python module: Python code can import it and call its functions, which return <code>Truth</code> objects with full testimony.</p>
 
-<h2 id="open"><span class="secnum">7.8</span> Open questions<a class="anchor" href="#open" aria-label="Link to this section">#</a></h2>
-<ul>
-  <li><strong>Non-truth operands of <code>and</code>/<code>or</code>.</strong> Python's <code>name or "anonymous"</code> idiom returns an operand. Options: (a) fall back to Python semantics when either operand is neither a truth nor a bool; (b) lift by Python truthiness; (c) reject at run time with <code>TypeError</code>. <span class="status status-open">Open</span></li>
-  <li><strong><code>to_bool</code> on non-truths.</strong> Whether <code>to_bool</code> accepts any value and applies Python truthiness, or only truths and bools. <span class="status status-open">Open</span></li>
-</ul>
+<h2 id="testify"><span class="secnum">7.8</span> The <code>@testify</code> decorator<a class="anchor" href="#testify" aria-label="Link to this section">#</a></h2>
+<p><span class="status status-proposed">Proposed</span> for milestone 4. <code>@testify</code> rewrites a plain Python predicate function at decoration time, as pytest rewrites asserts, so that its comparisons, <code>and</code>/<code>or</code>/<code>not</code>, and <code>all()</code>/<code>any()</code> over generator expressions build testimony:</p>
+<div class="code code-py"><span class="code-label">python</span><pre><code><span class="t-kw">from</span> testimony <span class="t-kw">import</span> explain, testify
+<span class="t-deco">
+@testify</span>
+<span class="t-kw">def</span> all_positive(xs):
+    <span class="t-kw">return</span> all(x &gt; <span class="t-num">0</span> <span class="t-kw">for</span> x <span class="t-kw">in</span> xs)
+
+print(explain(all_positive([<span class="t-num">3</span>, -<span class="t-num">1</span>, <span class="t-num">4</span>])))</code></pre></div>
+<div class="code code-out"><span class="code-label">output</span><pre><code><span class="t-truth">falsity</span>
+  <span class="t-label">counterexample</span>: x = -1 (xs[1])
+    x &gt; 0: -1 &lt;= 0</code></pre></div>
+
+<h2 id="pytest"><span class="secnum">7.9</span> The pytest plugin<a class="anchor" href="#pytest" aria-label="Link to this section">#</a></h2>
+<p><span class="status status-proposed">Proposed</span> for milestone 4. The package <code>pytest-verity</code> extends pytest's assertion rewriting so that a failing <code>assert</code> reports testimony. In particular, <code>assert all(...)</code> and <code>assert any(...)</code> over a generator report the counterexample or the absence of a witness, where pytest alone reports <code>assert False</code>.</p>
+<div class="code code-out"><span class="code-label">output</span><pre><code>    def test_prices():
+&gt;       assert all(item.price &gt;= 0 for item in cart)
+E       falsity
+E         <span class="t-label">counterexample</span>: item = Item(name='refund', price=-5) (cart[2])
+E           item.price &gt;= 0: -5 &lt; 0</code></pre></div>
+<p>With <code>--verity-json=PATH</code>, the plugin writes one JSON Lines test record per test in the format of <a href="machine.html#records">Section 10.2</a>. When used with Hypothesis, the reported counterexample is Hypothesis's shrunk example, so it is minimal in Hypothesis's sense.</p>
+
+<h2 id="tracebacks"><span class="secnum">7.10</span> Tracebacks<a class="anchor" href="#tracebacks" aria-label="Link to this section">#</a></h2>
+<p><code>verity run</code> and <code>verity test</code> map tracebacks of uncaught exceptions to <code>.ity</code> file and line numbers. <span class="status status-settled">Settled</span> for milestone 3. Before that milestone, tracebacks refer to the generated Python file.</p>
 
     </article>
-    <nav class="pager" aria-label="Previous and next pages"><a class="pager-prev" href="statements.html"><span>Previous</span>6. Statements and Definitions</a><a class="pager-next" href="stdlib.html"><span>Next</span>8. Standard Library</a></nav>
+    <nav class="pager" aria-label="Previous and next pages"><a class="pager-prev" href="statements.html"><span>Previous</span>6. Statements</a><a class="pager-next" href="stdlib.html"><span>Next</span>8. Standard Library</a></nav>
     <footer class="page-footer">
       <p>Verity Programming &middot; Henrik Gombos and Pranav Balakrishnan &middot; <a href="https://github.com/Henrik66/verity/blob/main/book/src/python.html">Source for this page</a></p>
     </footer>
   </main>
-  <nav class="on-page" aria-label="On this page"><p>On this page</p><ul><li><a href="#calling-python">Calling Python from Verity</a></li><li><a href="#lifting">Rule 1: lifting Python booleans</a></li><li><a href="#lowering">Rule 2: truths as Python values</a></li><li><a href="#pass-through">Rule 3: non-boolean comparisons</a></li><li><a href="#requirements">Rule 4: runtime requirements</a></li><li><a href="#tracebacks">Rule 5: tracebacks</a></li><li><a href="#from-python">Calling Verity from Python</a></li><li><a href="#open">Open questions</a></li></ul></nav>
+  <nav class="on-page" aria-label="On this page"><p>On this page</p><ul><li><a href="#calling-python">Calling Python from Verity</a></li><li><a href="#lifting">Rule 1: lifting Python booleans</a></li><li><a href="#lowering">Rule 2: truths as Python values</a></li><li><a href="#pass-through">Rule 3: non-boolean comparisons</a></li><li><a href="#operands">Rule 4: non-truth operands</a></li><li><a href="#requirements">Rule 5: runtime requirements</a></li><li><a href="#library">Using testimony from Python</a></li><li><a href="#testify">The @testify decorator</a></li><li><a href="#pytest">The pytest plugin</a></li><li><a href="#tracebacks">Tracebacks</a></li></ul></nav>
 </div>
 <script src="book.js" defer></script>
 </body>
