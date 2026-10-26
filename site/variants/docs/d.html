@@ -3,152 +3,109 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="variant-idea" content="Drawing sheet: the page is an engineering document on faint grid paper, with a title block (doc no., revision, status, authors). Condensed sans, uppercase section labels, numbered clauses. Testimony output is also drawn as a node diagram with kind tags, next to the plain text.">
-<title>Docs / d: drawing sheet</title>
+<meta name="variant-idea" content="Round 2 (from 1a). Text file: the page looks like a .txt file served raw. Section rules are lines of = and -, tables and the testimony tree are drawn in ASCII, and links are numbered references collected at the bottom. Source Code Pro.">
+<title>Docs / d: text file</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <style>
-  :root { --ink: #1f3328; --body: #33463b; --mute: #6c7d72; --grid: #e4ebe3; --line: #9fb2a5; --paper: #f8faf6; --leaf: #315d46; --fal: #a8442a; --sun: #ffda46; }
+  :root { --ink: #1f2622; --mute: #66726a; --paper: #fafaf6; --link: #315d46; --fal: #9a3d1f; --prop: #8a6a00; }
   * { box-sizing: border-box; font-feature-settings: "liga" 0, "calt" 0 !important; font-variant-ligatures: none !important; }
-  body { margin: 0; color: var(--body); font: 400 16px/1.6 "IBM Plex Sans Condensed", "Arial Narrow", sans-serif;
-    background-color: var(--paper);
-    background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
-    background-size: 24px 24px; }
-  code, pre, .mono { font-family: "IBM Plex Mono", ui-monospace, monospace; }
-  a { color: var(--leaf); }
-  .sheet { max-width: 1200px; margin: 24px auto; padding: 0 16px; }
-  .frame { border: 1.5px solid var(--ink); background: rgba(248, 250, 246, .92); }
-  .tb { display: grid; grid-template-columns: 2.2fr 1fr 1fr 1fr 1.4fr; border-bottom: 1.5px solid var(--ink); }
-  .tb > div { padding: 8px 12px; border-right: 1px solid var(--line); min-width: 0; }
-  .tb > div:last-child { border-right: 0; }
-  .tb label { display: block; font: 500 10.5px "IBM Plex Mono", monospace; letter-spacing: .1em; text-transform: uppercase; color: var(--mute); }
-  .tb .v { font-weight: 600; color: var(--ink); font-size: 15px; }
-  .tb .title { display: flex; align-items: center; gap: 12px; }
-  .tb .title svg { width: 26px; height: 26px; flex: none; }
-  .grid { display: grid; grid-template-columns: 220px minmax(0, 1fr); }
-  .index { border-right: 1px solid var(--line); padding: 16px 0; font-size: 14.5px; }
-  .index label { display: block; padding: 0 16px 6px; font: 500 10.5px "IBM Plex Mono", monospace; letter-spacing: .1em; color: var(--mute); }
-  .index a { display: flex; gap: 10px; padding: 3px 16px; color: var(--body); text-decoration: none; }
-  .index a span { font-family: "IBM Plex Mono", monospace; font-size: 12.5px; color: var(--mute); width: 22px; }
-  .index a[aria-current] { background: var(--ink); color: var(--paper); }
-  .index a[aria-current] span { color: var(--sun); }
-  main { padding: 28px 40px 56px; min-width: 0; }
-  .sec-label { font: 500 12px "IBM Plex Mono", monospace; letter-spacing: .14em; text-transform: uppercase; color: var(--mute); margin: 0 0 4px; }
-  h1 { font-size: 40px; line-height: 1.1; font-weight: 600; color: var(--ink); margin: 0 0 10px; letter-spacing: -.01em; }
-  .lede { max-width: 70ch; margin: 0 0 8px; }
-  h2 { display: flex; align-items: baseline; gap: 14px; margin: 40px 0 14px; font-size: 15px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--ink); border-bottom: 1.5px solid var(--ink); padding-bottom: 4px; }
-  h2 .n { font-family: "IBM Plex Mono", monospace; font-weight: 500; letter-spacing: 0; }
-  p code, li code, td code { font-size: 13.5px; color: var(--ink); }
-  .tbl { overflow-x: auto; }
-  table { border-collapse: collapse; width: 100%; font-size: 15px; border: 1px solid var(--line); background: var(--paper); }
-  th { font: 500 11px "IBM Plex Mono", monospace; letter-spacing: .1em; text-transform: uppercase; color: var(--mute); text-align: left; }
-  th, td { padding: 6px 12px; border: 1px solid var(--line); white-space: nowrap; }
-  td:first-child { font-family: "IBM Plex Mono", monospace; font-size: 13.5px; color: var(--ink); }
-  .st { font: 500 11px "IBM Plex Mono", monospace; letter-spacing: .06em; padding: 1px 6px; border: 1px solid var(--leaf); color: var(--leaf); }
-  .st.p { border-color: #8a6a00; color: #8a6a00; border-style: dashed; }
-  ol.cl { list-style: none; margin: 0; padding: 0; counter-reset: c; max-width: 72ch; }
-  ol.cl li { counter-increment: c; display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 8px; padding: 6px 0; border-bottom: 1px dotted var(--line); }
-  ol.cl li::before { content: "5.2." counter(c); font: 500 13px/1.9 "IBM Plex Mono", monospace; color: var(--mute); }
-  .fig { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); border: 1px solid var(--line); background: var(--paper); }
-  .fig > div { padding: 14px 16px; min-width: 0; }
-  .fig > div + div { border-left: 1px solid var(--line); }
-  .cap { font: 500 11px "IBM Plex Mono", monospace; letter-spacing: .1em; text-transform: uppercase; color: var(--mute); margin: 0 0 8px; }
-  pre { margin: 0; font-size: 13px; line-height: 1.65; overflow-x: auto; color: var(--ink); }
-  .k { font-weight: 500; color: var(--leaf); } .s { color: #6a6a2a; } .n { color: #8a4f1f; } .f { color: var(--ink); text-decoration: underline dotted var(--line); }
-  .out .x { color: var(--fal); font-weight: 500; }
-  .tree { list-style: none; margin: 0; padding: 0; font: 13px "IBM Plex Mono", monospace; }
-  .tree ul { list-style: none; margin: 0; padding-left: 26px; }
-  .tree li { position: relative; padding: 4px 0 4px 0; }
-  .tree ul li::before { content: ""; position: absolute; left: -16px; top: 0; height: 21px; width: 12px; border-left: 1px solid var(--ink); border-bottom: 1px solid var(--ink); }
-  .node { display: inline-flex; border: 1px solid var(--ink); background: #fff; }
-  .node i { font-style: normal; padding: 2px 6px; border-right: 1px solid var(--ink); font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--mute); }
-  .node b { font-weight: 400; padding: 2px 8px; color: var(--ink); }
-  .node.root { border-color: var(--fal); } .node.root i { border-color: var(--fal); color: var(--fal); }
-  .figno { margin: 6px 0 0; font: 12px "IBM Plex Mono", monospace; color: var(--mute); }
-  .foot { display: flex; justify-content: space-between; border-top: 1.5px solid var(--ink); padding: 6px 12px; font: 12px "IBM Plex Mono", monospace; color: var(--mute); }
-  @media (max-width: 900px) {
-    .tb { grid-template-columns: 1fr 1fr; } .tb > div:first-child { grid-column: 1 / -1; border-right: 0; border-bottom: 1px solid var(--line); }
-    .tb > div:nth-child(n+4) { display: none; }
-    .grid { grid-template-columns: minmax(0, 1fr); } .index { display: none; }
-    main { padding: 20px 16px 40px; } h1 { font-size: 32px; }
-    .fig { grid-template-columns: minmax(0, 1fr); } .fig > div + div { border-left: 0; border-top: 1px solid var(--line); }
-  }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 400 14px/1.55 "Source Code Pro", ui-monospace, monospace; }
+  a { color: var(--link); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .txt { max-width: calc(72ch + 32px); margin: 0 auto; padding: 32px 16px 96px; }
+  pre, .p { font: inherit; margin: 0 0 1.55em; }
+  pre { overflow-x: auto; white-space: pre; }
+  .p { white-space: normal; }
+  pre.box { line-height: 1.22; }
+  .refs { overflow-wrap: anywhere; }
+  .rule { overflow: hidden; white-space: nowrap; color: var(--mute); margin: 0; user-select: none; }
+  .rule.eq::after { content: "========================================================================"; }
+  .rule.da::after { content: "------------------------------------------------------------------------"; }
+  h1, h2 { font: inherit; margin: 0; font-weight: 600; }
+  h1 { text-transform: uppercase; }
+  .sec { margin: 2.4em 0 1.2em; }
+  .mute { color: var(--mute); }
+  .ref { color: var(--mute); }
+  .ref a { color: var(--link); }
+  .prop { color: var(--prop); }
+  .k { font-weight: 600; } .s { color: #5b6b2f; } .n { color: #7a4f1f; }
+  .x { color: var(--fal); font-weight: 600; }
+  .refs { margin-top: 3em; }
+  .refs li { list-style: none; }
+  .refs ol { padding: 0; margin: 0; }
+  @media (max-width: 600px) { body { font-size: 12px; } }
 </style>
 </head>
 <body>
-<div class="sheet"><div class="frame">
-  <div class="tb">
-    <div class="title"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="46" fill="#ffda46" stroke="#1f3328" stroke-width="3"/><g fill="#1f3328"><ellipse cx="35" cy="41" rx="4.5" ry="8"/><ellipse cx="65" cy="41" rx="4.5" ry="8"/></g><path d="M27 58 C36 76 64 76 73 58" fill="none" stroke="#1f3328" stroke-width="5" stroke-linecap="round"/></svg><div><label>Document</label><span class="v">Verity Programming</span></div></div>
-    <div><label>Doc no.</label><span class="v mono">VP-05</span></div>
-    <div><label>Rev</label><span class="v mono">0.0</span></div>
-    <div><label>Status</label><span class="v">Draft</span></div>
-    <div><label>Authors</label><span class="v">Gombos · Balakrishnan</span></div>
-  </div>
-  <div class="grid">
-    <nav class="index" aria-label="Contents">
-      <label>INDEX</label>
-      <a href="#"><span>01</span>Overview</a><a href="#"><span>02</span>Lexical analysis</a><a href="#"><span>03</span>Data model</a><a href="#"><span>04</span>Expressions</a>
-      <a href="#" aria-current="page"><span>05</span>Testimony semantics</a>
-      <a href="#"><span>06</span>Statements</a><a href="#"><span>07</span>Python interop</a><a href="#"><span>08</span>Standard library</a><a href="#"><span>09</span>Command line</a><a href="#"><span>10</span>Implementation</a>
-      <a href="#"><span>A</span>Grammar</a><a href="#"><span>B</span>Glossary</a>
-    </nav>
-    <main>
-      <p class="sec-label">Section 05</p>
-      <h1>Testimony Semantics</h1>
-      <p class="lede">The node kinds, how each operator constructs them, how <code>testimony.explain</code> renders them, and when the compiler may omit them.</p>
+<div class="txt">
+<pre class="mute">verity/book/05-testimony.txt                              October 2026</pre>
+<p class="rule eq"></p>
+<h1>5. Testimony Semantics</h1>
+<p class="rule eq"></p>
+<p class="p">Verity Programming, section 5 of 10. H. Gombos, P. Balakrishnan.<br>Status: draft reference for verity 0.0. Prev [1] Next [2] Index [3]</p>
 
-      <h2 id="nodes"><span class="n">5.1</span>Node kinds</h2>
-      <div class="tbl"><table>
-        <thead><tr><th>Kind</th><th>Produced by</th><th>Data</th><th>Children</th><th>Status</th></tr></thead>
-        <tbody>
-          <tr><td>comparison</td><td><code>a op b</code></td><td>src, left, rel, right</td><td>none</td><td><span class="st">SETTLED</span></td></tr>
-          <tr><td>all</td><td>verity from <code>and</code></td><td>none</td><td>one per conjunct</td><td><span class="st">SETTLED</span></td></tr>
-          <tr><td>because</td><td><code>p because m</code></td><td>message, value</td><td><code>T(p)</code></td><td><span class="st">SETTLED</span></td></tr>
-          <tr><td>counterexample</td><td>falsity from <code>forall</code></td><td>name, element, pos</td><td>body refutation</td><td><span class="st">SETTLED</span></td></tr>
-          <tr><td>not</td><td><code>not p</code></td><td>none</td><td><code>T(p)</code></td><td><span class="st p">PROPOSED</span></td></tr>
-          <tr><td>lifted</td><td>Python <code>bool</code></td><td>src, value</td><td>none</td><td><span class="st p">PROPOSED</span></td></tr>
-        </tbody>
-      </table></div>
+<p class="p">This section specifies the testimony carried by truths: the node kinds, how each operator constructs them, how testimony.explain renders them, and when the compiler may omit them.</p>
 
-      <h2 id="construction"><span class="n">5.2</span>Construction · conjunction</h2>
-      <ol class="cl">
-        <li><span>Operands of <code>p₁ and … and pₙ</code> are evaluated left to right.</span></li>
-        <li><span>If some <code>pᵢ</code> is a falsity, let <code>k</code> be the first such index: <code>V = falsity</code>, <code>T = T(pₖ)</code>. Operands after <code>pₖ</code> are not evaluated.</span></li>
-        <li><span>Otherwise <code>V = verity</code> and <code>T = all(T(p₁), …, T(pₙ))</code>. Nested <em>all</em> nodes from <code>and</code> are spliced in place. A <em>because</em> node is never flattened.</span></li>
-      </ol>
+<div class="sec" id="nodes"><h2>5.1 Node kinds</h2><p class="rule da"></p></div>
+<p class="p">A testimony is a tree of nodes. Proposed kinds are marked (P).</p>
+<pre class="box">
++----------------+---------------------+--------------------+
+| kind           | produced by         | children           |
++----------------+---------------------+--------------------+
+| comparison     | a op b              | none               |
+| all            | verity from and     | one per conjunct   |
+| none           | falsity from or     | one per disjunct   |
+| <span class="prop">not (P)</span>        | not p               | T(p)               |
+| because        | p because m         | T(p)               |
+| counterexample | falsity from forall | body's refutation  |
+| witness        | verity from exists  | body's witness     |
+| <span class="prop">lifted (P)</span>     | a Python bool       | none               |
++----------------+---------------------+--------------------+
+</pre>
 
-      <h2 id="rendering"><span class="n">5.3</span>Rendering</h2>
-      <div class="fig">
-        <div>
-          <p class="cap">Source · validate.ity</p>
-<pre><span class="k">def</span> <span class="f">valid_username</span>(name) =
-    (<span class="f">len</span>(name) &gt;= <span class="n">3</span>
+<div class="sec" id="construction"><h2>5.2 Construction: conjunction</h2><p class="rule da"></p></div>
+<p class="p">For p1 and ... and pn, evaluated left to right:</p>
+<pre>
+  (a) If some pi is a falsity, let k be the first such index.
+      Then V = falsity and T = T(pk). Later operands are not
+      evaluated.
+
+  (b) Otherwise V = verity and T = all(T(p1), ..., T(pn)).
+      Nested all nodes from and are spliced in place; a because
+      node is never flattened.
+</pre>
+
+<div class="sec" id="rendering"><h2>5.3 Rendering</h2><p class="rule da"></p></div>
+<p class="p">From examples/validate.ity [4]:</p>
+<pre>
+<span class="k">def</span> valid_username(name) =
+    (len(name) &gt;= <span class="n">3</span>
         <span class="k">because</span> <span class="s">f"{name!r} has at least 3 characters"</span>)
-    <span class="k">and</span> (<span class="f">len</span>(name) &lt;= <span class="n">16</span>
+    <span class="k">and</span> (len(name) &lt;= <span class="n">16</span>
         <span class="k">because</span> <span class="s">f"{name!r} has at most 16 characters"</span>)
-    <span class="k">and</span> (string_ops.<span class="f">is_alnum</span>(name)
-        <span class="k">because</span> <span class="s">f"{name!r} is alphanumeric"</span>)</pre>
-          <p class="cap" style="margin-top:14px">explain(valid_username("al"))</p>
-<pre class="out"><span class="x">falsity</span>
-  refuted: 'al' has at least 3 characters
-    len(name) &gt;= 3: 2 &lt; 3</pre>
-        </div>
-        <div>
-          <p class="cap">Node diagram</p>
-          <ul class="tree">
-            <li><span class="node root"><i>falsity</i><b>valid_username("al")</b></span>
-              <ul><li><span class="node"><i>because</i><b>'al' has at least 3 characters</b></span>
-                <ul><li><span class="node"><i>comparison</i><b>len(name) &gt;= 3: 2 &lt; 3</b></span></li></ul>
-              </li></ul>
-            </li>
-          </ul>
-          <p class="figno">Fig. 5.3a: the second and third conjuncts are never evaluated.</p>
-        </div>
-      </div>
-    </main>
-  </div>
-  <div class="foot"><span>VP-05 · Testimony Semantics</span><span>Sheet 5 of 12</span></div>
-</div></div>
+    <span class="k">and</span> (string_ops.is_alnum(name)
+        <span class="k">because</span> <span class="s">f"{name!r} is alphanumeric"</span>)
+</pre>
+<pre class="box">
+$ verity run validate.ity          as a tree:
+<span class="x">falsity</span>
+  refuted: 'al' has at least 3     <span class="x">falsity</span>
+    characters                     `-- because  'al' has at least 3
+    len(name) &gt;= 3: 2 &lt; 3              |        characters
+                                       `-- comparison
+                                             len(name) &gt;= 3: 2 &lt; 3
+</pre>
+<p class="p">The first line is verity or falsity. A node at depth d is one line indented by 2*d spaces, then its children at depth d + 1.</p>
+
+<p class="rule eq"></p>
+<div class="refs ref"><ol>
+  <li>[1] <a href="#">04-expressions.txt</a></li>
+  <li>[2] <a href="#">06-statements.txt</a></li>
+  <li>[3] <a href="#">index.txt</a></li>
+  <li>[4] <a href="#">https://github.com/Henrik66/verity/blob/main/examples/validate.ity</a></li>
+</ol></div>
+</div>
 </body>
 </html>
