@@ -83,3 +83,55 @@ Testimony is explanation, not proof. Verity does not target authorization engine
 - **`examples/` must pass before a milestone counts as done.** Each `examples/*.ity` must produce exactly its `.expected` output under `verity run`. An example can only be skipped if it uses features from a later milestone, and the skip must be explicit. Milestone 1 has no compiler, so its tests reproduce each example's testimony by calling the runtime directly.
 - **Commit after each working milestone.**
 - `cargo test` and the runtime's Python tests (`python3 -m unittest discover runtime/tests`) must pass before committing.
+
+## Session log
+
+Newest first. Each entry records what changed, what was decided and what is open, so the next session can start without the transcript.
+
+### 2026-10-26: agent-first redesign, milestone 1
+
+**Commits:** `63cc358` (spec, docs, examples), `0c31a66` (milestone 1). Earlier the same day: the docs redesign rounds (`ec6b4af` to `9e60973`).
+
+**Decisions (from Henrik, via questions):**
+- Rework Verity to be optimized for agents to read and check. Syntax is Python 3.12 plus a few keywords; the Coconut syntax is dropped.
+- Ship the runtime as a pip library, `verity-testimony`. This replaces the old rule that users never install a package.
+- Scope for the session: spec + docs, then milestone 1 only.
+- Adopt all ten recommendations from section 7 of `research/testimony-practicality.md`:
+  1. the pitch "checks that explain themselves";
+  2. a pytest plugin (milestone 4);
+  3. erasure by dual compilation, replacing the old "any `return` forces testimony" rule;
+  4. `all_of` for reporting every failure;
+  5. audiences (developer/user) and `secret()`;
+  6. a published JSON schema `verity.testimony/0` with reason IDs, hints, spans and `asserted`;
+  7. the pip library;
+  8. bounds and determinism;
+  9. a "what testimony is not" honesty section (book 5.12);
+  10. non-goals.
+
+**Done:**
+- CLAUDE.md rewritten as the spec above.
+- Every book chapter rewritten for the Python syntax. There is a new Section 10, Machine Interface (`book/src/machine.html`), and Implementation moved to Section 11.
+- `book/build.py` also writes `site/public/book/llms.txt` and `verity.txt`.
+- The examples are rewritten in Python syntax, and `examples/signup.ity` + `.expected` is new.
+- Milestone 1: `runtime/testimony.py`, `runtime/string_ops.py`, `runtime/pyproject.toml` and `runtime/README.md`.
+  - 54 unittest tests pass, including `runtime/tests/test_examples.py`, which rebuilds all four examples byte for byte through runtime calls.
+  - The wheel builds and installs. System Python has no setuptools, so build it in a scratch venv.
+- `src/runtime.rs` embeds `TESTIMONY_PY` and `STRING_OPS_PY`. `runtime/truth.py` is deleted. `cargo test` passes.
+- `.gitattributes` maps `*.ity` to Python. The Coconut operators are removed from the TextMate grammar.
+
+**Open:**
+- **Milestone 2 (the Rust compiler) is next.** Start it in a new session. `verity run`/`check` don't work yet.
+- **PyPI:** `verity-testimony` is not published. That needs Henrik's account, and nobody has checked whether the name is free.
+- **Stale homepage mockups:** the testimony-demo variants (a–f, round 1) still show the old Coconut syntax and Fraunces text. Update them before the next homepage round. Round 1 is still waiting for Henrik's feedback.
+- **Docs design:** variant docs/a is liked but not locked. Its font picker defaults to Atkinson Hyperlegible (text) and Oxygen Mono (code). The live book uses those fonts but still has the old layout. Porting the docs/a layout into `book.css` waits for Henrik's go-ahead.
+
+**Design taste (Henrik, also in `design/taste.md`):**
+- Banned fonts: JetBrains Mono, IBM Plex Mono, any monospace with the same vibe, and "square-ey" monos, including Courier Prime.
+- Dislikes the "AI-ey" design most people like; it reads as sloppy to him.
+- Likes docs/a: a plain-text, RFC-style layout with a margin index and an 80-column page.
+
+**Working notes:**
+- Always `git fetch` and compare with origin/main before committing.
+- Design rounds follow `design/PROCESS.md`: record feedback verbatim and dated in `design/taste.md`, then stop and wait after each round.
+- `design/render.py` renders variants to `site/public/design/`, and headless Chrome takes screenshots.
+- npm needs a cache directory in the scratchpad.
