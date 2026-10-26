@@ -3,107 +3,152 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="variant-idea" content="Round 2 (from 1a). Man page: each docs page is a manual entry, VERITY-TESTIMONY(5), with NAME / SYNOPSIS / DESCRIPTION / EXAMPLES / SEE ALSO, bold for literal terms and underline for placeholders, the 7-column body indent, matching header and footer lines. DM Mono.">
-<title>Docs / b: man page</title>
+<meta name="variant-idea" content="Round 3: 2a's layout, typeface only. Xanh Mono: a monospace with serif, almost calligraphic letterforms; literary rather than technical. It has no bold, so headings and keywords use italic.">
+<title>Docs / b: Xanh Mono</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Xanh+Mono:ital@0;1&display=swap" rel="stylesheet">
 <style>
-  :root { --ink: #1c2520; --mute: #65736a; --paper: #f9f9f5; --rule: #cfd5cd; --link: #315d46; --fal: #9a3d1f; --prop: #8a6a00; }
+  :root { --ink: #1e2a23; --mute: #5f6e64; --paper: #fbfbf8; --rule: #c7cec6; --link: #315d46; --fal: #9a3d1f; --prop: #8a6a00; }
   * { box-sizing: border-box; font-feature-settings: "liga" 0, "calt" 0 !important; font-variant-ligatures: none !important; }
-  body { margin: 0; background: var(--paper); color: var(--ink); font: 400 14.5px/1.6 "DM Mono", ui-monospace, monospace; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 400 16px/1.6 "Xanh Mono", "Courier New", monospace; }
   a { color: var(--link); text-underline-offset: 3px; }
-  .man { max-width: calc(84ch + 32px); margin: 0 auto; padding: 28px 16px 80px; }
-  .hd, .ft { display: flex; justify-content: space-between; gap: 2ch; white-space: nowrap; }
-  .ft { margin-top: 48px; color: var(--mute); }
-  .hd .mid, .ft .mid { color: var(--mute); }
-  h2 { font-size: inherit; font-weight: 500; margin: 28px 0 4px; letter-spacing: .02em; }
-  .b { padding-left: 7ch; }
-  .b p { margin: 0 0 12px; }
-  strong { font-weight: 500; }
-  u { text-decoration-thickness: 1px; text-underline-offset: 3px; }
-  .syn div { margin: 0; white-space: pre-wrap; }
-  dl { margin: 0 0 12px; }
-  dt { font-weight: 500; }
-  dt .tag { font-weight: 400; }
-  dd { margin: 0 0 8px 8ch; }
-  .tag { color: var(--mute); }
+  .shell { display: grid; grid-template-columns: 30ch calc(80ch + 32px); justify-content: center; gap: 0 6ch; padding: 0 16px; }
+  .index { position: sticky; top: 0; align-self: start; height: 100vh; overflow-y: auto; padding: 32px 0; color: var(--mute); font-size: 13px; }
+  .index b { display: block; color: var(--ink); font-weight: 600; margin-bottom: 14px; }
+  .index ol { list-style: none; margin: 0 0 18px; padding: 0; }
+  .index li { white-space: nowrap; }
+  .index a { color: var(--mute); text-decoration: none; white-space: pre; }
+  .index a:hover { color: var(--link); text-decoration: underline; }
+  .index .cur > a { color: var(--ink); font-weight: 600; }
+  .index .cur ol { margin: 0 0 0 2ch; }
+  .index .h { margin: 0; color: var(--ink); }
+  .page { padding: 32px 0 96px; min-width: 0; }
+  .running { display: flex; justify-content: space-between; gap: 2ch; color: var(--mute); border-bottom: 1px solid var(--rule); padding-bottom: 6px; font-size: 13px; }
+  .front { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 0 4ch; margin: 28px 0 32px; color: var(--mute); }
+  .front .r { text-align: right; }
+  h1 { font-size: inherit; font-weight: 600; text-align: center; margin: 0 0 28px; }
+  h1 small { display: block; font-weight: 400; color: var(--mute); font-size: inherit; }
+  h2 { font-size: inherit; font-weight: 600; margin: 36px 0 12px; }
+  h3 { font-size: inherit; font-weight: 600; margin: 24px 0 8px; }
+  p { margin: 0 0 14px; }
+  .in { padding-left: 3ch; }
+  .tag { color: var(--mute); white-space: nowrap; }
   .tag.p { color: var(--prop); }
-  pre { margin: 0 0 12px; font: inherit; overflow-x: auto; }
-  .k { font-weight: 500; } .s { color: #5b6b2f; } .n { color: #7a4f1f; }
-  .out .x { color: var(--fal); font-weight: 500; }
-  .see a { margin-right: 1ch; }
-  .pages { color: var(--mute); border-top: 1px solid var(--rule); margin-top: 6px; padding-top: 6px; display: flex; flex-wrap: wrap; gap: 0 2ch; font-size: 13px; }
-  .pages a { color: var(--mute); }
-  .pages a[aria-current] { color: var(--ink); font-weight: 500; text-decoration: none; }
+  .scroll { overflow-x: auto; margin: 0 0 16px; }
+  table { border-collapse: collapse; white-space: nowrap; }
+  th, td { text-align: left; padding: 1px 2ch 1px 0; vertical-align: top; }
+  thead tr { border-top: 1px dashed var(--ink); }
+  thead th { font-weight: 600; border-bottom: 1px dashed var(--ink); }
+  tbody tr:last-child td { border-bottom: 1px dashed var(--ink); }
+  .rule { display: grid; grid-template-columns: 7ch minmax(0, 1fr); margin: 0 0 10px; }
+  .rule .no { color: var(--mute); }
+  pre { margin: 0 0 16px; padding-left: 3ch; overflow-x: auto; font: inherit; border-left: 1px solid var(--rule); }
+  .k { font-weight: 600; } .s { color: #5b6b2f; } .n { color: #7a4f1f; }
+  .out .x { color: var(--fal); font-weight: 600; }
+  .label { color: var(--mute); }
+  .foot { margin-top: 48px; border-top: 1px solid var(--rule); padding-top: 6px; display: flex; justify-content: space-between; color: var(--mute); font-size: 13px; }
+  @media (max-width: 1180px) { .shell { grid-template-columns: minmax(0, calc(80ch + 32px)); } .index { display: none; } }
   @media (max-width: 600px) {
     body { font-size: 13px; }
-    .hd .mid, .ft .mid { display: none; }
-    .b { padding-left: 3ch; }
-    dd { margin-left: 3ch; }
+    .shell { padding: 0 16px; }
+    .front { grid-template-columns: 1fr; } .front .r { text-align: left; margin-top: 8px; }
+    .running span:nth-child(2) { display: none; }
+    .rule { grid-template-columns: 6ch minmax(0, 1fr); }
   }
+  h1, h2, h3, .k, .index b, .index .cur > a, .out .x, thead th { font-weight: 400 !important; font-style: italic; }
 </style>
 </head>
 <body>
-<div class="man">
-  <div class="hd"><span>VERITY-TESTIMONY(5)</span><span class="mid">Verity Programming</span><span>VERITY-TESTIMONY(5)</span></div>
-  <nav class="pages" aria-label="Manual pages">
-    <a href="#">verity(1)</a><a href="#">verity-overview(1)</a><a href="#">verity-lexical(2)</a><a href="#">verity-data(3)</a><a href="#">verity-expressions(4)</a><a href="#" aria-current="page">verity-testimony(5)</a><a href="#">verity-statements(6)</a><a href="#">verity-python(7)</a><a href="#">verity-stdlib(8)</a><a href="#">verity-cli(9)</a><a href="#">verity-grammar(A)</a>
+<div class="shell">
+  <nav class="index" aria-label="Contents">
+    <b>Verity Programming</b>
+    <ol>
+      <li><a href="#">   Cover</a></li>
+      <li><a href="#">   About these docs</a></li>
+    </ol>
+    <ol>
+      <li><a href="#"> 1. Overview</a></li>
+      <li><a href="#"> 2. Lexical analysis</a></li>
+      <li><a href="#"> 3. Data model</a></li>
+      <li><a href="#"> 4. Expressions</a></li>
+      <li class="cur"><a href="#" aria-current="page"> 5. Testimony semantics</a>
+        <ol>
+          <li><a href="#nodes"> 5.1. Node kinds</a></li>
+          <li><a href="#construction"> 5.2. Construction</a></li>
+          <li><a href="#rendering"> 5.3. Rendering</a></li>
+          <li><a href="#"> 5.4. Observation</a></li>
+          <li><a href="#"> 5.5. Erasure</a></li>
+        </ol>
+      </li>
+      <li><a href="#"> 6. Statements</a></li>
+      <li><a href="#"> 7. Python interop</a></li>
+      <li><a href="#"> 8. Standard library</a></li>
+      <li><a href="#"> 9. Command line</a></li>
+      <li><a href="#">10. Implementation</a></li>
+    </ol>
+    <ol>
+      <li><a href="#"> A. Grammar</a></li>
+      <li><a href="#"> B. Glossary</a></li>
+    </ol>
   </nav>
 
-  <h2>NAME</h2>
-  <div class="b"><p>verity-testimony - the evidence carried by truth values</p></div>
+  <div class="page">
+    <div class="running"><span>Verity Programming</span><span>Testimony Semantics</span><span>October 2026</span></div>
+    <div class="front">
+      <div>Section: 5<br>Status: draft reference<br>Applies to: verity 0.0</div>
+      <div class="r">H. Gombos<br>P. Balakrishnan<br><a href="#">github.com/Henrik66/verity</a></div>
+    </div>
 
-  <h2>SYNOPSIS</h2>
-  <div class="b syn">
-    <div><u>a</u> <u>op</u> <u>b</u></div>
-    <div><u>p</u> <strong>and</strong> <u>q</u>   <u>p</u> <strong>or</strong> <u>q</u>   <strong>not</strong> <u>p</u></div>
-    <div><u>p</u> <strong>because</strong> <u>message</u></div>
-    <div><strong>forall</strong> <u>x</u> <strong>in</strong> <u>xs</u>, <u>body</u>   <strong>exists</strong> <u>x</u> <strong>in</strong> <u>xs</u>, <u>body</u></div>
-    <div><strong>testimony.explain</strong>(<u>t</u>)</div>
-  </div>
+    <h1>Testimony Semantics<small>section 5 of 10</small></h1>
 
-  <h2>DESCRIPTION</h2>
-  <div class="b">
-    <p>Every truth carries a testimony: a tree of nodes recording why it holds. A verity carries a witness and a falsity a refutation. The operators above compose testimony automatically; <strong>explain</strong> renders it. The compiler may omit testimony that is never observed (see ERASURE).</p>
-  </div>
+    <h2>Abstract</h2>
+    <p class="in">This section specifies the testimony carried by truths: the node kinds, how each operator constructs them, how testimony.explain renders them, and when the compiler may omit them.</p>
 
-  <h2 id="nodes">NODE KINDS</h2>
-  <div class="b">
-    <dl>
-      <dt>comparison <span class="tag">[settled]</span></dt><dd>From <u>a</u> <u>op</u> <u>b</u>. Records the source text and both values. No children.</dd>
-      <dt>all, none <span class="tag">[settled]</span></dt><dd>A verity from <strong>and</strong>, a falsity from <strong>or</strong>. One child per operand.</dd>
-      <dt>because <span class="tag">[settled]</span></dt><dd>From <u>p</u> <strong>because</strong> <u>message</u>. One child, T(<u>p</u>), unless <u>p</u> is a literal.</dd>
-      <dt>counterexample, witness <span class="tag">[settled]</span></dt><dd>The first element that decided <strong>forall</strong> or <strong>exists</strong>, with its position.</dd>
-      <dt>not, lifted <span class="tag p">[proposed]</span></dt><dd>Negation; a Python <strong>bool</strong> used as a truth.</dd>
-    </dl>
-  </div>
+    <h2 id="nodes">5.1. Node kinds</h2>
+    <p class="in">A testimony is a tree of nodes. The kinds are:</p>
+    <div class="scroll in">
+      <table>
+        <thead><tr><th>kind</th><th>produced by</th><th>children</th><th>status</th></tr></thead>
+        <tbody>
+          <tr><td>comparison</td><td>a op b</td><td>none</td><td class="tag">[settled]</td></tr>
+          <tr><td>all</td><td>verity from and</td><td>one per conjunct</td><td class="tag">[settled]</td></tr>
+          <tr><td>none</td><td>falsity from or</td><td>one per disjunct</td><td class="tag">[settled]</td></tr>
+          <tr><td>not</td><td>not p</td><td>T(p)</td><td class="tag p">[proposed]</td></tr>
+          <tr><td>because</td><td>p because m</td><td>T(p), unless literal</td><td class="tag">[settled]</td></tr>
+          <tr><td>counterexample</td><td>falsity from forall</td><td>body's refutation</td><td class="tag">[settled]</td></tr>
+          <tr><td>universal</td><td>verity from forall</td><td>none</td><td class="tag">[settled]</td></tr>
+          <tr><td>witness</td><td>verity from exists</td><td>body's witness</td><td class="tag">[settled]</td></tr>
+          <tr><td>lifted</td><td>Python bool</td><td>none</td><td class="tag p">[proposed]</td></tr>
+        </tbody>
+      </table>
+    </div>
 
-  <h2 id="construction">CONJUNCTION</h2>
-  <div class="b">
-    <p>Operands of <u>p1</u> <strong>and</strong> ... <strong>and</strong> <u>pn</u> are evaluated left to right. At the first falsity <u>pk</u> the result is a falsity whose testimony is T(<u>pk</u>); later operands are not evaluated. If every operand is a verity, the testimony is all(T(<u>p1</u>), ..., T(<u>pn</u>)), with directly nested <strong>all</strong> nodes spliced in place. <span class="tag">[settled]</span></p>
-  </div>
+    <h2 id="construction">5.2. Construction rules</h2>
+    <p class="in">Below, T(e) is the testimony of a truth e, and V(e) its value.</p>
+    <h3>5.2.3. Conjunction</h3>
+    <p class="in">For p1 and p2 and ... and pn, evaluated left to right:</p>
+    <div class="in">
+      <div class="rule"><span class="no">(a)</span><span>If some pi is a falsity, let k be the first such index. Then V = falsity and T = T(pk). The operands after pk are not evaluated. <span class="tag">[settled]</span></span></div>
+      <div class="rule"><span class="no">(b)</span><span>Otherwise V = verity and T = all(T(p1), ..., T(pn)). A child that is itself an all node produced directly by and is spliced in place. A because node is never flattened. <span class="tag">[settled]</span></span></div>
+    </div>
 
-  <h2 id="rendering">EXAMPLES</h2>
-  <div class="b">
-    <p>From examples/validate.ity:</p>
+    <h2 id="rendering">5.3. Rendering</h2>
+    <p class="in">Example, from the conformance suite (examples/validate.ity):</p>
 <pre><span class="k">def</span> valid_username(name) =
     (len(name) &gt;= <span class="n">3</span> <span class="k">because</span> <span class="s">f"{name!r} has at least 3 characters"</span>)
     <span class="k">and</span> (len(name) &lt;= <span class="n">16</span> <span class="k">because</span> <span class="s">f"{name!r} has at most 16 characters"</span>)
-    <span class="k">and</span> (string_ops.is_alnum(name) <span class="k">because</span> <span class="s">f"{name!r} is alphanumeric"</span>)</pre>
-<pre>$ verity run validate.ity
-<span class="out"><span class="x">falsity</span>
+    <span class="k">and</span> (string_ops.is_alnum(name) <span class="k">because</span> <span class="s">f"{name!r} is alphanumeric"</span>)
+
+print(explain(valid_username(<span class="s">"al"</span>)))</pre>
+    <p class="in label">Output:</p>
+<pre class="out"><span class="x">falsity</span>
   refuted: 'al' has at least 3 characters
-    len(name) &gt;= 3: 2 &lt; 3</span></pre>
+    len(name) &gt;= 3: 2 &lt; 3</pre>
+    <p class="in">The first line is verity or falsity. A node at depth d is one line indented by 2*d spaces, followed by its children at depth d + 1.</p>
+
+    <div class="foot"><a href="#">&lt; 4. Expressions</a><span>[Page 5]</span><a href="#">6. Statements &gt;</a></div>
   </div>
-
-  <h2>SEE ALSO</h2>
-  <div class="b see"><p><a href="#">verity-expressions(4)</a> <a href="#">verity-stdlib(8)</a> <a href="#">verity(1)</a></p></div>
-
-  <h2>AUTHORS</h2>
-  <div class="b"><p>Henrik Gombos, Pranav Balakrishnan.</p></div>
-
-  <div class="ft"><span>verity 0.0</span><span class="mid">October 2026</span><span>VERITY-TESTIMONY(5)</span></div>
 </div>
 </body>
 </html>

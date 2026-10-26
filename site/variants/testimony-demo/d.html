@@ -7,7 +7,7 @@
 <title>Testimony demo / d: roots</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;1,9..144,400&family=IBM+Plex+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;1,9..144,400&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root {
     --ink: #243e30; --paper: #f7f6ec; --cloud: #f4f2df;
@@ -26,17 +26,17 @@
   .lede { margin: 0; max-width: 40ch; }
   .sign { background: var(--cloud); border-radius: 10px; padding: 16px 18px; position: relative; box-shadow: 0 10px 0 -4px rgba(36, 62, 48, .18); }
   .sign::after { content: ""; position: absolute; left: 50%; bottom: -150px; width: 10px; height: 150px; background: var(--f1); transform: translateX(-50%); z-index: -1; border-radius: 3px; }
-  pre { margin: 0; overflow-x: auto; font: 14px/1.7 "IBM Plex Mono", monospace; font-variant-ligatures: none; }
+  pre { margin: 0; overflow-x: auto; font: 14px/1.7 "Courier Prime", monospace; font-variant-ligatures: none; }
   .k { color: var(--f1); font-weight: 700; }
   .q { background: var(--sun); padding: 0 .2em; border-radius: 2px; font-weight: 700; }
-  .answer { margin: 10px 0 0; padding-top: 10px; border-top: 1.5px dashed rgba(36, 62, 48, .35); font: 700 22px "IBM Plex Mono", monospace; display: flex; align-items: center; gap: 10px; }
+  .answer { margin: 10px 0 0; padding-top: 10px; border-top: 1.5px dashed rgba(36, 62, 48, .35); font: 700 22px "Courier Prime", monospace; display: flex; align-items: center; gap: 10px; }
   .answer small { font: italic 400 15px "Fraunces", serif; color: var(--f2); }
   .ground { position: absolute; left: 0; right: 0; bottom: -1px; height: 150px; z-index: 1; }
 
   .below { background: linear-gradient(180deg, var(--soil2), var(--soil) 40%); color: var(--cloud); position: relative; overflow: hidden; }
   .below .wrap { padding-top: 26px; padding-bottom: 72px; position: relative; }
   .roots { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-  .tree { list-style: none; margin: 0; padding: 0; font: 15px/1.5 "IBM Plex Mono", monospace; position: relative; }
+  .tree { list-style: none; margin: 0; padding: 0; font: 15px/1.5 "Courier Prime", monospace; position: relative; }
   .tree li { position: relative; margin: 0 0 28px; padding: 10px 14px; background: rgba(247, 246, 236, .08); border-left: 3px solid var(--f5); border-radius: 0 8px 8px 0; max-width: 560px; }
   .tree li .lbl { color: var(--sun); font-weight: 700; }
   .tree li small { display: block; font: italic 400 14px "Fraunces", serif; color: #cfdcc6; margin-top: 2px; }

@@ -3,15 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="variant-idea" content="Round 2 (from 1a). The plain-text spec, kept, with a margin index: on wide screens the whole contents sits in a plain-text left margin, so the 80-column page is not alone in the middle. Rules carry inline numbers and bracketed tags. IBM Plex Mono.">
-<title>Docs / a: spec with margin index</title>
+<meta name="variant-idea" content="Round 3: 2a's layout, locked in place; only the typeface changes. Courier Prime: a typewriter face, warm and documentary, the RFC-on-paper reading.">
+<title>Docs / a: Courier Prime</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 <style>
   :root { --ink: #1e2a23; --mute: #5f6e64; --paper: #fbfbf8; --rule: #c7cec6; --link: #315d46; --fal: #9a3d1f; --prop: #8a6a00; }
   * { box-sizing: border-box; font-feature-settings: "liga" 0, "calt" 0 !important; font-variant-ligatures: none !important; }
-  body { margin: 0; background: var(--paper); color: var(--ink); font: 400 14.5px/1.6 "IBM Plex Mono", ui-monospace, monospace; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 400 15px/1.6 "Courier Prime", "Courier New", monospace; }
   a { color: var(--link); text-underline-offset: 3px; }
   .shell { display: grid; grid-template-columns: 30ch calc(80ch + 32px); justify-content: center; gap: 0 6ch; padding: 0 16px; }
   .index { position: sticky; top: 0; align-self: start; height: 100vh; overflow-y: auto; padding: 32px 0; color: var(--mute); font-size: 13px; }
