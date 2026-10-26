@@ -23,3 +23,6 @@ dist/
 # Frontend dependencies and browser checks
 node_modules/
 site/test-results/
+
+# Design renders
+design/shots/
