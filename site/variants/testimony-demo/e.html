@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="variant-idea" content="Seed packet: the demo is a vintage seed packet. The front shows the program and its one-word answer; turn it over and the 'growing instructions' on the back are the testimony.">
+<title>Testimony demo / e: seed packet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;0,9..144,900;1,9..144,400&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #243e30; --paper: #f7f6ec; --cloud: #f4f2df;
+    --sky1: #8fc7df; --sky2: #a7d5e6;
+    --f1: #315d46; --f2: #3f7050; --f3: #547e49; --f4: #719448; --f5: #84a34e;
+    --sun: #ffe050; --sun-dark: #eda617;
+  }
+  * { box-sizing: border-box; font-feature-settings: "liga" 0, "calt" 0 !important; font-variant-ligatures: none !important; }
+  body { margin: 0; font-variant-ligatures: none; background: var(--paper); color: var(--ink); font: 400 17px/1.55 "Fraunces", Georgia, serif; }
+  .demo { max-width: 1120px; margin: 0 auto; padding: 72px 16px; display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 48px; align-items: center; }
+  h2 { font-size: clamp(30px, 4.6vw, 52px); line-height: 1.05; margin: 0 0 12px; font-weight: 700; }
+  .lede { max-width: 44ch; margin: 0 0 22px; }
+  .turn { font: 700 16px "Fraunces", serif; color: var(--ink); background: var(--sun); border: 1.5px solid var(--ink); border-radius: 999px; padding: 9px 18px; cursor: pointer; box-shadow: 3px 3px 0 var(--ink); }
+  .turn:focus-visible { outline: 3px solid var(--sun-dark); outline-offset: 3px; }
+  .small { font-size: 14px; color: var(--f2); margin-top: 14px; }
+
+  .packet { perspective: 1400px; width: 100%; max-width: 400px; justify-self: center; }
+  .inner { position: relative; aspect-ratio: 5 / 7.4; transform-style: preserve-3d; transition: transform .8s cubic-bezier(.3, .7, .3, 1); }
+  .packet.flipped .inner { transform: rotateY(180deg); }
+  .face { position: absolute; inset: 0; backface-visibility: hidden; border-radius: 4px 4px 8px 8px; overflow: hidden; box-shadow: 0 18px 30px -16px rgba(36, 62, 48, .55); }
+  .face::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 18px; background: repeating-linear-gradient(90deg, transparent 0 7px, rgba(36, 62, 48, .14) 7px 8px); z-index: 2; }
+  .front { background: var(--cloud); display: flex; flex-direction: column; }
+  .front .art { position: relative; flex: 1; background: linear-gradient(180deg, var(--sky1), var(--sky2)); overflow: hidden; }
+  .front .art svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .front .title { position: absolute; top: 30px; left: 0; right: 0; text-align: center; z-index: 1; }
+  .front .title b { display: block; font: 900 46px/1 "Fraunces", serif; letter-spacing: .02em; }
+  .front .title i { font-size: 15px; }
+  .front .info { padding: 14px 18px 16px; border-top: 2px solid var(--ink); }
+  .front .info .variety { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; margin: 0 0 6px; color: var(--f2); }
+  .front pre, .back pre { margin: 0; font: 12.5px/1.6 "JetBrains Mono", monospace; overflow-x: auto; font-variant-ligatures: none; }
+  .front .yield { margin: 8px 0 0; font: 700 18px "JetBrains Mono", monospace; }
+  .k { color: var(--f1); font-weight: 700; }
+  .b { background: var(--sun); padding: 0 .15em; border-radius: 2px; font-weight: 700; }
+
+  .back { transform: rotateY(180deg); background: var(--cloud); padding: 34px 22px 18px; display: flex; flex-direction: column; gap: 10px; }
+  .back h3 { margin: 0; font: 900 22px "Fraunces", serif; letter-spacing: .02em; border-bottom: 2px solid var(--ink); padding-bottom: 6px; }
+  .back ol { margin: 0; padding-left: 20px; font-size: 15px; }
+  .back ol li { margin-bottom: 6px; }
+  .back pre { background: #fff; border: 1.5px solid var(--ink); border-radius: 6px; padding: 10px 12px; font-size: 13px; }
+  .back .fine { margin-top: auto; font-size: 12px; color: var(--f2); display: flex; gap: 10px; align-items: center; }
+  .back .fine svg { width: 34px; height: 34px; flex: none; }
+  @media (max-width: 860px) { .demo { grid-template-columns: minmax(0, 1fr); } }
+  @media (max-width: 400px) { .front .title b { font-size: 38px; } .back { padding: 30px 16px 14px; } .back ol { font-size: 14px; } }
+  @media (prefers-reduced-motion: reduce) { .inner { transition: none; } }
+</style>
+</head>
+<body>
+<section class="demo" aria-labelledby="demo-h">
+  <div>
+    <h2 id="demo-h">Every answer comes with growing instructions.</h2>
+    <p class="lede">On the front, <code>valid_username("al")</code> says <code>falsity</code>. Turn the packet over to read why, printed on the back like every good seed packet.</p>
+    <button class="turn" id="turn" type="button" aria-controls="packet" aria-pressed="false">Turn the packet over</button>
+    <p class="small">Everything on the back is real <code>explain</code> output.</p>
+  </div>
+
+  <div class="packet" id="packet">
+    <div class="inner">
+      <div class="face front" id="front">
+        <div class="art">
+          <div class="title"><b>VERITY</b><i>Falsitas explicata</i></div>
+          <svg viewBox="0 0 400 360" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+            <path d="M0 270 Q120 230 220 262 T400 248 V360 H0Z" fill="#96bca2"/>
+            <defs><radialGradient id="pe" cx="35%" cy="30%"><stop offset="0" stop-color="#ffe050"/><stop offset=".7" stop-color="#ffce32"/><stop offset="1" stop-color="#eda617"/></radialGradient></defs>
+            <g transform="translate(140 170)">
+              <circle cx="60" cy="60" r="58" fill="url(#pe)"/>
+              <g fill="#243e30"><ellipse cx="42" cy="49" rx="5" ry="9"/><ellipse cx="78" cy="49" rx="5" ry="9"/></g>
+              <path d="M30 68 C42 94 79 94 92 66" fill="none" stroke="#243e30" stroke-width="4.8" stroke-linecap="round"/>
+            </g>
+            <path d="M0 300 Q140 268 260 296 T400 286 V360 H0Z" fill="#3f7050"/>
+            <g fill="#315d46">
+              <path d="M40 310 C30 250 60 200 110 172 C76 214 62 256 66 310Z"/>
+              <path d="M330 306 C340 250 372 214 400 200 V306Z"/>
+              <path d="M120 316 C126 280 150 258 184 246 C160 268 146 290 142 316Z"/>
+            </g>
+            <g fill="#719448">
+              <path d="M250 316 C246 282 262 258 292 244 C274 268 268 292 272 316Z"/>
+              <path d="M300 320 C306 290 326 270 352 262 C334 282 324 300 322 320Z"/>
+            </g>
+            <g fill="#f6f3d9"><circle cx="110" cy="174" r="8"/><circle cx="292" cy="246" r="7"/></g>
+            <g fill="#eac85e"><circle cx="110" cy="174" r="3"/><circle cx="292" cy="246" r="2.6"/></g>
+          </svg>
+        </div>
+        <div class="info">
+          <p class="variety">Variety: valid username</p>
+<pre><code>valid_username(<span>"al"</span>) |&gt; explain</code></pre>
+          <p class="yield">yields: falsity</p>
+        </div>
+      </div>
+
+      <div class="face back" id="back" aria-hidden="true">
+        <h3>Growing instructions</h3>
+        <ol>
+          <li>Three rules were planted, each with <span class="b">because</span>.</li>
+          <li>The first rule didn't take. Here is exactly why:</li>
+        </ol>
+<pre><code>falsity
+  refuted: 'al' has at least 3 characters
+    len(name) &gt;= 3: 2 &lt; 3</code></pre>
+        <ol start="3">
+          <li>The other two rules were never reached: <span class="k">and</span> stops at the first failure.</li>
+        </ol>
+        <p class="fine">
+          <svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="#ffe050"/><g fill="#243e30"><ellipse cx="35" cy="41" rx="4.1" ry="7.5"/><ellipse cx="65" cy="41" rx="4.1" ry="7.5"/></g><path d="M25 57 C35 78 66 78 77 55" fill="none" stroke="#243e30" stroke-width="4" stroke-linecap="round"/></svg>
+          Packed for the 2026 season. Testimony is erased when nobody reads it, so it costs nothing to carry.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+<script>
+  const packet = document.getElementById("packet");
+  const btn = document.getElementById("turn");
+  btn.addEventListener("click", () => {
+    const flipped = packet.classList.toggle("flipped");
+    btn.setAttribute("aria-pressed", String(flipped));
+    btn.textContent = flipped ? "Turn it back" : "Turn the packet over";
+    document.getElementById("front").setAttribute("aria-hidden", String(flipped));
+    document.getElementById("back").setAttribute("aria-hidden", String(!flipped));
+  });
+</script>
+</body>
+</html>

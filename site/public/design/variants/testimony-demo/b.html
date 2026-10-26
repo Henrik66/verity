@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="variant-idea" content="Ask it why: pick an input, get a one-word answer, then press 'why?' and the testimony grows down a vine one line at a time; hovering a testimony line lights up the source it came from.">
+<title>Testimony demo / b: ask it why</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;1,9..144,400&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #243e30; --paper: #f7f6ec; --cloud: #f4f2df;
+    --f1: #315d46; --f2: #3f7050; --f3: #547e49; --f4: #719448; --f5: #84a34e;
+    --sky: #a7d5e6; --sun: #ffe050; --sun-dark: #eda617;
+  }
+  * { box-sizing: border-box; font-feature-settings: "liga" 0, "calt" 0 !important; font-variant-ligatures: none !important; }
+  body { margin: 0; font-variant-ligatures: none; background: var(--paper); color: var(--ink); font: 400 17px/1.55 "Fraunces", Georgia, serif; }
+  .demo { max-width: 1120px; margin: 0 auto; padding: 72px 16px; }
+  h2 { font-size: clamp(30px, 4.6vw, 52px); line-height: 1.05; margin: 0 0 12px; font-weight: 700; }
+  h2 em { font-weight: 400; }
+  .lede { max-width: 52ch; margin: 0 0 36px; }
+  .grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 28px; align-items: start; }
+  .panel { background: #fff; border: 1.5px solid var(--ink); border-radius: 10px; overflow: hidden; }
+  .panel-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 10px 16px; background: var(--cloud); border-bottom: 1.5px solid var(--ink); font: 700 12px "JetBrains Mono", monospace; letter-spacing: .04em; }
+  pre { margin: 0; padding: 16px 18px; overflow-x: auto; font: 14px/1.75 "JetBrains Mono", monospace; font-variant-ligatures: none; }
+  .k { color: var(--f1); font-weight: 700; }
+  .s { color: var(--f3); }
+  .b { background: var(--sun); padding: 0 .2em; border-radius: 2px; font-weight: 700; }
+  .src { border-radius: 3px; transition: background .2s, box-shadow .2s; }
+  .src.lit { background: #e9f3cf; box-shadow: 0 0 0 2px var(--f4); }
+
+  .inputs { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 18px 16px; }
+  .inputs span { font: 13px "JetBrains Mono", monospace; align-self: center; margin-right: 4px; }
+  .chip { font: 700 13px "JetBrains Mono", monospace; color: var(--ink); background: var(--paper); border: 1.5px solid var(--ink); border-radius: 999px; padding: 6px 12px; cursor: pointer; }
+  .chip[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+  .chip:focus-visible, .why:focus-visible { outline: 3px solid var(--sun-dark); outline-offset: 2px; }
+
+  .answer { display: flex; align-items: center; gap: 14px; padding: 22px 18px 6px; }
+  .verdict { font: 700 30px "JetBrains Mono", monospace; }
+  .why { font: 700 15px "Fraunces", serif; color: var(--ink); background: var(--sun); border: 1.5px solid var(--ink); border-radius: 999px; padding: 6px 16px; cursor: pointer; box-shadow: 2px 2px 0 var(--ink); }
+  .why[hidden] { display: none; }
+  .vine { position: relative; list-style: none; margin: 8px 0 22px; padding: 0 18px 0 46px; min-height: 40px; }
+  .vine::before { content: ""; position: absolute; left: 26px; top: 0; width: 2.5px; height: var(--grown, 0%); background: var(--f2); border-radius: 2px; transition: height .5s ease; }
+  .vine li { position: relative; font: 14px/1.5 "JetBrains Mono", monospace; padding: 6px 8px; margin: 2px 0; border-radius: 6px; opacity: 0; transform: translateY(-4px); transition: opacity .35s, transform .35s, background .2s; cursor: default; }
+  .vine li.shown { opacity: 1; transform: none; }
+  .vine li:hover, .vine li:focus { background: #eef5e2; outline: none; }
+  .vine li::before { content: ""; position: absolute; left: -20px; top: 12px; width: 15px; height: 9px; background: var(--f4); border: 1.2px solid var(--f1); border-radius: 0 100% 0 100%; transform: rotate(-12deg); }
+  .vine li .lbl { color: var(--f1); font-weight: 700; }
+  .waiting { margin: 4px 18px 22px; font-style: italic; color: var(--f2); }
+  .waiting[hidden] { display: none; }
+  .hint { font-size: 14px; color: var(--f2); padding: 0 18px 16px; margin: 0; }
+  @media (max-width: 860px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+  @media (max-width: 480px) { .demo { padding: 48px 16px; } pre, .vine li { font-size: 12.5px; } .verdict { font-size: 26px; } }
+  @media (prefers-reduced-motion: reduce) { .vine::before, .vine li, .src { transition: none; } }
+</style>
+</head>
+<body>
+<section class="demo" aria-labelledby="demo-h">
+  <h2 id="demo-h">It said no. <em>Ask it why.</em></h2>
+  <p class="lede">Most languages stop at the one-word answer. Verity keeps the reasons, and gives them to you when you ask.</p>
+
+  <div class="grid">
+    <div class="panel">
+      <div class="panel-head"><span>validate.ity</span></div>
+<pre><code><span class="k">def</span> valid_username(name) =
+    (<span class="src" data-src="min">len(name) &gt;= 3</span>
+        <span class="b">because</span> <span class="src s" data-src="minmsg">f"{name!r} has at least 3 characters"</span>)
+    <span class="k">and</span> (<span class="src" data-src="max">len(name) &lt;= 16</span>
+        <span class="b">because</span> <span class="src s" data-src="maxmsg">f"{name!r} has at most 16 characters"</span>)
+    <span class="k">and</span> (<span class="src" data-src="alnum">string_ops.is_alnum(name)</span>
+        <span class="b">because</span> <span class="src s" data-src="alnummsg">f"{name!r} is alphanumeric"</span>)
+
+valid_username(<span class="s" id="arg">"al"</span>) |&gt; explain |&gt; print</code></pre>
+      <div class="inputs" role="group" aria-label="Choose the argument">
+        <span>try:</span>
+        <button class="chip" type="button" data-name="ada">"ada"</button>
+        <button class="chip" type="button" data-name="al" aria-pressed="true">"al"</button>
+        <button class="chip" type="button" data-name="grace_hopper">"grace_hopper"</button>
+      </div>
+    </div>
+
+    <div class="panel" aria-live="polite">
+      <div class="panel-head"><span>output</span></div>
+      <div class="answer">
+        <span class="verdict" id="verdict">falsity</span>
+        <button class="why" id="why" type="button">why?</button>
+      </div>
+      <p class="waiting" id="waiting">One word, and no reason given. Yet.</p>
+      <ol class="vine" id="vine" aria-label="Testimony"></ol>
+      <p class="hint" id="hint" hidden>Hover a line to see where it came from.</p>
+    </div>
+  </div>
+</section>
+
+<script>
+// Mirrors the intended semantics of examples/validate.ity.
+const pyRepr = (s) => (s.includes("'") && !s.includes('"')) ? `"${s}"` : `'${s.replace(/\\/g, "\\\\").replace(/'/g, "\\'")}'`;
+const isAlnum = (c) => /[\p{L}\p{N}]/u.test(c);
+
+function testimony(name) {
+  const r = pyRepr(name), n = [...name].length;
+  const rules = [
+    { ok: n >= 3, claim: `${r} has at least 3 characters`, src: "min", msg: "minmsg",
+      leaf: `len(name) >= 3: ${n} ${n >= 3 ? ">=" : "<"} 3` },
+    { ok: n <= 16, claim: `${r} has at most 16 characters`, src: "max", msg: "maxmsg",
+      leaf: `len(name) <= 16: ${n} ${n <= 16 ? "<=" : ">"} 16` },
+    (() => {
+      const chars = [...name], i = chars.findIndex((c) => !isAlnum(c));
+      return { ok: i === -1, claim: `${r} is alphanumeric`, src: "alnum", msg: "alnummsg",
+        leaf: i === -1 ? `every character of ${r} is alphanumeric` : `${pyRepr(chars[i])} at index ${i} is not alphanumeric` };
+    })(),
+  ];
+  const failed = rules.find((x) => !x.ok);
+  if (failed) {
+    return { verdict: "falsity", lines: [
+      { depth: 0, lbl: "refuted:", text: ` ${failed.claim}`, src: failed.msg },
+      { depth: 1, text: failed.leaf, src: failed.src },
+    ] };
+  }
+  const lines = [{ depth: 0, lbl: "all of:", text: "" }];
+  for (const x of rules) {
+    lines.push({ depth: 1, lbl: "witnessed:", text: ` ${x.claim}`, src: x.msg });
+    lines.push({ depth: 2, text: x.leaf, src: x.src });
+  }
+  return { verdict: "verity", lines };
+}
+
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const vine = document.getElementById("vine");
+const why = document.getElementById("why");
+const hint = document.getElementById("hint");
+const waiting = document.getElementById("waiting");
+let current = "al", timers = [];
+
+function light(src, on) {
+  document.querySelectorAll(`[data-src="${src}"]`).forEach((el) => el.classList.toggle("lit", on));
+}
+
+function reset() {
+  timers.forEach(clearTimeout); timers = [];
+  const t = testimony(current);
+  document.getElementById("verdict").textContent = t.verdict;
+  document.getElementById("arg").textContent = `"${current}"`;
+  vine.innerHTML = ""; vine.style.setProperty("--grown", "0%");
+  why.hidden = false; hint.hidden = true; waiting.hidden = false;
+}
+
+function grow() {
+  why.hidden = true; waiting.hidden = true;
+  const t = testimony(current);
+  t.lines.forEach((line, i) => {
+    const li = document.createElement("li");
+    li.style.marginLeft = `${line.depth * 18}px`;
+    li.tabIndex = 0;
+    if (line.lbl) { const b = document.createElement("span"); b.className = "lbl"; b.textContent = line.lbl; li.append(b); }
+    li.append(line.text);
+    if (line.src) {
+      li.addEventListener("mouseenter", () => light(line.src, true));
+      li.addEventListener("mouseleave", () => light(line.src, false));
+      li.addEventListener("focus", () => light(line.src, true));
+      li.addEventListener("blur", () => light(line.src, false));
+    }
+    vine.append(li);
+    const show = () => { li.classList.add("shown"); vine.style.setProperty("--grown", `${((i + 1) / t.lines.length) * 100}%`); };
+    reduce ? show() : timers.push(setTimeout(show, 120 + i * 380));
+  });
+  hint.hidden = false;
+}
+
+why.addEventListener("click", grow);
+document.querySelectorAll(".chip").forEach((chip) => chip.addEventListener("click", () => {
+  document.querySelectorAll(".chip").forEach((c) => c.setAttribute("aria-pressed", String(c === chip)));
+  current = chip.dataset.name;
+  reset();
+}));
+reset();
+</script>
+</body>
+</html>

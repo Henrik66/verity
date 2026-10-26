@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="variant-idea" content="Herbarium plate: the falsity's testimony is pressed and labeled like a specimen, with each refutation node as an annotated leaf and a collection label stamped with a smiley.">
+<title>Testimony demo / a: herbarium plate</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;1,9..144,400&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #243e30; --paper: #f7f6ec; --cloud: #f4f2df;
+    --f1: #315d46; --f2: #3f7050; --f3: #547e49; --f4: #719448; --f5: #84a34e;
+    --hill: #a1c6b5; --sun: #ffe050; --sun-dark: #eda617;
+  }
+  * { box-sizing: border-box; font-feature-settings: "liga" 0, "calt" 0 !important; font-variant-ligatures: none !important; }
+  body { margin: 0; font-variant-ligatures: none; background: var(--paper); color: var(--ink); font: 400 17px/1.55 "Fraunces", Georgia, serif; }
+  .demo { max-width: 1180px; margin: 0 auto; padding: 72px 16px; }
+  .kicker { font: 700 13px/1 "JetBrains Mono", monospace; letter-spacing: .14em; text-transform: uppercase; color: var(--f2); margin: 0 0 12px; }
+  h2 { font-size: clamp(30px, 4.4vw, 48px); line-height: 1.08; margin: 0 0 14px; font-weight: 700; max-width: 18ch; }
+  .lede { max-width: 54ch; margin: 0 0 40px; }
+  .grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 32px; align-items: start; }
+
+  .code { background: #fff; border: 1.5px solid var(--f1); border-radius: 4px; padding: 18px 20px; box-shadow: 5px 5px 0 var(--hill); }
+  .code .file { font: 700 12px "JetBrains Mono", monospace; color: var(--f2); margin-bottom: 10px; }
+  pre { margin: 0; overflow-x: auto; font: 14px/1.7 "JetBrains Mono", monospace; font-variant-ligatures: none; }
+  .k { color: var(--f1); font-weight: 700; }
+  .s { color: var(--f3); }
+  .b { background: var(--sun); padding: 0 .2em; border-radius: 2px; font-weight: 700; }
+
+  .sheet { position: relative; background: var(--cloud); border: 1px solid #d9d6bd; padding: 22px 22px 18px; box-shadow: 0 1px 0 #d9d6bd, 0 14px 30px -18px rgba(36, 62, 48, .45); }
+  .sheet::before { content: ""; position: absolute; inset: 10px; border: 1px solid rgba(36, 62, 48, .25); pointer-events: none; }
+  .plate-no { font: italic 400 14px "Fraunces", serif; margin: 0 0 4px; }
+  .specimen { width: 100%; height: auto; display: block; }
+  .specimen text { font-family: "JetBrains Mono", monospace; font-size: 13px; fill: var(--ink); }
+  .specimen .lab { font-family: "Fraunces", serif; font-style: italic; font-size: 14px; }
+  .label {
+    display: grid; grid-template-columns: 1fr auto; gap: 4px 16px; align-items: center;
+    margin: 4px 0 0 auto; max-width: 380px;
+    background: #fff; border: 1px solid var(--ink); padding: 10px 12px;
+    font-size: 13px; line-height: 1.4;
+  }
+  .label b { font-variant: small-caps; letter-spacing: .06em; }
+  .label .stamp { grid-row: span 3; width: 54px; height: 54px; transform: rotate(-12deg); opacity: .92; }
+  .plain { margin-top: 18px; }
+  .plain summary { cursor: pointer; font-size: 14px; color: var(--f2); }
+  .plain pre { background: #fff; border-left: 4px solid var(--sun-dark); padding: 12px 14px; margin-top: 8px; }
+  @media (max-width: 860px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+  @media (max-width: 480px) { .demo { padding: 48px 16px; } pre { font-size: 12.5px; } .specimen text { font-size: 15px; } }
+</style>
+</head>
+<body>
+<section class="demo" aria-labelledby="demo-h">
+  <p class="kicker">Plate I &middot; a falsity, explained</p>
+  <h2 id="demo-h">Every falsity comes pressed with its reasons.</h2>
+  <p class="lede">Ask Verity whether <code>"al"</code> is a valid username. It doesn't just say no. It hands back a specimen of why, labeled down to the values it saw.</p>
+
+  <div class="grid">
+    <div class="code">
+      <div class="file">validate.ity</div>
+<pre><code><span class="k">def</span> valid_username(name) =
+    (len(name) &gt;= 3
+        <span class="b">because</span> <span class="s">f"{name!r} has at least 3 characters"</span>)
+    <span class="k">and</span> (len(name) &lt;= 16
+        <span class="b">because</span> <span class="s">f"{name!r} has at most 16 characters"</span>)
+    <span class="k">and</span> (string_ops.is_alnum(name)
+        <span class="b">because</span> <span class="s">f"{name!r} is alphanumeric"</span>)
+
+valid_username(<span class="s">"al"</span>) |&gt; explain |&gt; print</code></pre>
+    </div>
+
+    <figure class="sheet" aria-labelledby="sheet-cap">
+      <p class="plate-no">Falsitas explicata &mdash; specimen 1</p>
+      <svg class="specimen" viewBox="0 0 560 360" role="img" aria-labelledby="spec-t">
+        <title id="spec-t">The testimony drawn as a pressed plant: the root is labeled falsity, a branch is labeled refuted, 'al' has at least 3 characters, and its leaf is labeled len(name) greater-or-equal 3: 2 less than 3.</title>
+        <!-- soil line and root -->
+        <path d="M40 330 Q160 322 280 330 T520 328" fill="none" stroke="var(--f1)" stroke-width="1.5" stroke-dasharray="3 5"/>
+        <path d="M120 330 C 118 342, 108 350, 96 354 M120 330 C 124 344, 134 350, 148 352 M120 330 C 120 340, 118 348, 120 356" fill="none" stroke="var(--f1)" stroke-width="1.6" stroke-linecap="round"/>
+        <!-- main stem -->
+        <path d="M120 330 C 112 270, 132 220, 124 150 C 118 100, 132 70, 128 40" fill="none" stroke="var(--f1)" stroke-width="3" stroke-linecap="round"/>
+        <!-- branch 1 -->
+        <path d="M123 205 C 150 190, 175 176, 196 150" fill="none" stroke="var(--f1)" stroke-width="2" stroke-linecap="round"/>
+        <path d="M196 150 C 206 122, 236 106, 262 104 C 256 132, 230 152, 196 150 Z" fill="var(--f4)" stroke="var(--f1)" stroke-width="1.4"/>
+        <path d="M196 150 L 258 106" stroke="var(--f1)" stroke-width="1"/>
+        <!-- sterile leaves -->
+        <path d="M124 270 C 98 262, 80 246, 74 226 C 98 230, 116 246, 124 270 Z" fill="var(--f5)" stroke="var(--f1)" stroke-width="1.2"/>
+        <path d="M126 110 C 104 98, 94 80, 94 60 C 114 70, 126 88, 126 110 Z" fill="var(--f5)" stroke="var(--f1)" stroke-width="1.2"/>
+        <!-- closed bud at top: the claim that never bloomed -->
+        <ellipse cx="128" cy="34" rx="9" ry="13" fill="var(--f3)" stroke="var(--f1)" stroke-width="1.2"/>
+        <!-- annotation leaders -->
+        <g stroke="var(--ink)" stroke-width=".9" fill="none">
+          <path d="M120 318 L 250 300"/>
+          <path d="M150 190 L 250 222"/>
+          <path d="M240 112 L 300 150"/>
+        </g>
+        <g>
+          <text x="256" y="304" font-weight="700">falsity</text>
+          <text class="lab" x="256" y="320">the root: what came back</text>
+          <text x="256" y="226">refuted: 'al' has at least</text>
+          <text x="256" y="243">3 characters</text>
+          <text class="lab" x="256" y="259">the claim that failed</text>
+          <text x="306" y="154">len(name) &gt;= 3: 2 &lt; 3</text>
+          <text class="lab" x="306" y="170">the leaf: the values it saw</text>
+        </g>
+      </svg>
+      <figcaption class="label" id="sheet-cap">
+        <span><b>Veritas testificans</b></span>
+        <svg class="stamp" viewBox="0 0 100 100" aria-hidden="true">
+          <defs><radialGradient id="sa" cx="35%" cy="30%"><stop offset="0" stop-color="#ffe050"/><stop offset=".7" stop-color="#ffce32"/><stop offset="1" stop-color="#eda617"/></radialGradient></defs>
+          <circle cx="50" cy="50" r="48" fill="url(#sa)"/>
+          <g fill="#243e30"><ellipse cx="35" cy="41" rx="4.1" ry="7.5"/><ellipse cx="65" cy="41" rx="4.1" ry="7.5"/></g>
+          <path d="M25 57 C35 78 66 78 77 55" fill="none" stroke="#243e30" stroke-width="4" stroke-linecap="round"/>
+        </svg>
+        <span>Collected from <code>valid_username("al")</code></span>
+        <span>Determined by the Verity runtime</span>
+      </figcaption>
+      <details class="plain" open>
+        <summary>As printed</summary>
+<pre><code>falsity
+  refuted: 'al' has at least 3 characters
+    len(name) &gt;= 3: 2 &lt; 3</code></pre>
+      </details>
+    </figure>
+  </div>
+</section>
+</body>
+</html>

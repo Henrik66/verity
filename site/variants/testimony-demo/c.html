@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="variant-idea" content="Talk to Verity: the homepage sphere stands in the meadow and answers in a speech bubble; type any username and the falsity or verity and its testimony update live as you type.">
+<title>Testimony demo / c: talk to Verity</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;1,9..144,400&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #243e30; --paper: #f7f6ec; --cloud: #f4f2df;
+    --sky1: #8fc7df; --sky2: #a7d5e6;
+    --h1: #a1c6b5; --h2: #96bca2; --h3: #88aa80;
+    --f1: #315d46; --f2: #3f7050; --f3: #547e49; --f4: #719448; --f5: #84a34e;
+    --sun: #ffe050; --sun-dark: #eda617;
+  }
+  * { box-sizing: border-box; font-feature-settings: "liga" 0, "calt" 0 !important; font-variant-ligatures: none !important; }
+  body { margin: 0; font-variant-ligatures: none; background: var(--paper); color: var(--ink); font: 400 17px/1.55 "Fraunces", Georgia, serif; }
+  .scene { position: relative; overflow: hidden; background: linear-gradient(180deg, var(--sky1), var(--sky2) 75%); min-height: 760px; }
+  .copy { position: relative; z-index: 3; max-width: 1120px; margin: 0 auto; padding: 64px 16px 0; }
+  h2 { font-size: clamp(30px, 4.6vw, 52px); line-height: 1.05; margin: 0 0 10px; font-weight: 700; max-width: 16ch; }
+  .lede { max-width: 46ch; margin: 0; }
+
+  .stage { position: relative; z-index: 3; max-width: 1120px; margin: 0 auto; padding: 0 16px; display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 28px; align-items: end; min-height: 520px; }
+  .sphere { width: 260px; height: 260px; margin: 0 0 70px 20px; position: relative; z-index: 2; }
+  .bubble { position: relative; z-index: 3; align-self: center; margin-bottom: 120px; background: var(--cloud); border: 2px solid var(--ink); border-radius: 22px; padding: 18px 20px 16px; max-width: 560px; box-shadow: 6px 6px 0 rgba(36, 62, 48, .25); }
+  .bubble::before { content: ""; position: absolute; left: -22px; bottom: 34px; width: 30px; height: 26px; background: var(--cloud); border-left: 2px solid var(--ink); border-bottom: 2px solid var(--ink); transform: skewY(-28deg); border-radius: 0 0 0 8px; }
+  .ask { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; font: 15px "JetBrains Mono", monospace; margin-bottom: 12px; }
+  .ask input { font: 700 15px "JetBrains Mono", monospace; color: var(--ink); width: 15ch; min-width: 8ch; padding: 4px 8px; border: 1.5px solid var(--ink); border-radius: 6px; background: #fff; }
+  .ask input:focus-visible { outline: 3px solid var(--sun-dark); outline-offset: 1px; }
+  .out { margin: 0; font: 14px/1.65 "JetBrains Mono", monospace; white-space: pre-wrap; overflow-wrap: anywhere; font-variant-ligatures: none; }
+  .out .v { font-weight: 700; background: var(--sun); padding: 0 .25em; border-radius: 3px; }
+  .out .l { color: var(--f1); font-weight: 700; }
+  .src { margin: 14px 0 0; font-size: 13px; color: var(--f2); }
+  .src summary { cursor: pointer; }
+  .src pre { margin: 8px 0 0; font: 12.5px/1.6 "JetBrains Mono", monospace; overflow-x: auto; background: #fff; padding: 10px 12px; border-radius: 8px; color: var(--ink); }
+
+  .hills, .meadow { position: absolute; left: 0; width: 100%; pointer-events: none; }
+  .hills { bottom: 40px; height: 300px; z-index: 1; }
+  .meadow { bottom: -2px; height: 260px; z-index: 4; }
+  @media (max-width: 760px) {
+    .scene { min-height: 0; }
+    .stage { grid-template-columns: minmax(0, 1fr); min-height: 0; padding-bottom: 220px; }
+    .sphere { width: 170px; height: 170px; margin: 18px auto -40px; order: 2; }
+    .bubble { margin: 24px 0 0; order: 1; }
+    .bubble::before { left: 50%; bottom: -22px; transform: translateX(-50%) rotate(-45deg); border-radius: 0 0 0 6px; width: 26px; height: 26px; }
+    .meadow { height: 200px; }
+    .hills { bottom: 30px; height: 220px; }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .sphere { animation: breathe 6s ease-in-out infinite; }
+    @keyframes breathe { 50% { transform: translateY(-4px); } }
+  }
+</style>
+</head>
+<body>
+<section class="scene" aria-labelledby="demo-h">
+  <div class="copy">
+    <h2 id="demo-h">Ask Verity anything. It shows its working.</h2>
+    <p class="lede">Type a username. Verity answers <code>verity</code> or <code>falsity</code>, and tells you exactly why, every time.</p>
+  </div>
+
+  <div class="stage">
+    <svg class="sphere" viewBox="0 0 100 100" aria-hidden="true">
+      <defs><radialGradient id="sc" cx="35%" cy="30%"><stop offset="0" stop-color="#ffe050"/><stop offset=".7" stop-color="#ffce32"/><stop offset="1" stop-color="#eda617"/></radialGradient></defs>
+      <circle cx="50" cy="50" r="48" fill="url(#sc)"/>
+      <g fill="#243e30"><ellipse cx="35" cy="41" rx="4.1" ry="7.5"/><ellipse cx="65" cy="41" rx="4.1" ry="7.5"/></g>
+      <path d="M25 57 C35 78 66 78 77 55" fill="none" stroke="#243e30" stroke-width="4" stroke-linecap="round"/>
+    </svg>
+
+    <div class="bubble">
+      <label class="ask" for="name">valid_username("<input id="name" value="al" maxlength="24" spellcheck="false" autocomplete="off" aria-describedby="out">") |&gt; explain</label>
+      <pre class="out" id="out" aria-live="polite"></pre>
+      <details class="src">
+        <summary>The Verity behind this</summary>
+<pre>def valid_username(name) =
+    (len(name) &gt;= 3 because f"{name!r} has at least 3 characters")
+    and (len(name) &lt;= 16 because f"{name!r} has at most 16 characters")
+    and (string_ops.is_alnum(name) because f"{name!r} is alphanumeric")</pre>
+      </details>
+    </div>
+  </div>
+
+  <svg class="hills" viewBox="0 0 1600 220" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M0 70 Q200 20 420 80 T860 70 T1300 60 T1600 40 V220 H0Z" fill="#a1c6b5"/>
+    <path d="M0 120 Q260 60 520 130 T1040 110 T1600 90 V220 H0Z" fill="#96bca2"/>
+    <path d="M0 170 Q300 110 640 165 T1600 150 V220 H0Z" fill="#88aa80"/>
+  </svg>
+  <svg class="meadow" viewBox="0 0 1600 260" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+    <path d="M-10 200 Q400 150 800 200 T1610 185 V270 H-10Z" fill="#3f7050"/>
+    <g fill="#315d46">
+      <path d="M90 210 C80 150 110 90 170 50 C130 100 112 150 116 210Z"/>
+      <path d="M140 210 C150 160 200 120 260 104 C215 136 180 170 168 210Z"/>
+      <path d="M1460 205 C1450 140 1480 80 1540 40 C1500 90 1482 140 1486 205Z"/>
+      <path d="M1380 205 C1390 150 1440 110 1500 96 C1455 128 1420 160 1408 205Z"/>
+    </g>
+    <g fill="#547e49">
+      <path d="M300 215 C310 170 350 140 400 128 C365 152 335 180 326 215Z"/>
+      <path d="M1180 210 C1170 160 1200 120 1240 100 C1215 135 1200 170 1204 210Z"/>
+      <path d="M560 220 C556 186 580 160 612 148 C590 170 580 194 582 220Z"/>
+    </g>
+    <g fill="#719448">
+      <path d="M380 220 C372 180 392 150 424 132 C404 160 396 190 402 220Z"/>
+      <path d="M980 215 C990 175 1020 150 1056 140 C1030 162 1012 188 1004 215Z"/>
+    </g>
+    <g fill="#f6f3d9">
+      <circle cx="420" cy="140" r="7"/><circle cx="1056" cy="138" r="6"/><circle cx="262" cy="104" r="6"/>
+    </g>
+    <g fill="#eac85e"><circle cx="420" cy="140" r="2.6"/><circle cx="1056" cy="138" r="2.3"/><circle cx="262" cy="104" r="2.3"/></g>
+  </svg>
+</section>
+
+<script>
+// Mirrors the intended semantics of examples/validate.ity.
+const pyRepr = (s) => (s.includes("'") && !s.includes('"')) ? `"${s}"` : `'${s.replace(/\\/g, "\\\\").replace(/'/g, "\\'")}'`;
+const isAlnum = (c) => /[\p{L}\p{N}]/u.test(c);
+const esc = (s) => s.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+
+function explain(name) {
+  const r = pyRepr(name), chars = [...name], n = chars.length, bad = chars.findIndex((c) => !isAlnum(c));
+  const rules = [
+    [n >= 3, `${r} has at least 3 characters`, `len(name) >= 3: ${n} ${n >= 3 ? ">=" : "<"} 3`],
+    [n <= 16, `${r} has at most 16 characters`, `len(name) <= 16: ${n} ${n <= 16 ? "<=" : ">"} 16`],
+    [bad === -1, `${r} is alphanumeric`, bad === -1 ? `every character of ${r} is alphanumeric` : `${pyRepr(chars[bad])} at index ${bad} is not alphanumeric`],
+  ];
+  const failed = rules.find(([ok]) => !ok);
+  if (failed) {
+    return `<span class="v">falsity</span>\n  <span class="l">refuted:</span> ${esc(failed[1])}\n    ${esc(failed[2])}`;
+  }
+  return `<span class="v">verity</span>\n  <span class="l">all of:</span>\n` +
+    rules.map(([, c, leaf]) => `    <span class="l">witnessed:</span> ${esc(c)}\n      ${esc(leaf)}`).join("\n");
+}
+
+const input = document.getElementById("name");
+const out = document.getElementById("out");
+const update = () => { out.innerHTML = explain(input.value); };
+input.addEventListener("input", update);
+update();
+</script>
+</body>
+</html>
