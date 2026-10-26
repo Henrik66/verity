@@ -1,0 +1,42 @@
+<p>This book is about Verity, a small functional language that compiles to Python. It is also about one idea that Verity is built around: a program's yes-or-no answers should come with reasons attached.</p>
+
+<h2 id="who">Who this book is for</h2>
+<p>The book assumes you can already program, ideally in Python. You should be comfortable with functions, lists, loops and conditionals. You do not need any background in functional programming. Lambdas, pipes, algebraic data types and pattern matching are each introduced from scratch.</p>
+<p>If you already know Coconut, much of the syntax will be familiar, and you can skim Chapters <a href="functions.html">5</a> and <a href="data.html">6</a>. The parts that are new everywhere are <a href="testimony.html">Chapter 3</a> on testimony and <a href="quantifiers.html">Chapter 4</a> on quantifiers.</p>
+
+<h2 id="status">The status of Verity</h2>
+<p>Verity is in early design, and this edition is written ahead of the implementation. The language described here is the one the compiler is being built to accept. The example programs and their expected outputs double as the project's acceptance tests: a milestone counts as done only when its examples produce exactly the output printed in this book.</p>
+<p>That means the book is also a design document. Where the design is unsettled, the text says so in a design note:</p>
+<aside class="design">
+  <p class="callout-title"><!--smiley--> Design note</p>
+  <p>Design notes mark open questions and proposals. Treat what they say as tentative until the language's spec (the repository's <code>CLAUDE.md</code>) adopts it.</p>
+</aside>
+
+<h2 id="conventions">Conventions</h2>
+<p>Verity source code appears in blocks with a green edge:</p>
+<pre class="ity">
+# This is Verity.
+greeting = "hello" |> str.upper
+print(greeting)
+</pre>
+<p>Output appears in blocks with a yellow edge. When a truth value is printed with <code>explain</code>, the output shows its testimony indented beneath it:</p>
+<pre class="out">
+HELLO
+</pre>
+<p>Generated Python, which appears mostly in <a href="under-the-hood.html">Chapter 8</a>, has a blue edge. Shell commands start with <code>$</code>:</p>
+<pre class="sh">
+$ verity run hello.ity
+</pre>
+<p>Verity source files use the <code>.ity</code> extension.</p>
+
+<h2 id="exercises">Exercises</h2>
+<p>Each chapter ends with exercises, rated by difficulty:</p>
+<ul>
+  <li><span class="stars">★</span>: a quick check that you followed the chapter.</li>
+  <li><span class="stars">★★</span>: needs some thought or a short program.</li>
+  <li><span class="stars">★★★</span>: open-ended, or a design question without a settled answer.</li>
+</ul>
+<p>Until the compiler exists, work the exercises on paper. Predicting a program's testimony by hand is good practice anyway, because it is exactly what the compiler and runtime will have to do.</p>
+
+<h2 id="acknowledgments">Acknowledgments</h2>
+<p>Verity's surface syntax comes almost entirely from <a href="https://coconut-lang.org/">Coconut</a>, Evan Hubinger's functional superset of Python. The structure of this book (chapters that build up a language, with rated exercises) is modeled on Cornell's CS 3110 textbook, <a href="https://cs3110.github.io/textbook/cover.html"><cite>OCaml Programming: Correct + Efficient + Beautiful</cite></a>.</p>

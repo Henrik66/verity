@@ -18,7 +18,7 @@ falsity
     p % 2 == 1: 0 != 1
 ```
 
-More in [`examples/`](examples/).
+More in [`examples/`](examples/), and in the textbook, [*Verity Programming*](https://www.verity.garden/book/cover.html).
 
 ## Status
 

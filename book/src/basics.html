@@ -1,0 +1,131 @@
+<p>This chapter covers the everyday parts of Verity: running a program, values, definitions, truth values, control flow and imports. If you know Python, most of it will look familiar. The differences are few, but they matter.</p>
+
+<h2 id="running">Running a program</h2>
+<p>A Verity program is a text file ending in <code>.ity</code>. Save this as <code>hello.ity</code>:</p>
+<pre class="ity">
+print("hello, garden")
+</pre>
+<p>and run it:</p>
+<pre class="sh">
+$ verity run hello.ity
+</pre>
+<pre class="out">
+hello, garden
+</pre>
+<p><code>verity run</code> compiles the file to Python and runs it immediately. To see the Python it generates instead, use <code>verity compile</code>:</p>
+<pre class="sh">
+$ verity compile hello.ity
+</pre>
+<p>The generated code is meant to be readable. Looking at it is a good way to understand what a Verity feature really does.</p>
+
+<h2 id="values">Values and expressions</h2>
+<p>Verity's values are Python's values: integers, floats, strings, lists, tuples, dictionaries and sets, written the same way and supporting the same operations.</p>
+<pre class="ity">
+# Comments start with a hash, as in Python.
+answer = 6 * 7
+pi_ish = 22 / 7
+name = "Ada"
+primes = [2, 3, 5, 7]
+point = (3, 4)
+ages = {"ada": 36, "alan": 41}
+
+print(f"{name} is {ages['ada']}; the answer is {answer}")
+</pre>
+<pre class="out">
+Ada is 36; the answer is 42
+</pre>
+<p>Strings support Python's f-strings, slicing and methods. Lists support indexing, slicing and comprehensions. Arithmetic follows Python's rules, including <code>/</code> for true division, <code>//</code> for floor division and <code>**</code> for powers.</p>
+
+<h2 id="definitions">Definitions</h2>
+<p>A name is bound with <code>=</code>, as in Python. Functions can be defined in two ways. The short form, borrowed from Coconut, defines a function whose body is a single expression:</p>
+<pre class="ity">
+def square(x) = x * x
+def hypotenuse(a, b) = (square(a) + square(b)) ** 0.5
+
+print(hypotenuse(3, 4))
+</pre>
+<pre class="out">
+5.0
+</pre>
+<p>The long form is Python's block syntax, for functions that need several statements:</p>
+<pre class="ity">
+def describe(n):
+    kind = "even" if n % 2 == 0 else "odd"
+    return f"{n} is {kind}"
+</pre>
+<p>Prefer the short form when it fits. Verity code tends toward small functions that compute a value rather than larger ones that perform a sequence of steps. The short form makes that style the easy one.</p>
+
+<h2 id="truth-values">Truth values</h2>
+<p>Verity's truth type is <code>truth</code>, and its two values are <code>verity</code> and <code>falsity</code>. Comparisons produce truths:</p>
+<pre class="ity">
+from testimony import explain
+
+x = 7
+(x > 3) |> explain |> print
+(x == 10) |> explain |> print
+</pre>
+<pre class="out">
+verity
+  x > 3: 7 > 3
+falsity
+  x == 10: 7 != 10
+</pre>
+<p>Every truth carries testimony, and <code>explain</code> from the standard library module <code>testimony</code> turns a truth into text. The first line is the truth itself, and the indented lines below are its testimony. For a comparison, the testimony quotes the source expression, then shows the values that were actually compared, using the operator that held. <code>x == 10</code> was refuted because <code>7 != 10</code>. <a href="testimony.html">Chapter 3</a> is devoted to testimony.</p>
+<p>Verity source spells its truth values <code>verity</code> and <code>falsity</code>, never <code>True</code> and <code>False</code>. For what happens when Python libraries hand back <code>True</code>/<code>False</code>, see <a href="python.html">Chapter 7</a>.</p>
+
+<h2 id="control-flow">Conditionals and loops</h2>
+<p>Truths drive <code>if</code>, <code>elif</code>, <code>else</code> and <code>while</code> exactly as Python booleans do. Conditional expressions work too:</p>
+<pre class="ity">
+def grade(score):
+    if score >= 90:
+        return "A"
+    elif score >= 80:
+        return "B"
+    else:
+        return "keep growing"
+
+def sign(n) = "negative" if n < 0 else "non-negative"
+</pre>
+<p>When a truth is only used to choose a branch, as in <code>grade</code>, its testimony is never observed. The compiler erases it, and the comparison compiles to a plain Python comparison.</p>
+<p><code>for</code> loops and comprehensions are also available. Verity is functional in style rather than in law. Loops are fine at the edges of a program, such as printing results, while the core is best written as functions over values. The examples in this book follow that pattern.</p>
+<pre class="ity">
+for name in ["ada", "alan", "grace"]:
+    print(name.title())
+
+squares = [n * n for n in range(5)]
+</pre>
+
+<h2 id="imports">Imports and the standard library</h2>
+<p>Verity's import statement is Python's, and it can import Python modules directly:</p>
+<pre class="ity">
+import math
+from statistics import mean
+
+print(math.sqrt(2))
+print(mean([1, 2, 3, 4]))
+</pre>
+<p>Verity's own standard library modules use snake_case names:</p>
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Module</th><th>Purpose</th></tr></thead>
+  <tbody>
+    <tr><td><code>testimony</code></td><td>Working with testimony, starting with <code>explain</code>.</td></tr>
+    <tr><td><code>string_ops</code></td><td>String predicates and helpers whose truths testify, such as <code>string_ops.is_alnum</code>.</td></tr>
+    <tr><td><code>list_ops</code></td><td>List helpers in a functional style.</td></tr>
+  </tbody>
+</table>
+</div>
+<aside class="design">
+  <p class="callout-title"><!--smiley--> Design note: the standard library</p>
+  <p>Only the module names and a few functions used in this book (<code>testimony.explain</code>, <code>string_ops.is_alnum</code>) are settled. Their full contents will be designed alongside the language milestones.</p>
+</aside>
+
+<h2 id="exercises">Exercises</h2>
+<div class="exercise">
+  <h4>Exercise: short form <span class="stars">★</span></h4>
+  <p>Rewrite <code>describe</code> from Section 2.3 using the short form <code>def describe(n) = ...</code>.</p>
+</div>
+<div class="exercise">
+  <h4>Exercise: predict the refutation <span class="stars">★</span></h4>
+  <p>With <code>x = 7</code>, write down what <code>explain</code> prints for <code>x &lt; 5</code>, <code>x != 7</code> and <code>x &gt;= 7</code>.</p>
+</div>

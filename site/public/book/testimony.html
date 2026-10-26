@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script>document.documentElement.classList.add("js")</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>3. Truth and Testimony | Verity Programming</title>
+<meta name="description" content="Verity Programming: a textbook on Verity, a quirky functional Python where booleans testify.">
+<link rel="icon" href="../favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,800;1,9..144,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="book.css">
+</head>
+<body class="page-testimony">
+<a class="skip" href="#content">Skip to content</a>
+<header class="topbar">
+  <button class="menu-btn" type="button" aria-controls="sidebar" aria-expanded="false">
+    <span aria-hidden="true">&#9776;</span> Contents
+  </button>
+  <a class="topbar-title" href="cover.html"><svg class="smiley" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="#ffda46"/><g fill="#243e30"><ellipse cx="35" cy="41" rx="4.1" ry="7.5"/><ellipse cx="65" cy="41" rx="4.1" ry="7.5"/></g><path d="M25 57 C35 78 66 78 77 55" fill="none" stroke="#243e30" stroke-width="4" stroke-linecap="round"/></svg><span>Verity Programming</span></a>
+  <a class="topbar-link" href="../index.html">Verity home</a>
+</header>
+<div class="layout">
+  <aside class="sidebar" id="sidebar" aria-label="Book contents">
+    <a class="sidebar-cover" href="cover.html"><svg class="smiley" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="#ffda46"/><g fill="#243e30"><ellipse cx="35" cy="41" rx="4.1" ry="7.5"/><ellipse cx="65" cy="41" rx="4.1" ry="7.5"/></g><path d="M25 57 C35 78 66 78 77 55" fill="none" stroke="#243e30" stroke-width="4" stroke-linecap="round"/></svg><span>Verity Programming</span></a>
+    <nav><p class="toc-heading">Front matter</p><ul>
+<li><a href="cover.html">Cover</a></li>
+<li><a href="preface.html">Preface</a></li>
+</ul>
+<p class="toc-heading">Chapters</p><ul>
+<li><a href="introduction.html"><span class="toc-num">1</span>Introduction</a></li>
+<li><a href="basics.html"><span class="toc-num">2</span>The Basics</a></li>
+<li><a href="testimony.html" aria-current="page"><span class="toc-num">3</span>Truth and Testimony</a></li>
+<li><a href="quantifiers.html"><span class="toc-num">4</span>Quantifiers</a></li>
+<li><a href="functions.html"><span class="toc-num">5</span>Functions and Pipelines</a></li>
+<li><a href="data.html"><span class="toc-num">6</span>Data and Patterns</a></li>
+<li><a href="python.html"><span class="toc-num">7</span>Living with Python</a></li>
+<li><a href="under-the-hood.html"><span class="toc-num">8</span>Under the Hood</a></li>
+</ul>
+<p class="toc-heading">Appendices</p><ul>
+<li><a href="testimony-reference.html"><span class="toc-num">A</span>Testimony Reference</a></li>
+<li><a href="glossary.html"><span class="toc-num">B</span>Glossary</a></li>
+</ul></nav>
+  </aside>
+  <main id="content" class="content">
+    <article>
+<h1><span class="h1-num">Chapter 3</span>Truth and Testimony</h1>
+<p>Every truth in Verity carries testimony. This chapter explains where testimony comes from, how the logical operators combine it, and how <code>because</code> lets you put a claim in your own words.</p>
+
+<h2 id="what"><span class="secnum">3.1</span> What testimony is<a class="anchor" href="#what" aria-label="Link to this section">#</a></h2>
+<p>A value of type <code>truth</code> is either a <code>verity</code> or a <code>falsity</code>. Alongside that one bit it carries testimony:</p>
+<ul>
+  <li>a verity's testimony is its <strong>witness</strong>: why the claim holds;</li>
+  <li>a falsity's testimony is its <strong>refutation</strong>: why the claim fails.</li>
+</ul>
+<p>Testimony is a tree. A comparison is a leaf. Operators like <code>and</code>, and quantifiers like <code>forall</code>, build larger trees out of the testimony of their parts. <code>testimony.explain</code> renders the tree as indented text, with the truth on the first line and each level of the tree indented two more spaces. That format is used throughout the book and summarized in <a href="testimony-reference.html">Appendix A</a>.</p>
+<p>Testimony is evidence, not decoration. Each kind of node records the facts that actually decided the answer, so reading it from the top down should always tell you <em>why</em>.</p>
+
+<h2 id="comparisons"><span class="secnum">3.2</span> Comparisons<a class="anchor" href="#comparisons" aria-label="Link to this section">#</a></h2>
+<p>Comparisons are where most testimony starts. A comparison's testimony quotes the expression as you wrote it, followed by the evaluated operands and the relation that actually held between them:</p>
+<div class="code code-ity"><span class="code-label">verity</span><pre><code><span class="t-kw">from</span> testimony <span class="t-kw">import</span> explain
+
+name = <span class="t-str">"al"</span>
+(len(name) &gt;= <span class="t-num">3</span>) <span class="t-op">|&gt;</span> explain <span class="t-op">|&gt;</span> print
+(len(name) == <span class="t-num">2</span>) <span class="t-op">|&gt;</span> explain <span class="t-op">|&gt;</span> print</code></pre></div>
+<div class="code code-out"><span class="code-label">output</span><pre><code><span class="t-truth">falsity</span>
+  len(name) &gt;= 3: 2 &lt; 3
+<span class="t-truth">verity</span>
+  len(name) == 2: 2 == 2</code></pre></div>
+<p>When the comparison holds, the relation is the one you wrote. When it fails, it is the opposite one: <code>&gt;=</code> becomes <code>&lt;</code>, <code>==</code> becomes <code>!=</code>, and so on. Showing both the source text and the values is what makes the line useful. The source tells you which check this is, and the values tell you why it came out the way it did.</p>
+
+<h2 id="and"><span class="secnum">3.3</span> Conjunction: <code>and</code><a class="anchor" href="#and" aria-label="Link to this section">#</a></h2>
+<p><code>p and q</code> is a verity when both sides are. Its testimony depends on which way it went:</p>
+<ul>
+  <li>A <strong>verity</strong> from <code>and</code> needs every part to hold, so its witness lists all of them under <code>all of:</code>. A chain such as <code>p and q and r</code> is flattened into one list.</li>
+  <li>A <strong>falsity</strong> from <code>and</code> needs only one failing part. <code>and</code> short-circuits, as in Python, so the refutation is simply the testimony of the first part that failed.</li>
+</ul>
+<div class="code code-ity"><span class="code-label">verity</span><pre><code><span class="t-kw">from</span> testimony <span class="t-kw">import</span> explain
+
+<span class="t-kw">def</span> in_range(x) = (x &gt; <span class="t-num">0</span>) <span class="t-kw">and</span> (x &lt; <span class="t-num">10</span>)
+
+in_range(<span class="t-num">7</span>) <span class="t-op">|&gt;</span> explain <span class="t-op">|&gt;</span> print
+in_range(<span class="t-num">12</span>) <span class="t-op">|&gt;</span> explain <span class="t-op">|&gt;</span> print</code></pre></div>
+<div class="code code-out"><span class="code-label">output</span><pre><code><span class="t-truth">verity</span>
+  <span class="t-label">all of</span>:
+    x &gt; 0: 7 &gt; 0
+    x &lt; 10: 7 &lt; 10
+<span class="t-truth">falsity</span>
+  x &lt; 10: 12 &gt;= 10</code></pre></div>
+<p>For <code>in_range(12)</code>, the first part held, so it is irrelevant to why the whole thing failed and does not appear. Testimony includes what decided the answer and nothing else.</p>
+
+<h2 id="or"><span class="secnum">3.4</span> Disjunction: <code>or</code><a class="anchor" href="#or" aria-label="Link to this section">#</a></h2>
+<p><code>or</code> is the mirror image of <code>and</code>:</p>
+<ul>
+  <li>A <strong>verity</strong> from <code>or</code> needs just one part to hold. It short-circuits, so the witness is the testimony of the first part that held.</li>
+  <li>A <strong>falsity</strong> from <code>or</code> needs every part to fail, so the refutation lists all of them under <code>none of:</code>.</li>
+</ul>
+<div class="code code-ity"><span class="code-label">verity</span><pre><code><span class="t-kw">from</span> testimony <span class="t-kw">import</span> explain
+
+<span class="t-kw">def</span> out_of_range(x) = (x &lt; <span class="t-num">0</span>) <span class="t-kw">or</span> (x &gt; <span class="t-num">10</span>)
+
+out_of_range(-<span class="t-num">3</span>) <span class="t-op">|&gt;</span> explain <span class="t-op">|&gt;</span> print
+out_of_range(<span class="t-num">7</span>) <span class="t-op">|&gt;</span> explain <span class="t-op">|&gt;</span> print</code></pre></div>
+<div class="code code-out"><span class="code-label">output</span><pre><code><span class="t-truth">verity</span>
+  x &lt; 0: -3 &lt; 0
+<span class="t-truth">falsity</span>
+  <span class="t-label">none of</span>:
+    x &lt; 0: 7 &gt;= 0
+    x &gt; 10: 7 &lt;= 10</code></pre></div>
+
+<h2 id="not"><span class="secnum">3.5</span> Negation: <code>not</code><a class="anchor" href="#not" aria-label="Link to this section">#</a></h2>
+<p><code>not p</code> flips the truth and keeps the evidence. A refutation of <code>p</code> is exactly a witness for <code>not p</code>, and vice versa:</p>
+<div class="code code-ity"><span class="code-label">verity</span><pre><code><span class="t-kw">from</span> testimony <span class="t-kw">import</span> explain
+
+x = <span class="t-num">7</span>
+(<span class="t-kw">not</span> (x &gt; <span class="t-num">10</span>)) <span class="t-op">|&gt;</span> explain <span class="t-op">|&gt;</span> print</code></pre></div>
+<div class="code code-out"><span class="code-label">output</span><pre><code><span class="t-truth">verity</span>
+  <span class="t-label">not</span>:
+    x &gt; 10: 7 &lt;= 10</code></pre></div>
+<aside class="design">
+  <p class="callout-title"><svg class="smiley" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="#ffda46"/><g fill="#243e30"><ellipse cx="35" cy="41" rx="4.1" ry="7.5"/><ellipse cx="65" cy="41" rx="4.1" ry="7.5"/></g><path d="M25 57 C35 78 66 78 77 55" fill="none" stroke="#243e30" stroke-width="4" stroke-linecap="round"/></svg> Design note: rendering <code>not</code></p>
+  <p>The meaning of <code>not</code> is settled: it swaps witness and refutation. How it prints is a proposal. A <code>not:</code> node wrapping the original testimony keeps the source structure visible. The alternative is to drop the wrapper and print the inner testimony directly, which is shorter but hides that a negation happened.</p>
+</aside>
+
+<h2 id="because"><span class="secnum">3.6</span> Custom testimony: <code>because</code><a class="anchor" href="#because" aria-label="Link to this section">#</a></h2>
+<p>Comparison testimony is precise but low-level. <code>len(name) &gt;= 3: 2 &lt; 3</code> tells you what happened, not what it means. <code>because</code> attaches a claim in plain words:</p>
+<div class="code code-ity"><span class="code-label">verity</span><pre><code>p <span class="t-test">because</span> <span class="t-str">"the claim p establishes"</span></code></pre></div>
+<p>The message states the <em>claim</em>, the thing that is true when <code>p</code> is a verity. It renders as <code>witnessed:</code> or <code>refuted:</code> depending on the outcome, with <code>p</code>'s own testimony nested beneath it, so the high-level reason and the low-level evidence appear together. Here is a validator built from three claims:</p>
+<div class="code code-ity"><span class="code-label">verity</span><pre><code><span class="t-kw">import</span> string_ops
+<span class="t-kw">from</span> testimony <span class="t-kw">import</span> explain
+
+<span class="t-kw">def</span> valid_username(name) =
+    (len(name) &gt;= <span class="t-num">3</span> <span class="t-test">because</span> <span class="t-str">f"{name!r} has at least 3 characters"</span>)
+    <span class="t-kw">and</span> (len(name) &lt;= <span class="t-num">16</span> <span class="t-test">because</span> <span class="t-str">f"{name!r} has at most 16 characters"</span>)
+    <span class="t-kw">and</span> (string_ops.is_alnum(name) <span class="t-test">because</span> <span class="t-str">f"{name!r} is alphanumeric"</span>)
+
+<span class="t-kw">for</span> name <span class="t-kw">in</span> [<span class="t-str">"ada"</span>, <span class="t-str">"al"</span>, <span class="t-str">"grace_hopper"</span>]:
+    print(<span class="t-str">f"{name!r}: {explain(valid_username(name))}"</span>)</code></pre></div>
+<div class="code code-out"><span class="code-label">output</span><pre><code>'ada': verity
+  <span class="t-label">all of</span>:
+    <span class="t-label">witnessed</span>: 'ada' has at least 3 characters
+      len(name) &gt;= 3: 3 &gt;= 3
+    <span class="t-label">witnessed</span>: 'ada' has at most 16 characters
+      len(name) &lt;= 16: 3 &lt;= 16
+    <span class="t-label">witnessed</span>: 'ada' is alphanumeric
+      every character of 'ada' is alphanumeric
+'al': falsity
+  <span class="t-label">refuted</span>: 'al' has at least 3 characters
+    len(name) &gt;= 3: 2 &lt; 3
+'grace_hopper': falsity
+  <span class="t-label">refuted</span>: 'grace_hopper' is alphanumeric
+    '_' at index 5 is not alphanumeric</code></pre></div>
+<p>Each rule is written once, and the error message falls out of it. Notice the last case. <code>string_ops.is_alnum</code> is a standard library function that returns a testifying truth, so its refutation names the offending character and its position.</p>
+<p>Because the message is the claim, phrase it as a statement that is true when the check passes: "has at least 3 characters", not "is too short". The same message then reads correctly after both <code>witnessed:</code> and <code>refuted:</code>.</p>
+<aside class="design">
+  <p class="callout-title"><svg class="smiley" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="#ffda46"/><g fill="#243e30"><ellipse cx="35" cy="41" rx="4.1" ry="7.5"/><ellipse cx="65" cy="41" rx="4.1" ry="7.5"/></g><path d="M25 57 C35 78 66 78 77 55" fill="none" stroke="#243e30" stroke-width="4" stroke-linecap="round"/></svg> Design note: precedence and laziness</p>
+  <p>Two details are still open. First, precedence: the examples always parenthesize <code>p because msg</code> when it is combined with <code>and</code>/<code>or</code>, and until the grammar settles, you should too. Second, evaluation: it is proposed that the message, often an f-string, is evaluated only if the testimony is observed. That way a <code>because</code> on a hot path costs nothing when nobody calls <code>explain</code>.</p>
+</aside>
+
+<h2 id="literals"><span class="secnum">3.7</span> Literal truths<a class="anchor" href="#literals" aria-label="Link to this section">#</a></h2>
+<p>The literals <code>verity</code> and <code>falsity</code> have no evidence behind them. Their testimony is simply <code>literal</code>. Combined with <code>because</code>, they let you assert a claim directly, and the message is then the whole testimony:</p>
+<div class="code code-ity"><span class="code-label">verity</span><pre><code><span class="t-kw">from</span> testimony <span class="t-kw">import</span> explain
+
+<span class="t-truth">verity</span> <span class="t-op">|&gt;</span> explain <span class="t-op">|&gt;</span> print
+(<span class="t-truth">falsity</span> <span class="t-test">because</span> <span class="t-str">"only rectangles can be square"</span>) <span class="t-op">|&gt;</span> explain <span class="t-op">|&gt;</span> print</code></pre></div>
+<div class="code code-out"><span class="code-label">output</span><pre><code><span class="t-truth">verity</span>
+  <span class="t-label">literal</span>
+<span class="t-truth">falsity</span>
+  <span class="t-label">refuted</span>: only rectangles can be square</code></pre></div>
+<p>This is mostly useful in functions that decide a claim by cases, such as the <code>is_square</code> function in <a href="data.html">Chapter 6</a>.</p>
+
+<h2 id="observing"><span class="secnum">3.8</span> Observing testimony<a class="anchor" href="#observing" aria-label="Link to this section">#</a></h2>
+<p>A truth's testimony is <em>observed</em> when something looks at it: passing the truth to <code>explain</code>, returning it from a function whose caller might, storing it in a data structure and so on. A truth used only as a condition is not observed:</p>
+<div class="code code-ity"><span class="code-label">verity</span><pre><code><span class="t-kw">def</span> clamp(x) = <span class="t-num">0</span> <span class="t-kw">if</span> x &lt; <span class="t-num">0</span> <span class="t-kw">else</span> <span class="t-num">10</span> <span class="t-kw">if</span> x &gt; <span class="t-num">10</span> <span class="t-kw">else</span> x</code></pre></div>
+<p>Nothing in <code>clamp</code> can see the testimony of <code>x &lt; 0</code>, so the compiler emits a plain Python comparison. This is the testimony erasure pass from <a href="under-the-hood.html">Chapter 8</a>. Its practical consequence is that you never need to avoid truths for the sake of performance. Write the clearest condition, and testimony appears where you ask for it.</p>
+
+<h2 id="exercises"><span class="secnum">3.9</span> Exercises<a class="anchor" href="#exercises" aria-label="Link to this section">#</a></h2>
+<div class="exercise">
+  <h4>Exercise: and/or by hand <span class="stars">★</span></h4>
+  <p>Write the <code>explain</code> output of <code>in_range(0)</code> and <code>out_of_range(11)</code>.</p>
+</div>
+<div class="exercise">
+  <h4>Exercise: double negation <span class="stars">★</span></h4>
+  <p>With <code>x = 7</code>, what does <code>explain</code> print for <code>not not (x &gt; 3)</code> under the <code>not:</code> rendering of Section 3.5? Is that output helpful? Should <code>not not p</code> simplify?</p>
+</div>
+<div class="exercise">
+  <h4>Exercise: claims, not complaints <span class="stars">★★</span></h4>
+  <p>Rewrite these messages as claims suitable for <code>because</code>: "too long", "missing @", "age can't be negative".</p>
+</div>
+<div class="exercise">
+  <h4>Exercise: passwords, once <span class="stars">★★</span></h4>
+  <p>Rewrite the password validator from the <a href="introduction.html#exercises">Chapter 1 exercises</a> in Verity using <code>because</code>, so each rule appears exactly once. Write the expected <code>explain</code> output for <code>"hunter2"</code>. You may assume a helper <code>string_ops.has_digit</code> that testifies like <code>is_alnum</code>.</p>
+</div>
+<div class="exercise">
+  <h4>Exercise: what does <code>or</code> owe you? <span class="stars">★★★</span></h4>
+  <p>A verity from <code>or</code> reports only the first part that held. Construct an example where you would want to see <em>every</em> part that held. Should Verity offer a non-short-circuiting form, and what would it cost?</p>
+</div>
+
+    </article>
+    <nav class="pager" aria-label="Previous and next pages"><a class="pager-prev" href="basics.html"><span>Previous</span>2. The Basics</a><a class="pager-next" href="quantifiers.html"><span>Next</span>4. Quantifiers</a></nav>
+    <footer class="page-footer">
+      <p>Verity Programming &middot; Henrik Gombos and Pranav Balakrishnan &middot; <a href="https://github.com/Henrik66/verity/blob/main/book/src/testimony.html">Source for this page</a></p>
+    </footer>
+  </main>
+  <nav class="on-page" aria-label="On this page"><p>On this page</p><ul><li><a href="#what">What testimony is</a></li><li><a href="#comparisons">Comparisons</a></li><li><a href="#and">Conjunction: and</a></li><li><a href="#or">Disjunction: or</a></li><li><a href="#not">Negation: not</a></li><li><a href="#because">Custom testimony: because</a></li><li><a href="#literals">Literal truths</a></li><li><a href="#observing">Observing testimony</a></li><li><a href="#exercises">Exercises</a></li></ul></nav>
+</div>
+<script src="book.js" defer></script>
+</body>
+</html>

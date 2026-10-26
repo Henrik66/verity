@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script>document.documentElement.classList.add("js")</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>6. Data and Patterns | Verity Programming</title>
+<meta name="description" content="Verity Programming: a textbook on Verity, a quirky functional Python where booleans testify.">
+<link rel="icon" href="../favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,800;1,9..144,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="book.css">
+</head>
+<body class="page-data">
+<a class="skip" href="#content">Skip to content</a>
+<header class="topbar">
+  <button class="menu-btn" type="button" aria-controls="sidebar" aria-expanded="false">
+    <span aria-hidden="true">&#9776;</span> Contents
+  </button>
+  <a class="topbar-title" href="cover.html"><svg class="smiley" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="#ffda46"/><g fill="#243e30"><ellipse cx="35" cy="41" rx="4.1" ry="7.5"/><ellipse cx="65" cy="41" rx="4.1" ry="7.5"/></g><path d="M25 57 C35 78 66 78 77 55" fill="none" stroke="#243e30" stroke-width="4" stroke-linecap="round"/></svg><span>Verity Programming</span></a>
+  <a class="topbar-link" href="../index.html">Verity home</a>
+</header>
+<div class="layout">
+  <aside class="sidebar" id="sidebar" aria-label="Book contents">
+    <a class="sidebar-cover" href="cover.html"><svg class="smiley" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="#ffda46"/><g fill="#243e30"><ellipse cx="35" cy="41" rx="4.1" ry="7.5"/><ellipse cx="65" cy="41" rx="4.1" ry="7.5"/></g><path d="M25 57 C35 78 66 78 77 55" fill="none" stroke="#243e30" stroke-width="4" stroke-linecap="round"/></svg><span>Verity Programming</span></a>
+    <nav><p class="toc-heading">Front matter</p><ul>
+<li><a href="cover.html">Cover</a></li>
+<li><a href="preface.html">Preface</a></li>
+</ul>
+<p class="toc-heading">Chapters</p><ul>
+<li><a href="introduction.html"><span class="toc-num">1</span>Introduction</a></li>
+<li><a href="basics.html"><span class="toc-num">2</span>The Basics</a></li>
+<li><a href="testimony.html"><span class="toc-num">3</span>Truth and Testimony</a></li>
+<li><a href="quantifiers.html"><span class="toc-num">4</span>Quantifiers</a></li>
+<li><a href="functions.html"><span class="toc-num">5</span>Functions and Pipelines</a></li>
+<li><a href="data.html" aria-current="page"><span class="toc-num">6</span>Data and Patterns</a></li>
+<li><a href="python.html"><span class="toc-num">7</span>Living with Python</a></li>
+<li><a href="under-the-hood.html"><span class="toc-num">8</span>Under the Hood</a></li>
+</ul>
+<p class="toc-heading">Appendices</p><ul>
+<li><a href="testimony-reference.html"><span class="toc-num">A</span>Testimony Reference</a></li>
+<li><a href="glossary.html"><span class="toc-num">B</span>Glossary</a></li>
+</ul></nav>
+  </aside>
+  <main id="content" class="content">
+    <article>
+<h1><span class="h1-num">Chapter 6</span>Data and Patterns</h1>
+<p>Programs are mostly about data, and functional languages have a particular way of describing it. You declare the possible <em>shapes</em> a value can take, then write functions that handle each shape. Verity provides <code>data</code> declarations for the first part and pattern matching for the second.</p>
+
+<h2 id="data"><span class="secnum">6.1</span> Data types<a class="anchor" href="#data" aria-label="Link to this section">#</a></h2>
+<p>A <code>data</code> declaration defines a new kind of value with named fields:</p>
+<div class="code code-ity"><span class="code-label">verity</span><pre><code><span class="t-kw">data</span> Circle(r)
+<span class="t-kw">data</span> Rect(w, h)
+<span class="t-kw">data</span> Square(side)
+
+c = Circle(<span class="t-num">1</span>)
+print(c)
+print(c.r)</code></pre></div>
+<div class="code code-out"><span class="code-label">output</span><pre><code>Circle(r=1)
+1</code></pre></div>
+<p>Data values are <strong>immutable</strong>. Once built, their fields cannot change. To "modify" one, you build a new value. Data values also compare by content, so <code>Rect(2, 3) == Rect(2, 3)</code>. Together these make data values safe to share, cache and use as dictionary keys.</p>
+<p>A group of <code>data</code> declarations that are used together, like the three shapes above, is called an <em>algebraic data type</em>. A shape is a circle, <em>or</em> a rectangle, <em>or</em> a square, and each of those has its own fields.</p>
+
+<h2 id="pattern-defs"><span class="secnum">6.2</span> Functions by cases<a class="anchor" href="#pattern-defs" aria-label="Link to this section">#</a></h2>
+<p>To compute the area of a shape, we need different formulas for different shapes. Verity lets you write each case as its own definition, with a <em>pattern</em> in place of a parameter:</p>
+<div class="code code-ity"><span class="code-label">verity</span><pre><code><span class="t-kw">def</span> area(Circle(r)) = <span class="t-num">3.14159</span> * r ** <span class="t-num">2</span>
+<span class="t-kw">addpattern</span> <span class="t-kw">def</span> area(Rect(w, h)) = w * h
+<span class="t-kw">addpattern</span> <span class="t-kw">def</span> area(Square(s)) = s * s</code></pre></div>
+<p>The pattern <code>Circle(r)</code> matches any <code>Circle</code> and binds its field to the name <code>r</code>. <code>addpattern def</code> adds another case to an existing function rather than replacing it. When <code>area</code> is called, the cases are tried in the order they were defined, and the first one whose pattern matches runs. If none matches, the call raises a <code>MatchError</code>.</p>
+<p>Patterns can also be literal values, which makes recursive definitions read like their mathematical description:</p>
+<div class="code code-ity"><span class="code-label">verity</span><pre><code><span class="t-kw">def</span> factorial(<span class="t-num">0</span>) = <span class="t-num">1</span>
+<span class="t-kw">addpattern</span> <span class="t-kw">def</span> factorial(n) = n * factorial(n - <span class="t-num">1</span>)</code></pre></div>
+<p>Order matters here. If the cases were swapped, the general case <code>n</code> would match everything, and the base case would never run.</p>
+
+<h2 id="match"><span class="secnum">6.3</span> The <code>match</code> statement<a class="anchor" href="#match" aria-label="Link to this section">#</a></h2>
+<p>When the cases belong inside one function body, use <code>match</code>. Its syntax is Python's structural pattern matching:</p>
+<div class="code code-ity"><span class="code-label">verity</span><pre><code><span class="t-kw">def</span> describe(shape):
+    <span class="t-kw">match</span> shape:
+        <span class="t-kw">case</span> Circle(r):
+            <span class="t-kw">return</span> <span class="t-str">f"a circle of radius {r}"</span>
+        <span class="t-kw">case</span> Rect(w, h) <span class="t-kw">if</span> w == h:
+            <span class="t-kw">return</span> <span class="t-str">f"a rectangle that is secretly a {w} by {w} square"</span>
+        <span class="t-kw">case</span> Rect(w, h):
+            <span class="t-kw">return</span> <span class="t-str">f"a {w} by {h} rectangle"</span>
+        <span class="t-kw">case</span> _:
+            <span class="t-kw">return</span> <span class="t-str">"some other shape"</span></code></pre></div>
+<p>A case can carry a <em>guard</em> (<code>if w == h</code>), which must hold for the case to be chosen. The pattern <code>_</code> matches anything. Here the guard is only used to choose a branch, so its testimony is erased.</p>
+
+<h2 id="testimony"><span class="secnum">6.4</span> Deciding claims by cases<a class="anchor" href="#testimony" aria-label="Link to this section">#</a></h2>
+<p>Pattern matching and testimony fit together well. A predicate decided by cases can give a different kind of evidence in each case: a real comparison where there is something to compare, and a stated reason where the answer follows from the shape alone. This is <code>examples/shapes.ity</code> from the Verity repository:</p>
+<div class="code code-ity"><span class="code-label">verity</span><pre><code><span class="t-com"># Algebraic data types, pattern matching, and truths that testify.</span>
+<span class="t-kw">from</span> testimony <span class="t-kw">import</span> explain
+
+<span class="t-kw">data</span> Circle(r)
+<span class="t-kw">data</span> Rect(w, h)
+<span class="t-kw">data</span> Square(side)
+
+<span class="t-kw">def</span> area(Circle(r)) = <span class="t-num">3.14159</span> * r ** <span class="t-num">2</span>
+<span class="t-kw">addpattern</span> <span class="t-kw">def</span> area(Rect(w, h)) = w * h
+<span class="t-kw">addpattern</span> <span class="t-kw">def</span> area(Square(s)) = s * s
+
+<span class="t-kw">def</span> is_square(shape):
+    <span class="t-kw">match</span> shape:
+        <span class="t-kw">case</span> Square(_):
+            <span class="t-kw">return</span> <span class="t-truth">verity</span> <span class="t-test">because</span> <span class="t-str">"it was built as a Square"</span>
+        <span class="t-kw">case</span> Rect(w, h):
+            <span class="t-kw">return</span> w == h
+        <span class="t-kw">case</span> _:
+            <span class="t-kw">return</span> <span class="t-truth">falsity</span> <span class="t-test">because</span> <span class="t-str">f"{shape} is a rectangle"</span>
+
+shapes = [Circle(<span class="t-num">1</span>), Rect(<span class="t-num">2</span>, <span class="t-num">3</span>), Square(<span class="t-num">4</span>), Rect(<span class="t-num">5</span>, <span class="t-num">5</span>)]
+
+shapes <span class="t-op">|&gt;</span> map<span class="t-op">$</span>(area) <span class="t-op">|&gt;</span> list <span class="t-op">|&gt;</span> print
+
+<span class="t-kw">for</span> s <span class="t-kw">in</span> shapes:
+    print(<span class="t-str">f"{s}: {explain(is_square(s))}"</span>)
+
+(<span class="t-test">forall</span> s <span class="t-kw">in</span> shapes, area(s) &gt; <span class="t-num">3</span>) <span class="t-op">|&gt;</span> explain <span class="t-op">|&gt;</span> print</code></pre></div>
+<div class="code code-out"><span class="code-label">output</span><pre><code>[3.14159, 6, 16, 25]
+Circle(r=1): falsity
+  <span class="t-label">refuted</span>: Circle(r=1) is a rectangle
+Rect(w=2, h=3): falsity
+  w == h: 2 != 3
+Square(side=4): verity
+  <span class="t-label">witnessed</span>: it was built as a Square
+Rect(w=5, h=5): verity
+  w == h: 5 == 5
+<span class="t-truth">verity</span>
+  all 4 elements of shapes satisfy area(s) &gt; 3</code></pre></div>
+<p>Look at the circle's case. Its claim is that the shape <em>is a rectangle</em>, since squareness is a property only rectangles can have. Its refutation is the plain fact that a circle isn't one. Each rectangle's testimony is a real comparison of its sides.</p>
+
+<h2 id="recursive"><span class="secnum">6.5</span> Recursive data<a class="anchor" href="#recursive" aria-label="Link to this section">#</a></h2>
+<p>A data type can refer to itself, which is how trees are built. Here is a binary search tree with two shapes, an empty <code>Leaf</code> and a <code>Node</code> holding a value and two subtrees:</p>
+<div class="code code-ity"><span class="code-label">verity</span><pre><code><span class="t-kw">from</span> functools <span class="t-kw">import</span> reduce
+
+<span class="t-kw">data</span> Leaf()
+<span class="t-kw">data</span> Node(left, value, right)
+
+<span class="t-kw">def</span> insert(tree, x):
+    <span class="t-kw">match</span> tree:
+        <span class="t-kw">case</span> Leaf():
+            <span class="t-kw">return</span> Node(Leaf(), x, Leaf())
+        <span class="t-kw">case</span> Node(l, v, r) <span class="t-kw">if</span> x &lt; v:
+            <span class="t-kw">return</span> Node(insert(l, x), v, r)
+        <span class="t-kw">case</span> Node(l, v, r):
+            <span class="t-kw">return</span> Node(l, v, insert(r, x))
+
+<span class="t-kw">def</span> to_list(Leaf()) = []
+<span class="t-kw">addpattern</span> <span class="t-kw">def</span> to_list(Node(l, v, r)) = to_list(l) + [v] + to_list(r)
+
+reduce(insert, [<span class="t-num">5</span>, <span class="t-num">2</span>, <span class="t-num">8</span>, <span class="t-num">1</span>], Leaf()) <span class="t-op">|&gt;</span> to_list <span class="t-op">|&gt;</span> print</code></pre></div>
+<div class="code code-out"><span class="code-label">output</span><pre><code>[1, 2, 5, 8]</code></pre></div>
+<p><code>insert</code> never changes a tree. It returns a new tree that shares every untouched subtree with the old one. Because data values are immutable, sharing is always safe.</p>
+
+<h2 id="exercises"><span class="secnum">6.6</span> Exercises<a class="anchor" href="#exercises" aria-label="Link to this section">#</a></h2>
+<div class="exercise">
+  <h4>Exercise: perimeter <span class="stars">★</span></h4>
+  <p>Define <code>perimeter</code> for <code>Circle</code>, <code>Rect</code> and <code>Square</code> using <code>def</code> and <code>addpattern def</code>.</p>
+</div>
+<div class="exercise">
+  <h4>Exercise: swapped cases <span class="stars">★</span></h4>
+  <p>What happens when you call <code>factorial(3)</code> if its two cases are defined in the opposite order?</p>
+</div>
+<div class="exercise">
+  <h4>Exercise: tree membership <span class="stars">★★</span></h4>
+  <p>Write <code>contains(tree, x)</code> for the search tree in Section 6.5. Return a truth whose testimony tells the caller something useful in both outcomes. For example, a falsity might say which leaf the search reached.</p>
+</div>
+<div class="exercise">
+  <h4>Exercise: a triangle <span class="stars">★★</span></h4>
+  <p>Add <code>data Triangle(a, b, c)</code> (side lengths) to the shapes example. Extend <code>area</code> using Heron's formula and decide what <code>is_square</code> should say about it. Write the new lines of output.</p>
+</div>
+<div class="exercise">
+  <h4>Exercise: when patterns fail <span class="stars">★★★</span></h4>
+  <p>A call that matches no pattern raises <code>MatchError</code>. Could a failed match instead produce testimony, listing each case and why its pattern didn't match? When would that be useful, and when would it be noise?</p>
+</div>
+
+    </article>
+    <nav class="pager" aria-label="Previous and next pages"><a class="pager-prev" href="functions.html"><span>Previous</span>5. Functions and Pipelines</a><a class="pager-next" href="python.html"><span>Next</span>7. Living with Python</a></nav>
+    <footer class="page-footer">
+      <p>Verity Programming &middot; Henrik Gombos and Pranav Balakrishnan &middot; <a href="https://github.com/Henrik66/verity/blob/main/book/src/data.html">Source for this page</a></p>
+    </footer>
+  </main>
+  <nav class="on-page" aria-label="On this page"><p>On this page</p><ul><li><a href="#data">Data types</a></li><li><a href="#pattern-defs">Functions by cases</a></li><li><a href="#match">The match statement</a></li><li><a href="#testimony">Deciding claims by cases</a></li><li><a href="#recursive">Recursive data</a></li><li><a href="#exercises">Exercises</a></li></ul></nav>
+</div>
+<script src="book.js" defer></script>
+</body>
+</html>

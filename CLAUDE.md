@@ -53,6 +53,10 @@ Verity is a quirky functional version of Python. This file is the spec. If code 
 4. **Coconut features, one at a time:** lambdas, pipes, partial application, composition, `data`, `match`, `addpattern`.
 5. **Testimony erasure pass.**
 
+## The book
+
+`book/src/*.html` holds the textbook *Verity Programming* (authors: Henrik Gombos and Pranav Balakrishnan). Run `python3 book/build.py` to regenerate `site/public/book/` (Vite copies it into the site build), and commit the generated output. Book examples must agree with this spec and with `examples/*.expected`. "Design note" boxes are proposals and are not spec until adopted here. When a milestone changes behavior, update the affected chapters.
+
 ## Working rules
 
 - **One milestone per session.** Don't start the next one in the same session.

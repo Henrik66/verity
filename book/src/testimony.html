@@ -1,0 +1,178 @@
+<p>Every truth in Verity carries testimony. This chapter explains where testimony comes from, how the logical operators combine it, and how <code>because</code> lets you put a claim in your own words.</p>
+
+<h2 id="what">What testimony is</h2>
+<p>A value of type <code>truth</code> is either a <code>verity</code> or a <code>falsity</code>. Alongside that one bit it carries testimony:</p>
+<ul>
+  <li>a verity's testimony is its <strong>witness</strong>: why the claim holds;</li>
+  <li>a falsity's testimony is its <strong>refutation</strong>: why the claim fails.</li>
+</ul>
+<p>Testimony is a tree. A comparison is a leaf. Operators like <code>and</code>, and quantifiers like <code>forall</code>, build larger trees out of the testimony of their parts. <code>testimony.explain</code> renders the tree as indented text, with the truth on the first line and each level of the tree indented two more spaces. That format is used throughout the book and summarized in <a href="testimony-reference.html">Appendix A</a>.</p>
+<p>Testimony is evidence, not decoration. Each kind of node records the facts that actually decided the answer, so reading it from the top down should always tell you <em>why</em>.</p>
+
+<h2 id="comparisons">Comparisons</h2>
+<p>Comparisons are where most testimony starts. A comparison's testimony quotes the expression as you wrote it, followed by the evaluated operands and the relation that actually held between them:</p>
+<pre class="ity">
+from testimony import explain
+
+name = "al"
+(len(name) >= 3) |> explain |> print
+(len(name) == 2) |> explain |> print
+</pre>
+<pre class="out">
+falsity
+  len(name) >= 3: 2 < 3
+verity
+  len(name) == 2: 2 == 2
+</pre>
+<p>When the comparison holds, the relation is the one you wrote. When it fails, it is the opposite one: <code>&gt;=</code> becomes <code>&lt;</code>, <code>==</code> becomes <code>!=</code>, and so on. Showing both the source text and the values is what makes the line useful. The source tells you which check this is, and the values tell you why it came out the way it did.</p>
+
+<h2 id="and">Conjunction: <code>and</code></h2>
+<p><code>p and q</code> is a verity when both sides are. Its testimony depends on which way it went:</p>
+<ul>
+  <li>A <strong>verity</strong> from <code>and</code> needs every part to hold, so its witness lists all of them under <code>all of:</code>. A chain such as <code>p and q and r</code> is flattened into one list.</li>
+  <li>A <strong>falsity</strong> from <code>and</code> needs only one failing part. <code>and</code> short-circuits, as in Python, so the refutation is simply the testimony of the first part that failed.</li>
+</ul>
+<pre class="ity">
+from testimony import explain
+
+def in_range(x) = (x > 0) and (x < 10)
+
+in_range(7) |> explain |> print
+in_range(12) |> explain |> print
+</pre>
+<pre class="out">
+verity
+  all of:
+    x > 0: 7 > 0
+    x < 10: 7 < 10
+falsity
+  x < 10: 12 >= 10
+</pre>
+<p>For <code>in_range(12)</code>, the first part held, so it is irrelevant to why the whole thing failed and does not appear. Testimony includes what decided the answer and nothing else.</p>
+
+<h2 id="or">Disjunction: <code>or</code></h2>
+<p><code>or</code> is the mirror image of <code>and</code>:</p>
+<ul>
+  <li>A <strong>verity</strong> from <code>or</code> needs just one part to hold. It short-circuits, so the witness is the testimony of the first part that held.</li>
+  <li>A <strong>falsity</strong> from <code>or</code> needs every part to fail, so the refutation lists all of them under <code>none of:</code>.</li>
+</ul>
+<pre class="ity">
+from testimony import explain
+
+def out_of_range(x) = (x < 0) or (x > 10)
+
+out_of_range(-3) |> explain |> print
+out_of_range(7) |> explain |> print
+</pre>
+<pre class="out">
+verity
+  x < 0: -3 < 0
+falsity
+  none of:
+    x < 0: 7 >= 0
+    x > 10: 7 <= 10
+</pre>
+
+<h2 id="not">Negation: <code>not</code></h2>
+<p><code>not p</code> flips the truth and keeps the evidence. A refutation of <code>p</code> is exactly a witness for <code>not p</code>, and vice versa:</p>
+<pre class="ity">
+from testimony import explain
+
+x = 7
+(not (x > 10)) |> explain |> print
+</pre>
+<pre class="out">
+verity
+  not:
+    x > 10: 7 <= 10
+</pre>
+<aside class="design">
+  <p class="callout-title"><!--smiley--> Design note: rendering <code>not</code></p>
+  <p>The meaning of <code>not</code> is settled: it swaps witness and refutation. How it prints is a proposal. A <code>not:</code> node wrapping the original testimony keeps the source structure visible. The alternative is to drop the wrapper and print the inner testimony directly, which is shorter but hides that a negation happened.</p>
+</aside>
+
+<h2 id="because">Custom testimony: <code>because</code></h2>
+<p>Comparison testimony is precise but low-level. <code>len(name) &gt;= 3: 2 &lt; 3</code> tells you what happened, not what it means. <code>because</code> attaches a claim in plain words:</p>
+<pre class="ity">
+p because "the claim p establishes"
+</pre>
+<p>The message states the <em>claim</em>, the thing that is true when <code>p</code> is a verity. It renders as <code>witnessed:</code> or <code>refuted:</code> depending on the outcome, with <code>p</code>'s own testimony nested beneath it, so the high-level reason and the low-level evidence appear together. Here is a validator built from three claims:</p>
+<pre class="ity">
+import string_ops
+from testimony import explain
+
+def valid_username(name) =
+    (len(name) >= 3 because f"{name!r} has at least 3 characters")
+    and (len(name) <= 16 because f"{name!r} has at most 16 characters")
+    and (string_ops.is_alnum(name) because f"{name!r} is alphanumeric")
+
+for name in ["ada", "al", "grace_hopper"]:
+    print(f"{name!r}: {explain(valid_username(name))}")
+</pre>
+<pre class="out">
+'ada': verity
+  all of:
+    witnessed: 'ada' has at least 3 characters
+      len(name) >= 3: 3 >= 3
+    witnessed: 'ada' has at most 16 characters
+      len(name) <= 16: 3 <= 16
+    witnessed: 'ada' is alphanumeric
+      every character of 'ada' is alphanumeric
+'al': falsity
+  refuted: 'al' has at least 3 characters
+    len(name) >= 3: 2 < 3
+'grace_hopper': falsity
+  refuted: 'grace_hopper' is alphanumeric
+    '_' at index 5 is not alphanumeric
+</pre>
+<p>Each rule is written once, and the error message falls out of it. Notice the last case. <code>string_ops.is_alnum</code> is a standard library function that returns a testifying truth, so its refutation names the offending character and its position.</p>
+<p>Because the message is the claim, phrase it as a statement that is true when the check passes: "has at least 3 characters", not "is too short". The same message then reads correctly after both <code>witnessed:</code> and <code>refuted:</code>.</p>
+<aside class="design">
+  <p class="callout-title"><!--smiley--> Design note: precedence and laziness</p>
+  <p>Two details are still open. First, precedence: the examples always parenthesize <code>p because msg</code> when it is combined with <code>and</code>/<code>or</code>, and until the grammar settles, you should too. Second, evaluation: it is proposed that the message, often an f-string, is evaluated only if the testimony is observed. That way a <code>because</code> on a hot path costs nothing when nobody calls <code>explain</code>.</p>
+</aside>
+
+<h2 id="literals">Literal truths</h2>
+<p>The literals <code>verity</code> and <code>falsity</code> have no evidence behind them. Their testimony is simply <code>literal</code>. Combined with <code>because</code>, they let you assert a claim directly, and the message is then the whole testimony:</p>
+<pre class="ity">
+from testimony import explain
+
+verity |> explain |> print
+(falsity because "only rectangles can be square") |> explain |> print
+</pre>
+<pre class="out">
+verity
+  literal
+falsity
+  refuted: only rectangles can be square
+</pre>
+<p>This is mostly useful in functions that decide a claim by cases, such as the <code>is_square</code> function in <a href="data.html">Chapter 6</a>.</p>
+
+<h2 id="observing">Observing testimony</h2>
+<p>A truth's testimony is <em>observed</em> when something looks at it: passing the truth to <code>explain</code>, returning it from a function whose caller might, storing it in a data structure and so on. A truth used only as a condition is not observed:</p>
+<pre class="ity">
+def clamp(x) = 0 if x < 0 else 10 if x > 10 else x
+</pre>
+<p>Nothing in <code>clamp</code> can see the testimony of <code>x &lt; 0</code>, so the compiler emits a plain Python comparison. This is the testimony erasure pass from <a href="under-the-hood.html">Chapter 8</a>. Its practical consequence is that you never need to avoid truths for the sake of performance. Write the clearest condition, and testimony appears where you ask for it.</p>
+
+<h2 id="exercises">Exercises</h2>
+<div class="exercise">
+  <h4>Exercise: and/or by hand <span class="stars">★</span></h4>
+  <p>Write the <code>explain</code> output of <code>in_range(0)</code> and <code>out_of_range(11)</code>.</p>
+</div>
+<div class="exercise">
+  <h4>Exercise: double negation <span class="stars">★</span></h4>
+  <p>With <code>x = 7</code>, what does <code>explain</code> print for <code>not not (x &gt; 3)</code> under the <code>not:</code> rendering of Section 3.5? Is that output helpful? Should <code>not not p</code> simplify?</p>
+</div>
+<div class="exercise">
+  <h4>Exercise: claims, not complaints <span class="stars">★★</span></h4>
+  <p>Rewrite these messages as claims suitable for <code>because</code>: "too long", "missing @", "age can't be negative".</p>
+</div>
+<div class="exercise">
+  <h4>Exercise: passwords, once <span class="stars">★★</span></h4>
+  <p>Rewrite the password validator from the <a href="introduction.html#exercises">Chapter 1 exercises</a> in Verity using <code>because</code>, so each rule appears exactly once. Write the expected <code>explain</code> output for <code>"hunter2"</code>. You may assume a helper <code>string_ops.has_digit</code> that testifies like <code>is_alnum</code>.</p>
+</div>
+<div class="exercise">
+  <h4>Exercise: what does <code>or</code> owe you? <span class="stars">★★★</span></h4>
+  <p>A verity from <code>or</code> reports only the first part that held. Construct an example where you would want to see <em>every</em> part that held. Should Verity offer a non-short-circuiting form, and what would it cost?</p>
+</div>

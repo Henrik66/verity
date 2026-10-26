@@ -1,0 +1,61 @@
+<dl>
+  <dt>addpattern</dt>
+  <dd>A keyword that adds another case to a function defined by pattern matching, instead of replacing it. Cases are tried in definition order. See <a href="data.html#pattern-defs">Section 6.2</a>.</dd>
+
+  <dt>algebraic data type</dt>
+  <dd>A type described as a choice between several shapes, each with its own fields, such as a shape that is a <code>Circle</code>, a <code>Rect</code> or a <code>Square</code>. Built from <code>data</code> declarations.</dd>
+
+  <dt>because</dt>
+  <dd>An operator that attaches a claim, written in plain words, to a truth: <code>p because msg</code>. It renders as <code>witnessed: msg</code> or <code>refuted: msg</code>. See <a href="testimony.html#because">Section 3.6</a>.</dd>
+
+  <dt>boolean blindness</dt>
+  <dd>The loss of information that happens when a computation's result is reduced to a single true/false bit.</dd>
+
+  <dt>counterexample</dt>
+  <dd>An element that refutes a <code>forall</code> claim. A falsity from <code>forall</code> reports the first one it finds.</dd>
+
+  <dt>data</dt>
+  <dd>A declaration of an immutable record type with named fields, such as <code>data Rect(w, h)</code>.</dd>
+
+  <dt>erasure (testimony erasure)</dt>
+  <dd>The compiler pass that replaces truths whose testimony is never observed with plain Python booleans, so unused testimony costs nothing. See <a href="under-the-hood.html#erasure">Section 8.6</a>.</dd>
+
+  <dt>explain</dt>
+  <dd>The function <code>testimony.explain</code>, which renders a truth and its testimony as indented text.</dd>
+
+  <dt>falsity</dt>
+  <dd>The false value of type <code>truth</code>. A falsity carries a refutation.</dd>
+
+  <dt>lifting</dt>
+  <dd>Turning a plain Python <code>bool</code> into a Verity truth with minimal testimony. See <a href="python.html#lifting">Section 7.2</a>.</dd>
+
+  <dt>observed</dt>
+  <dd>Said of testimony that something can look at, for example by passing the truth to <code>explain</code>, returning it, or storing it. Unobserved testimony can be erased.</dd>
+
+  <dt>partial application</dt>
+  <dd>Fixing some of a function's arguments to get a function of the rest, written <code>f$(args)</code>.</dd>
+
+  <dt>pipe</dt>
+  <dd>The operator <code>|&gt;</code>, which passes a value to a function: <code>x |&gt; f</code> means <code>f(x)</code>.</dd>
+
+  <dt>predicate</dt>
+  <dd>A function that returns a truth.</dd>
+
+  <dt>refutation</dt>
+  <dd>The testimony carried by a falsity: the evidence that a claim fails.</dd>
+
+  <dt>runtime</dt>
+  <dd>The Python module <code>truth.py</code> that compiled programs use for truths and testimony. It is embedded in the compiler and written out next to generated code.</dd>
+
+  <dt>testimony</dt>
+  <dd>The evidence a truth carries, either a witness or a refutation. It is structured as a tree.</dd>
+
+  <dt>truth</dt>
+  <dd>Verity's boolean type, with the two values <code>verity</code> and <code>falsity</code>.</dd>
+
+  <dt>verity</dt>
+  <dd>The true value of type <code>truth</code>. A verity carries a witness.</dd>
+
+  <dt>witness</dt>
+  <dd>The testimony carried by a verity: the evidence that a claim holds. Also the element that satisfies an <code>exists</code> claim.</dd>
+</dl>

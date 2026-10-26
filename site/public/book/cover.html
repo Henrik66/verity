@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script>document.documentElement.classList.add("js")</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Verity Programming</title>
+<meta name="description" content="Verity Programming: a textbook on Verity, a quirky functional Python where booleans testify.">
+<link rel="icon" href="../favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,800;1,9..144,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="book.css">
+</head>
+<body class="page-cover">
+<a class="skip" href="#content">Skip to content</a>
+<header class="topbar">
+  <button class="menu-btn" type="button" aria-controls="sidebar" aria-expanded="false">
+    <span aria-hidden="true">&#9776;</span> Contents
+  </button>
+  <a class="topbar-title" href="cover.html"><svg class="smiley" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="#ffda46"/><g fill="#243e30"><ellipse cx="35" cy="41" rx="4.1" ry="7.5"/><ellipse cx="65" cy="41" rx="4.1" ry="7.5"/></g><path d="M25 57 C35 78 66 78 77 55" fill="none" stroke="#243e30" stroke-width="4" stroke-linecap="round"/></svg><span>Verity Programming</span></a>
+  <a class="topbar-link" href="../index.html">Verity home</a>
+</header>
+<div class="layout">
+  <aside class="sidebar" id="sidebar" aria-label="Book contents">
+    <a class="sidebar-cover" href="cover.html"><svg class="smiley" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="#ffda46"/><g fill="#243e30"><ellipse cx="35" cy="41" rx="4.1" ry="7.5"/><ellipse cx="65" cy="41" rx="4.1" ry="7.5"/></g><path d="M25 57 C35 78 66 78 77 55" fill="none" stroke="#243e30" stroke-width="4" stroke-linecap="round"/></svg><span>Verity Programming</span></a>
+    <nav><p class="toc-heading">Front matter</p><ul>
+<li><a href="cover.html" aria-current="page">Cover</a></li>
+<li><a href="preface.html">Preface</a></li>
+</ul>
+<p class="toc-heading">Chapters</p><ul>
+<li><a href="introduction.html"><span class="toc-num">1</span>Introduction</a></li>
+<li><a href="basics.html"><span class="toc-num">2</span>The Basics</a></li>
+<li><a href="testimony.html"><span class="toc-num">3</span>Truth and Testimony</a></li>
+<li><a href="quantifiers.html"><span class="toc-num">4</span>Quantifiers</a></li>
+<li><a href="functions.html"><span class="toc-num">5</span>Functions and Pipelines</a></li>
+<li><a href="data.html"><span class="toc-num">6</span>Data and Patterns</a></li>
+<li><a href="python.html"><span class="toc-num">7</span>Living with Python</a></li>
+<li><a href="under-the-hood.html"><span class="toc-num">8</span>Under the Hood</a></li>
+</ul>
+<p class="toc-heading">Appendices</p><ul>
+<li><a href="testimony-reference.html"><span class="toc-num">A</span>Testimony Reference</a></li>
+<li><a href="glossary.html"><span class="toc-num">B</span>Glossary</a></li>
+</ul></nav>
+  </aside>
+  <main id="content" class="content">
+    <article>
+<div class="cover">
+  <div class="cover-art" role="img" aria-label="Book cover: Verity Programming, over a smiling yellow sphere in a meadow under a blue sky">
+    <img src="cover-garden.jpg" alt="" width="600" height="800">
+    <div class="cover-art-title" aria-hidden="true">
+      <span class="cat-1">Verity</span>
+      <span class="cat-2">Programming</span>
+      <span class="cat-3">Truthful + Functional + Quirky</span>
+      <span class="cat-4">Gombos &middot; Balakrishnan</span>
+    </div>
+  </div>
+
+  <div>
+    <h1>Verity Programming</h1>
+    <p class="cover-subtitle">Truthful + Functional + Quirky</p>
+    <p class="cover-lede">A textbook on Verity, a functional take on Python whose booleans testify. It covers the language, the habit of writing programs that explain their own answers, and how a compiler makes that cheap.</p>
+    <ul class="authors">
+      <li>Henrik Gombos <a href="https://github.com/Henrik66">GitHub: Henrik66</a></li>
+      <li>Pranav Balakrishnan <a href="https://github.com/pranavbalakri">GitHub: pranavbalakri</a></li>
+    </ul>
+    <p class="edition">Early design edition, 2026</p>
+    <div class="cover-actions">
+      <a class="btn btn-primary" href="preface.html">Start reading</a>
+      <a class="btn" href="introduction.html">Jump to Chapter 1</a>
+    </div>
+  </div>
+</div>
+
+<aside class="design">
+  <p class="callout-title"><svg class="smiley" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="#ffda46"/><g fill="#243e30"><ellipse cx="35" cy="41" rx="4.1" ry="7.5"/><ellipse cx="65" cy="41" rx="4.1" ry="7.5"/></g><path d="M25 57 C35 78 66 78 77 55" fill="none" stroke="#243e30" stroke-width="4" stroke-linecap="round"/></svg> This edition describes a language that is still being built</p>
+  <p>Verity is in early design. No compiler exists yet, so none of the programs in this book run today. Every example shows the <em>intended</em> behavior, and the output blocks are the targets the implementation is being built to match. Boxes like this one mark design notes: questions that are still open and proposals not yet adopted.</p>
+</aside>
+
+<h2 id="about">About this book<a class="anchor" href="#about" aria-label="Link to this section">#</a></h2>
+<p>Most programming languages hand you a boolean and walk away. When a check fails, you get <code>False</code> and a hunt for the reason. Verity tries something different. Its truth values, <code>verity</code> and <code>falsity</code>, carry <em>testimony</em>: a verity carries a witness for why it holds, and a falsity carries a refutation for why it doesn't. This book teaches the language from its first expressions up to the compiler pass that removes testimony nobody looks at.</p>
+<p>Along the way it covers the functional toolkit Verity borrows from <a href="https://coconut-lang.org/">Coconut</a>: lambdas, pipes, partial application, composition, algebraic data types and pattern matching. It also covers how all of it compiles to ordinary Python, so the Python ecosystem stays at hand.</p>
+
+<h2 id="contents">What's inside<a class="anchor" href="#contents" aria-label="Link to this section">#</a></h2>
+<ul>
+  <li><a href="preface.html">Preface</a>: who the book is for, conventions and exercises.</li>
+  <li><a href="introduction.html">1. Introduction</a>: what Verity is, a first program and how it runs.</li>
+  <li><a href="basics.html">2. The Basics</a>: values, definitions, truth values, control flow and imports.</li>
+  <li><a href="testimony.html">3. Truth and Testimony</a>: witnesses and refutations, the logical operators, and <code>because</code>.</li>
+  <li><a href="quantifiers.html">4. Quantifiers</a>: <code>forall</code>, <code>exists</code>, counterexamples and witnesses.</li>
+  <li><a href="functions.html">5. Functions and Pipelines</a>: lambdas, pipes, partial application and composition.</li>
+  <li><a href="data.html">6. Data and Patterns</a>: <code>data</code> types, <code>match</code> and <code>addpattern</code>.</li>
+  <li><a href="python.html">7. Living with Python</a>: the rules at the boundary between Verity and Python.</li>
+  <li><a href="under-the-hood.html">8. Under the Hood</a>: the Rust compiler, the runtime and testimony erasure.</li>
+  <li>Appendices: a <a href="testimony-reference.html">testimony format reference</a> and a <a href="glossary.html">glossary</a>.</li>
+</ul>
+
+<h2 id="license">License and source<a class="anchor" href="#license" aria-label="Link to this section">#</a></h2>
+<p>The book's source lives in the <a href="https://github.com/Henrik66/verity">Verity repository</a> alongside the compiler and is released under the Apache-2.0 license. Corrections and suggestions are welcome as GitHub issues or pull requests.</p>
+
+    </article>
+    <nav class="pager" aria-label="Previous and next pages"><a class="pager-next" href="preface.html"><span>Next</span>Preface</a></nav>
+    <footer class="page-footer">
+      <p>Verity Programming &middot; Henrik Gombos and Pranav Balakrishnan &middot; <a href="https://github.com/Henrik66/verity/blob/main/book/src/cover.html">Source for this page</a></p>
+    </footer>
+  </main>
+  <nav class="on-page" aria-label="On this page"><p>On this page</p><ul><li><a href="#about">About this book</a></li><li><a href="#contents">What&#x27;s inside</a></li><li><a href="#license">License and source</a></li></ul></nav>
+</div>
+<script src="book.js" defer></script>
+</body>
+</html>
