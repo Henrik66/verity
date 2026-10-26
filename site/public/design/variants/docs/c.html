@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="variant-idea" content="API reference, two-column: prose on the left, a sticky dark code column on the right that stays beside the rule it illustrates (Stripe-style). Node kinds written as typed signatures. Every rule has a copyable stable ID. Light, Inter, grey hairlines.">
+<title>Docs / c: two-column reference</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #17221c; --body: #3b4a41; --mute: #6b7a70; --line: #e3e7e2; --soft: #f5f7f4; --paper: #ffffff;
+    --leaf: #315d46; --code: #14201a; --code-line: #24342b; --code-ink: #dbe5de; --sun: #ffda46; --fal: #f08a6c;
+  }
+  * { box-sizing: border-box; font-feature-settings: "liga" 0, "calt" 0 !important; font-variant-ligatures: none !important; }
+  body { margin: 0; background: var(--paper); color: var(--body); font: 400 15px/1.7 "Inter", system-ui, sans-serif; }
+  code, pre, .mono { font-family: "JetBrains Mono", ui-monospace, monospace; }
+  a { color: var(--leaf); }
+  .top { height: 56px; display: flex; align-items: center; gap: 28px; padding: 0 24px; border-bottom: 1px solid var(--line); }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; color: var(--ink); text-decoration: none; letter-spacing: -.01em; }
+  .brand svg { width: 20px; height: 20px; }
+  .top nav { display: flex; gap: 22px; font-size: 14px; }
+  .top nav a { color: var(--mute); text-decoration: none; }
+  .top nav a.on { color: var(--ink); font-weight: 500; }
+  .search { margin-left: auto; width: 280px; padding: 7px 12px; border: 1px solid var(--line); border-radius: 8px; color: var(--mute); font-size: 14px; background: var(--soft); display: flex; justify-content: space-between; }
+  .search kbd { font: 12px "JetBrains Mono", monospace; }
+  .wrap { display: grid; grid-template-columns: 240px minmax(0, 1fr); }
+  .side { border-right: 1px solid var(--line); padding: 24px 16px; font-size: 14px; }
+  .side h4 { margin: 18px 8px 6px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--mute); }
+  .side h4:first-child { margin-top: 0; }
+  .side a { display: block; padding: 4px 8px; border-radius: 6px; color: var(--body); text-decoration: none; }
+  .side a[aria-current] { background: var(--soft); color: var(--ink); font-weight: 600; }
+  .side a.sub { padding-left: 20px; color: var(--mute); font-size: 13.5px; }
+  .rows > section { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); border-bottom: 1px solid var(--line); }
+  .prose { padding: 40px 48px; max-width: 640px; }
+  .codecol { background: var(--code); border-left: 1px solid var(--code-line); padding: 40px 32px; }
+  .sticky { position: sticky; top: 24px; }
+  .eyebrow { font-size: 13px; font-weight: 600; color: var(--leaf); margin: 0 0 8px; }
+  h1 { font-size: 36px; line-height: 1.15; font-weight: 700; color: var(--ink); margin: 0 0 14px; letter-spacing: -.025em; }
+  h2 { font-size: 22px; font-weight: 600; color: var(--ink); margin: 0 0 12px; letter-spacing: -.015em; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  h2 .n { color: var(--mute); font-weight: 500; }
+  h3 { font-size: 15px; font-weight: 600; color: var(--ink); margin: 26px 0 6px; }
+  .lede { font-size: 17px; color: var(--body); margin: 0; }
+  p code, li code, dd code { font-size: 13px; color: var(--ink); background: var(--soft); border: 1px solid var(--line); border-radius: 5px; padding: 1px 5px; }
+  .meta { display: flex; gap: 8px; margin-top: 20px; flex-wrap: wrap; }
+  .pill { font-size: 12px; font-weight: 500; border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px; color: var(--mute); }
+  .pill.s { color: var(--leaf); border-color: #bcd2c3; background: #f1f7f2; }
+  .pill.p { color: #7a5b00; border-color: #ecd98a; background: #fffbe8; }
+  .id { font: 12px "JetBrains Mono", monospace; color: var(--mute); border: 1px dashed var(--line); border-radius: 5px; padding: 1px 6px; text-decoration: none; }
+  dl.sig { margin: 14px 0 0; border-top: 1px solid var(--line); }
+  dl.sig div { padding: 12px 0; border-bottom: 1px solid var(--line); }
+  dl.sig dt { font: 13.5px "JetBrains Mono", monospace; color: var(--ink); display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  dl.sig dt b { font-weight: 500; color: var(--leaf); }
+  dl.sig dd { margin: 2px 0 0; font-size: 14px; color: var(--mute); }
+  .clause { margin: 10px 0; padding-left: 14px; border-left: 2px solid var(--line); }
+  .panel { border: 1px solid var(--code-line); border-radius: 10px; overflow: hidden; margin-bottom: 16px; }
+  .panel header { display: flex; justify-content: space-between; padding: 8px 14px; font: 12px "JetBrains Mono", monospace; color: #8fa196; border-bottom: 1px solid var(--code-line); background: #101a15; }
+  pre { margin: 0; padding: 14px 16px; color: var(--code-ink); font-size: 13px; line-height: 1.7; overflow-x: auto; }
+  .k { color: #9ec3f0; } .s { color: #c9d48a; } .n { color: #e0b177; } .f { color: #7fcf9f; }
+  .out .x { color: var(--fal); font-weight: 500; } .out .v { color: #7fcf9f; font-weight: 500; }
+  .note { font-size: 13px; color: #8fa196; margin: 0; }
+  @media (max-width: 1100px) { .rows > section { grid-template-columns: minmax(0, 1fr); } .codecol { border-left: 0; padding: 0 48px 40px; background: var(--paper); } .panel { background: var(--code); } .note { color: var(--mute); } }
+  @media (max-width: 760px) {
+    .wrap { grid-template-columns: minmax(0, 1fr); } .side { display: none; }
+    .top nav, .search { display: none; } .top { padding: 0 16px; }
+    .prose { padding: 28px 16px; } .codecol { padding: 0 16px 28px; } h1 { font-size: 30px; }
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="#"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="#ffda46"/><g fill="#17221c"><ellipse cx="35" cy="41" rx="5" ry="8"/><ellipse cx="65" cy="41" rx="5" ry="8"/></g><path d="M27 58 C36 76 64 76 73 58" fill="none" stroke="#17221c" stroke-width="6" stroke-linecap="round"/></svg>Verity</a>
+  <nav><a href="#">Guide</a><a class="on" href="#">Reference</a><a href="#">Standard library</a><a href="#">CLI</a></nav>
+  <span class="search"><span>Search the reference</span><kbd>⌘K</kbd></span>
+</header>
+<div class="wrap">
+  <nav class="side" aria-label="Contents">
+    <h4>Language</h4>
+    <a href="#">1 Overview</a><a href="#">2 Lexical analysis</a><a href="#">3 Data model</a><a href="#">4 Expressions</a>
+    <a href="#" aria-current="page">5 Testimony semantics</a>
+    <a class="sub" href="#nodes">Node kinds</a><a class="sub" href="#construction">Construction</a><a class="sub" href="#rendering">Rendering</a>
+    <a href="#">6 Statements</a><a href="#">7 Python interop</a>
+    <h4>Tools</h4>
+    <a href="#">8 Standard library</a><a href="#">9 Command line</a><a href="#">10 Implementation</a>
+    <h4>Appendix</h4>
+    <a href="#">A Grammar</a><a href="#">B Glossary</a>
+  </nav>
+  <div class="rows">
+    <section>
+      <div class="prose">
+        <p class="eyebrow">Reference · Section 5</p>
+        <h1>Testimony semantics</h1>
+        <p class="lede">The node kinds, how each operator constructs them, how <code>testimony.explain</code> renders them, and when the compiler may omit them.</p>
+        <div class="meta"><span class="pill">verity 0.0</span><span class="pill s">9 settled</span><span class="pill p">3 proposed</span></div>
+      </div>
+      <div class="codecol"><div class="sticky">
+        <div class="panel"><header><span>quick look</span><span>verity run</span></header>
+<pre><span class="f">explain</span>(<span class="n">2</span> + <span class="n">2</span> == <span class="n">5</span>)</pre>
+<pre class="out"><span class="x">falsity</span>
+  2 + 2 == 5: 4 != 5</pre></div>
+      </div></div>
+    </section>
+
+    <section id="nodes">
+      <div class="prose">
+        <h2><span class="n">5.1</span>Node kinds <a class="id" href="#nodes">testimony.nodes</a></h2>
+        <p>A testimony is a tree of nodes. Each kind carries the data below.</p>
+        <dl class="sig">
+          <div><dt><span><b>comparison</b>(src, left, rel, right)</span><span class="pill s">settled</span></dt><dd>From <code>a op b</code>. No children.</dd></div>
+          <div><dt><span><b>all</b>(*children)</span><span class="pill s">settled</span></dt><dd>Verity from <code>and</code>. One child per conjunct.</dd></div>
+          <div><dt><span><b>because</b>(message, value, child?)</span><span class="pill s">settled</span></dt><dd>From <code>p because m</code>.</dd></div>
+          <div><dt><span><b>counterexample</b>(name, element, pos, child)</span><span class="pill s">settled</span></dt><dd>Falsity from <code>forall</code>.</dd></div>
+          <div><dt><span><b>lifted</b>(src, value)</span><span class="pill p">proposed</span></dt><dd>A Python <code>bool</code> used as a truth.</dd></div>
+        </dl>
+      </div>
+      <div class="codecol"><div class="sticky">
+        <div class="panel"><header><span>counterexample</span><span>primes.ity</span></header>
+<pre><span class="k">forall</span> p <span class="k">in</span> primes, p % <span class="n">2</span> == <span class="n">1</span></pre>
+<pre class="out"><span class="x">falsity</span>
+  counterexample: p = 2 (primes[0])
+    p % 2 == 1: 0 != 1</pre></div>
+        <p class="note">The child is the body's refutation, evaluated with <code>p = 2</code>.</p>
+      </div></div>
+    </section>
+
+    <section id="construction">
+      <div class="prose">
+        <h2><span class="n">5.2</span>Conjunction <a class="id" href="#construction">testimony.and</a></h2>
+        <p>For <code>p₁ and … and pₙ</code>, evaluated left to right:</p>
+        <p class="clause"><a class="id" href="#">and.falsity</a><br>If some <code>pᵢ</code> is a falsity, let <code>k</code> be the first. <code>V = falsity</code>, <code>T = T(pₖ)</code>. Later operands are not evaluated.</p>
+        <p class="clause"><a class="id" href="#">and.verity</a><br>Otherwise <code>V = verity</code> and <code>T = all(T(p₁), …, T(pₙ))</code>, flattening nested <em>all</em> nodes.</p>
+      </div>
+      <div class="codecol"><div class="sticky">
+        <div class="panel"><header><span>validate.ity</span><span>conformance</span></header>
+<pre><span class="k">def</span> <span class="f">valid_username</span>(name) =
+    (<span class="f">len</span>(name) &gt;= <span class="n">3</span>
+        <span class="k">because</span> <span class="s">f"{name!r} has at least 3 characters"</span>)
+    <span class="k">and</span> (<span class="f">len</span>(name) &lt;= <span class="n">16</span>
+        <span class="k">because</span> <span class="s">f"{name!r} has at most 16 characters"</span>)
+    <span class="k">and</span> (string_ops.<span class="f">is_alnum</span>(name)
+        <span class="k">because</span> <span class="s">f"{name!r} is alphanumeric"</span>)</pre></div>
+        <div class="panel"><header><span>valid_username("al")</span><span>stdout</span></header>
+<pre class="out"><span class="x">falsity</span>
+  refuted: 'al' has at least 3 characters
+    len(name) &gt;= 3: 2 &lt; 3</pre></div>
+      </div></div>
+    </section>
+  </div>
+</div>
+</body>
+</html>
