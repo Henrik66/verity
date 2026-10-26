@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Verity roadmap</title>
+<meta name="description" content="Build milestones for Verity, the Python whose truth values explain themselves.">
+<link rel="icon" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Oxygen+Mono&display=swap" rel="stylesheet">
+<style>
+  :root { --ink: #1e2a23; --mute: #5f6e64; --paper: #fbfbf8; --rule: #c7cec6; --link: #315d46; --done: #315d46; --next: #8a6a00; --prop: #8a6a00; }
+  * { box-sizing: border-box; font-feature-settings: "liga" 0, "calt" 0; font-variant-ligatures: none; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 400 16px/1.6 "Atkinson Hyperlegible", system-ui, sans-serif; }
+  code, pre, table, .tag, .no { font-family: "Oxygen Mono", ui-monospace, monospace; }
+  code { font-size: 0.9em; }
+  pre, table { font-size: 14.5px; }
+  a { color: var(--link); text-underline-offset: 3px; }
+  .page { max-width: calc(80ch + 32px); margin: 0 auto; padding: 32px 16px 96px; }
+  .running { display: flex; justify-content: space-between; gap: 2ch; color: var(--mute); border-bottom: 1px solid var(--rule); padding-bottom: 6px; font-size: 13px; }
+  .running a { color: var(--mute); }
+  h1 { font-size: inherit; font-weight: 700; text-align: center; margin: 32px 0 4px; }
+  .sub { text-align: center; color: var(--mute); margin: 0 0 32px; }
+  h2 { font-size: inherit; font-weight: 700; margin: 40px 0 12px; }
+  p { margin: 0 0 14px; }
+  ul { margin: 0 0 14px; padding-left: 3ch; }
+  li { margin: 0 0 4px; }
+  .scroll { overflow-x: auto; margin: 0 0 16px; }
+  table { border-collapse: collapse; white-space: nowrap; }
+  th, td { text-align: left; padding: 1px 2ch 1px 0; vertical-align: top; }
+  thead tr { border-top: 1px dashed var(--ink); }
+  thead th { font-weight: 400; border-bottom: 1px dashed var(--ink); }
+  tbody tr:last-child td { border-bottom: 1px dashed var(--ink); }
+  .ms { display: grid; grid-template-columns: 6ch minmax(0, 1fr); margin: 0 0 28px; }
+  .ms h3 { font-size: inherit; font-weight: 700; margin: 0 0 6px; }
+  .no { color: var(--mute); }
+  .tag { color: var(--mute); font-weight: 400; white-space: nowrap; }
+  .tag.done { color: var(--done); } .tag.next { color: var(--next); } .tag.p { color: var(--prop); }
+  .label { color: var(--mute); }
+  pre { margin: 0 0 16px; padding-left: 3ch; overflow-x: auto; border-left: 1px solid var(--rule); line-height: 1.6; }
+  .foot { margin-top: 48px; border-top: 1px solid var(--rule); padding-top: 6px; display: flex; justify-content: space-between; color: var(--mute); font-size: 13px; }
+  @media (max-width: 600px) {
+    body { font-size: 15px; } pre, table { font-size: 12.5px; }
+    .ms { grid-template-columns: 4ch minmax(0, 1fr); }
+    .running span:nth-child(2) { display: none; }
+  }
+</style>
+</head>
+<body>
+<main class="page">
+  <div class="running"><span>Verity</span><span>Roadmap</span><span><a href="/book/cover.html">Reference</a> · <a href="https://github.com/Henrik66/verity">Source</a></span></div>
+
+  <h1>Roadmap</h1>
+  <p class="sub">Updated 26 October 2026</p>
+
+  <p>Verity is Python 3.12 whose truth values explain themselves. The compiler is written in Rust and emits Python; the runtime, <code>testimony.py</code>, is embedded in the compiler and also published as the package <code>verity-testimony</code>. Milestones are built in order, one per working session, and a milestone counts as done only when every conformance example in its scope produces exactly its expected output.</p>
+
+  <h2>Status</h2>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>#</th><th>Milestone</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Runtime library</td><td><span class="tag done">done</span></td></tr>
+      <tr><td>2</td><td>Tiny language and the CLI</td><td><span class="tag next">next</span></td></tr>
+      <tr><td>3</td><td>Quantifiers, because, assert, verity test</td><td><span class="tag">planned</span></td></tr>
+      <tr><td>4</td><td>pytest plugin and @testify</td><td><span class="tag">planned</span></td></tr>
+      <tr><td>5</td><td>The rest of Python 3.12</td><td><span class="tag">planned</span></td></tr>
+      <tr><td>6</td><td>Dual compilation (erasure)</td><td><span class="tag">planned</span></td></tr>
+      <tr><td>7</td><td>Tail calls with recorded tracebacks</td><td><span class="tag p">proposed</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2>Milestones</h2>
+
+  <div class="ms">
+    <span class="no">1</span>
+    <div>
+      <h3>Runtime library <span class="tag done">done</span></h3>
+      <p><code>runtime/testimony.py</code> and <code>runtime/string_ops.py</code>: <code>Truth</code>, the testimony node kinds, comparisons, <code>and</code>/<code>or</code>/<code>not</code>, <code>because</code>, <code>forall</code>/<code>exists</code>, <code>all_of</code>, lifting, <code>reason</code>, <code>secret</code>/<code>reveal</code>, <code>explain</code> with developer and user audiences, <code>to_json</code> in the schema <code>verity.testimony/0</code>, bounds, <code>to_bool</code> and <code>TestimonyError</code>.</p>
+      <p><span class="label">Result:</span> 54 tests pass, including byte-for-byte rebuilds of all four examples; the <code>verity-testimony</code> wheel builds and installs. Not yet published to PyPI.</p>
+    </div>
+  </div>
+
+  <div class="ms">
+    <span class="no">2</span>
+    <div>
+      <h3>Tiny language and the CLI <span class="tag next">next</span></h3>
+      <p>A hand-written lexer (with INDENT/DEDENT) and recursive-descent parser in Rust for literals, names, calls, attributes, arithmetic, comparisons, <code>and</code>/<code>or</code>/<code>not</code>, assignment, <code>def</code>/<code>return</code>, <code>if</code>/<code>for</code>/<code>while</code>, imports and f-strings, compiled to Python.</p>
+      <p><code>verity run</code>, <code>verity compile</code> and <code>verity check --json</code>, with diagnostic E0101 for <code>True</code>/<code>False</code> and its machine-applicable fix. Non-bool comparisons (numpy, pandas) pass through, with a test.</p>
+    </div>
+  </div>
+
+  <div class="ms">
+    <span class="no">3</span>
+    <div>
+      <h3>Quantifiers, because, assert, verity test <span class="tag">planned</span></h3>
+      <p><code>forall</code>/<code>exists</code>, <code>because</code> and <code>reason</code>, and <code>assert</code> raising <code>TestimonyError</code>. Source spans in testimony. <code>verity test</code> with <code>--json</code>. Python tracebacks mapped back to <code>.ity</code> lines.</p>
+    </div>
+  </div>
+
+  <div class="ms">
+    <span class="no">4</span>
+    <div>
+      <h3>pytest plugin and @testify <span class="tag">planned</span></h3>
+      <p><code>pytest-verity</code> explains failing asserts with testimony, including <code>all()</code> and <code>any()</code> over generators, which pytest today reports as <code>assert False</code>. A <code>@testify</code> decorator gives plain Python predicate functions testimony without <code>.ity</code> files.</p>
+    </div>
+  </div>
+
+  <div class="ms">
+    <span class="no">5</span>
+    <div>
+      <h3>The rest of Python 3.12 <span class="tag">planned</span></h3>
+      <p>Classes and <code>@dataclass</code>, <code>match</code>, comprehensions, <code>lambda</code>, <code>try</code>/<code>with</code> and the remaining syntax.</p>
+    </div>
+  </div>
+
+  <div class="ms">
+    <span class="no">6</span>
+    <div>
+      <h3>Dual compilation (erasure) <span class="tag">planned</span></h3>
+      <p>Each function that returns a truth is compiled twice: an evidence version that builds testimony and a value version that computes plain booleans. A result that is only branched on calls the value version, so unobserved testimony costs nothing. Output must be identical with <code>VERITY_NO_ERASE=1</code>.</p>
+    </div>
+  </div>
+
+  <div class="ms">
+    <span class="no">7</span>
+    <div>
+      <h3>Tail calls with recorded tracebacks <span class="tag p">proposed</span></h3>
+      <p>Python has no tail-call optimization, partly because erasing frames makes errors harder to locate. Verity can have both: the compiler rewrites a function whose <code>return</code> calls itself into a loop, so deep recursion no longer hits the recursion limit, and the loop keeps a call counter plus the arguments of the first and last few calls. If an error escapes, the traceback is rebuilt from that record:</p>
+<pre>f(n=100000, acc=1)          call 1
+f(n=99999, acc=100000)      call 2
+... 99,994 calls omitted
+f(n=1, acc=...)             call 99,999
+f(n=0, acc=...)             call 100,000  &lt;- raised here</pre>
+      <ul>
+        <li>Direct self-calls in <code>return</code> position only, outside <code>try</code>/<code>with</code> and generators, where the name is never rebound or decorated.</li>
+        <li>Mutual recursion would need a trampoline and is left out at first.</li>
+        <li>Recording should cost nothing until an error is reported, in keeping with erasure.</li>
+      </ul>
+      <p><span class="label">Origin:</span> suggested by a collaborator on 26 October 2026. Not part of the spec until adopted.</p>
+    </div>
+  </div>
+
+  <h2>Outside the milestones</h2>
+  <ul>
+    <li>Publish <code>verity-testimony</code> to PyPI.</li>
+    <li>Homepage: the testimony demo is in design review and its mockups still need updating to Python syntax.</li>
+    <li>Reference: the plain-text layout of <a href="/design/variants/docs/a.html">docs/a</a> is the favoured design for the next version of the book.</li>
+  </ul>
+
+  <div class="foot"><span>Henrik Gombos · Pranav Balakrishnan</span><span><a href="/book/llms.txt">llms.txt</a></span></div>
+</main>
+</body>
+</html>

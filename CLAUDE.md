@@ -72,6 +72,7 @@ Testimony is explanation, not proof. Verity does not target authorization engine
 4. **pytest plugin and `@testify`:** `pytest-verity`, which explains failing asserts (including `all()`/`any()` over generators) with testimony, plus a `@testify` decorator for plain Python predicate functions.
 5. **Python coverage:** classes and `@dataclass`, `match`, comprehensions, `lambda`, `try`/`with` and the rest of Python 3.12's syntax.
 6. **Dual compilation (erasure).**
+7. **Proposed: tail calls with recorded tracebacks.** Rewrite direct self-recursive tail calls into loops and keep a call counter plus the arguments of the first and last few calls, so escaped errors show a rebuilt traceback. Not spec until adopted; details at `site/public/roadmap.html`.
 
 ## The book
 

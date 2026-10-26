@@ -160,6 +160,7 @@ Milestone | Scope | Status
 4 | pytest plugin and @testify for plain Python | not started
 5 | The rest of Python 3.12: classes, data classes, match, comprehensions and more | not started
 6 | Dual compilation (erasure) | not started
+7 | Tail calls with recorded tracebacks [proposed] | not started
 
 A milestone is complete when every conformance example within its scope produces exactly its expected output.
 
