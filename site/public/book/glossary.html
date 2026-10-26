@@ -5,7 +5,7 @@
 <script>document.documentElement.classList.add("js")</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Appendix B. Glossary | Verity Programming</title>
-<meta name="description" content="Verity Programming: a textbook on Verity, a quirky functional Python where booleans testify.">
+<meta name="description" content="Verity Programming: the reference documentation for Verity, a functional language that compiles to Python and whose booleans testify.">
 <link rel="icon" href="../favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -26,20 +26,22 @@
     <a class="sidebar-cover" href="cover.html"><svg class="smiley" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="#ffda46"/><g fill="#243e30"><ellipse cx="35" cy="41" rx="4.1" ry="7.5"/><ellipse cx="65" cy="41" rx="4.1" ry="7.5"/></g><path d="M25 57 C35 78 66 78 77 55" fill="none" stroke="#243e30" stroke-width="4" stroke-linecap="round"/></svg><span>Verity Programming</span></a>
     <nav><p class="toc-heading">Front matter</p><ul>
 <li><a href="cover.html">Cover</a></li>
-<li><a href="preface.html">Preface</a></li>
+<li><a href="about.html">About These Docs</a></li>
 </ul>
-<p class="toc-heading">Chapters</p><ul>
-<li><a href="introduction.html"><span class="toc-num">1</span>Introduction</a></li>
-<li><a href="basics.html"><span class="toc-num">2</span>The Basics</a></li>
-<li><a href="testimony.html"><span class="toc-num">3</span>Truth and Testimony</a></li>
-<li><a href="quantifiers.html"><span class="toc-num">4</span>Quantifiers</a></li>
-<li><a href="functions.html"><span class="toc-num">5</span>Functions and Pipelines</a></li>
-<li><a href="data.html"><span class="toc-num">6</span>Data and Patterns</a></li>
-<li><a href="python.html"><span class="toc-num">7</span>Living with Python</a></li>
-<li><a href="under-the-hood.html"><span class="toc-num">8</span>Under the Hood</a></li>
+<p class="toc-heading">Reference</p><ul>
+<li><a href="overview.html"><span class="toc-num">1</span>Overview</a></li>
+<li><a href="lexical.html"><span class="toc-num">2</span>Lexical Analysis</a></li>
+<li><a href="data-model.html"><span class="toc-num">3</span>Data Model</a></li>
+<li><a href="expressions.html"><span class="toc-num">4</span>Expressions</a></li>
+<li><a href="testimony.html"><span class="toc-num">5</span>Testimony Semantics</a></li>
+<li><a href="statements.html"><span class="toc-num">6</span>Statements and Definitions</a></li>
+<li><a href="python.html"><span class="toc-num">7</span>Python Interoperability</a></li>
+<li><a href="stdlib.html"><span class="toc-num">8</span>Standard Library</a></li>
+<li><a href="cli.html"><span class="toc-num">9</span>Command-Line Interface</a></li>
+<li><a href="implementation.html"><span class="toc-num">10</span>Implementation</a></li>
 </ul>
 <p class="toc-heading">Appendices</p><ul>
-<li><a href="testimony-reference.html"><span class="toc-num">A</span>Testimony Reference</a></li>
+<li><a href="grammar.html"><span class="toc-num">A</span>Grammar</a></li>
 <li><a href="glossary.html" aria-current="page"><span class="toc-num">B</span>Glossary</a></li>
 </ul></nav>
   </aside>
@@ -48,68 +50,65 @@
 <h1><span class="h1-num">Appendix B</span>Glossary</h1>
 <dl>
   <dt>addpattern</dt>
-  <dd>A keyword that adds another case to a function defined by pattern matching, instead of replacing it. Cases are tried in definition order. See <a href="data.html#pattern-defs">Section 6.2</a>.</dd>
-
-  <dt>algebraic data type</dt>
-  <dd>A type described as a choice between several shapes, each with its own fields, such as a shape that is a <code>Circle</code>, a <code>Rect</code> or a <code>Square</code>. Built from <code>data</code> declarations.</dd>
+  <dd>Keyword prefix of <code>def</code> that appends a case to an existing pattern-matching function. <a href="statements.html#pattern-functions">Section 6.3</a>.</dd>
 
   <dt>because</dt>
-  <dd>An operator that attaches a claim, written in plain words, to a truth: <code>p because msg</code>. It renders as <code>witnessed: msg</code> or <code>refuted: msg</code>. See <a href="testimony.html#because">Section 3.6</a>.</dd>
+  <dd>Operator attaching a claim to a truth: <code>p because m</code>. Renders as <code>witnessed: m</code> or <code>refuted: m</code>. <a href="expressions.html#because">Section 4.9</a>.</dd>
 
-  <dt>boolean blindness</dt>
-  <dd>The loss of information that happens when a computation's result is reduced to a single true/false bit.</dd>
+  <dt>conformance suite</dt>
+  <dd>The programs in <code>examples/</code> and their expected outputs. They define testimony rendering. <a href="implementation.html#conformance">Section 10.7</a>.</dd>
 
   <dt>counterexample</dt>
-  <dd>An element that refutes a <code>forall</code> claim. A falsity from <code>forall</code> reports the first one it finds.</dd>
+  <dd>The testimony node of a falsity produced by <code>forall</code>: the first element that refuted the body. <a href="testimony.html#construction">Section 5.2</a>.</dd>
 
-  <dt>data</dt>
-  <dd>A declaration of an immutable record type with named fields, such as <code>data Rect(w, h)</code>.</dd>
+  <dt>data value</dt>
+  <dd>An instance of a class declared with <code>data</code>: immutable, with structural equality. <a href="data-model.html#data">Section 3.4</a>.</dd>
 
-  <dt>erasure (testimony erasure)</dt>
-  <dd>The compiler pass that replaces truths whose testimony is never observed with plain Python booleans, so unused testimony costs nothing. See <a href="under-the-hood.html#erasure">Section 8.6</a>.</dd>
-
-  <dt>explain</dt>
-  <dd>The function <code>testimony.explain</code>, which renders a truth and its testimony as indented text.</dd>
+  <dt>erasure</dt>
+  <dd>Compiling a truth-valued expression whose testimony is not observed to code that computes only its truth value. <a href="testimony.html#erasure">Section 5.5</a>.</dd>
 
   <dt>falsity</dt>
-  <dd>The false value of type <code>truth</code>. A falsity carries a refutation.</dd>
+  <dd>The false constructor of <code>truth</code>. Its testimony is a refutation.</dd>
 
   <dt>lifting</dt>
-  <dd>Turning a plain Python <code>bool</code> into a Verity truth with minimal testimony. See <a href="python.html#lifting">Section 7.2</a>.</dd>
+  <dd>Converting a Python <code>bool</code> into a truth with a <em>lifted</em> testimony node. <a href="python.html#lifting">Section 7.2</a>.</dd>
+
+  <dt>MatchError</dt>
+  <dd>Exception raised when no case of a pattern-matching function matches its arguments.</dd>
 
   <dt>observed</dt>
-  <dd>Said of testimony that something can look at, for example by passing the truth to <code>explain</code>, returning it, or storing it. Unobserved testimony can be erased.</dd>
+  <dd>Said of testimony that can reach code able to inspect it. Unobserved testimony may be erased. <a href="testimony.html#observation">Section 5.4</a>.</dd>
 
   <dt>partial application</dt>
-  <dd>Fixing some of a function's arguments to get a function of the rest, written <code>f$(args)</code>.</dd>
+  <dd><code>f$(args)</code>: a callable with some leading arguments of <code>f</code> fixed. <a href="expressions.html#partial">Section 4.3</a>.</dd>
+
+  <dt>pattern-matching function</dt>
+  <dd>A function defined with pattern parameters, consisting of ordered cases. <a href="statements.html#pattern-functions">Section 6.3</a>.</dd>
 
   <dt>pipe</dt>
-  <dd>The operator <code>|&gt;</code>, which passes a value to a function: <code>x |&gt; f</code> means <code>f(x)</code>.</dd>
-
-  <dt>predicate</dt>
-  <dd>A function that returns a truth.</dd>
+  <dd><code>x |&gt; f</code>, equivalent to <code>f(x)</code>. <a href="expressions.html#pipes">Section 4.5</a>.</dd>
 
   <dt>refutation</dt>
-  <dd>The testimony carried by a falsity: the evidence that a claim fails.</dd>
+  <dd>The testimony of a falsity.</dd>
 
   <dt>runtime</dt>
-  <dd>The Python module <code>truth.py</code> that compiled programs use for truths and testimony. It is embedded in the compiler and written out next to generated code.</dd>
+  <dd>The Python module <code>truth.py</code>, embedded in the compiler and imported by generated code. <a href="implementation.html#runtime">Section 10.5</a>.</dd>
 
   <dt>testimony</dt>
-  <dd>The evidence a truth carries, either a witness or a refutation. It is structured as a tree.</dd>
+  <dd>The tree of evidence carried by every truth. <a href="testimony.html">Section 5</a>.</dd>
 
   <dt>truth</dt>
-  <dd>Verity's boolean type, with the two values <code>verity</code> and <code>falsity</code>.</dd>
+  <dd>Verity's type of truth values, with constructors <code>verity</code> and <code>falsity</code>. <a href="data-model.html#truth">Section 3.2</a>.</dd>
 
   <dt>verity</dt>
-  <dd>The true value of type <code>truth</code>. A verity carries a witness.</dd>
+  <dd>The true constructor of <code>truth</code>. Its testimony is a witness.</dd>
 
   <dt>witness</dt>
-  <dd>The testimony carried by a verity: the evidence that a claim holds. Also the element that satisfies an <code>exists</code> claim.</dd>
+  <dd>The testimony of a verity. Also the node kind produced by <code>exists</code>, naming the first element that satisfied the body.</dd>
 </dl>
 
     </article>
-    <nav class="pager" aria-label="Previous and next pages"><a class="pager-prev" href="testimony-reference.html"><span>Previous</span>Appendix A. Testimony Reference</a></nav>
+    <nav class="pager" aria-label="Previous and next pages"><a class="pager-prev" href="grammar.html"><span>Previous</span>Appendix A. Grammar</a></nav>
     <footer class="page-footer">
       <p>Verity Programming &middot; Henrik Gombos and Pranav Balakrishnan &middot; <a href="https://github.com/Henrik66/verity/blob/main/book/src/glossary.html">Source for this page</a></p>
     </footer>

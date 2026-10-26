@@ -24,21 +24,37 @@ REPO = "https://github.com/Henrik66/verity"
 
 BOOK_TITLE = "Verity Programming"
 
-# (slug, title, number). number None = front matter, int = chapter, str = appendix.
+# (slug, title, number). number None = front matter, int = section, str = appendix.
 TOC = [
     ("cover", "Cover", None),
-    ("preface", "Preface", None),
-    ("introduction", "Introduction", 1),
-    ("basics", "The Basics", 2),
-    ("testimony", "Truth and Testimony", 3),
-    ("quantifiers", "Quantifiers", 4),
-    ("functions", "Functions and Pipelines", 5),
-    ("data", "Data and Patterns", 6),
-    ("python", "Living with Python", 7),
-    ("under-the-hood", "Under the Hood", 8),
-    ("testimony-reference", "Testimony Reference", "A"),
+    ("about", "About These Docs", None),
+    ("overview", "Overview", 1),
+    ("lexical", "Lexical Analysis", 2),
+    ("data-model", "Data Model", 3),
+    ("expressions", "Expressions", 4),
+    ("testimony", "Testimony Semantics", 5),
+    ("statements", "Statements and Definitions", 6),
+    ("python", "Python Interoperability", 7),
+    ("stdlib", "Standard Library", 8),
+    ("cli", "Command-Line Interface", 9),
+    ("implementation", "Implementation", 10),
+    ("grammar", "Grammar", "A"),
     ("glossary", "Glossary", "B"),
 ]
+
+# Pages from the first edition, redirected to their closest replacement.
+REDIRECTS = {
+    "preface": "about",
+    "introduction": "overview",
+    "basics": "lexical",
+    "quantifiers": "expressions",
+    "functions": "expressions",
+    "data": "statements",
+    "under-the-hood": "implementation",
+    "testimony-reference": "testimony",
+}
+
+STATUS = {"settled": "Settled", "proposed": "Proposed", "open": "Open"}
 
 SMILEY = (
     '<svg class="smiley" viewBox="0 0 100 100" aria-hidden="true">'
@@ -66,6 +82,14 @@ CODE_TOKEN = re.compile(
     re.VERBOSE | re.MULTILINE,
 )
 
+EBNF_TOKEN = re.compile(
+    r"(?P<com>\(\*[\s\S]*?\*\))"
+    r"|(?P<str>\"[^\"\n]*\"|'[^'\n]*')"
+    r"|(?P<test>::=)"
+    r"|(?P<kw>\b[A-Z][A-Z_]+\b)"
+    r"|(?P<op>[|*+?\[\]])",
+)
+
 OUT_TOKEN = re.compile(
     r"(?P<truth>^(?:verity|falsity)\b)"
     r"|(?P<label>\b(?:witnessed|refuted|counterexample|witness|all of|none of|not|literal)(?=:|$))",
@@ -85,8 +109,8 @@ def highlight(code: str, pattern: re.Pattern) -> str:
 
 def render_code(match: re.Match) -> str:
     kind, code = match.group(1), match.group(2).strip("\n")
-    pattern = OUT_TOKEN if kind == "out" else CODE_TOKEN
-    label = {"ity": "verity", "out": "output", "py": "python", "sh": "shell"}[kind]
+    pattern = {"out": OUT_TOKEN, "ebnf": EBNF_TOKEN}.get(kind, CODE_TOKEN)
+    label = {"ity": "verity", "out": "output", "py": "python", "sh": "shell", "ebnf": "grammar"}[kind]
     return (
         f'<div class="code code-{kind}"><span class="code-label">{label}</span>'
         f"<pre><code>{highlight(code, pattern)}</code></pre></div>"
@@ -129,7 +153,7 @@ def label(number, title: str) -> str:
 def sidebar(current: str) -> str:
     groups = [
         ("Front matter", [e for e in TOC if e[2] is None]),
-        ("Chapters", [e for e in TOC if isinstance(e[2], int)]),
+        ("Reference", [e for e in TOC if isinstance(e[2], int)]),
         ("Appendices", [e for e in TOC if isinstance(e[2], str)]),
     ]
     parts = []
@@ -146,12 +170,17 @@ def sidebar(current: str) -> str:
 def page(index: int) -> str:
     slug, title, number = TOC[index]
     body = (SRC / f"{slug}.html").read_text()
-    body = re.sub(r'<pre class="(ity|out|py|sh)">(.*?)</pre>', render_code, body, flags=re.S)
+    body = re.sub(r'<pre class="(ity|out|py|sh|ebnf)">(.*?)</pre>', render_code, body, flags=re.S)
     body = body.replace("<!--smiley-->", SMILEY)
+    body = re.sub(
+        r"\[\[(settled|proposed|open)\]\]",
+        lambda m: f'<span class="status status-{m.group(1)}">{STATUS[m.group(1)]}</span>',
+        body,
+    )
     body, sections = number_sections(body, number if isinstance(number, (int, str)) else None)
 
     if slug != "cover":
-        num = f'<span class="h1-num">{"Appendix " + number if isinstance(number, str) else "Chapter " + str(number)}</span>' if number is not None else ""
+        num = f'<span class="h1-num">{"Appendix " + number if isinstance(number, str) else "Section " + str(number)}</span>' if number is not None else ""
         body = f"<h1>{num}{title}</h1>\n{body}"
 
     on_page = ""
@@ -176,7 +205,7 @@ def page(index: int) -> str:
 <script>document.documentElement.classList.add("js")</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{page_title}</title>
-<meta name="description" content="{BOOK_TITLE}: a textbook on Verity, a quirky functional Python where booleans testify.">
+<meta name="description" content="{BOOK_TITLE}: the reference documentation for Verity, a functional language that compiles to Python and whose booleans testify.">
 <link rel="icon" href="../favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -225,7 +254,16 @@ def main() -> None:
         '<meta http-equiv="refresh" content="0; url=cover.html">'
         '<link rel="canonical" href="cover.html"><a href="cover.html">Verity Programming</a>\n'
     )
-    print(f"built {len(TOC)} pages into {OUT}")
+    for old, new in REDIRECTS.items():
+        (OUT / f"{old}.html").write_text(
+            f'<!doctype html><meta charset="utf-8"><title>Moved</title>'
+            f'<meta http-equiv="refresh" content="0; url={new}.html">'
+            f'<link rel="canonical" href="{new}.html"><a href="{new}.html">This page has moved.</a>\n'
+        )
+    for stale in OUT.glob("*.html"):
+        if stale.stem not in {e[0] for e in TOC} | set(REDIRECTS) | {"index"}:
+            stale.unlink()
+    print(f"built {len(TOC)} pages and {len(REDIRECTS)} redirects into {OUT}")
 
 
 if __name__ == "__main__":

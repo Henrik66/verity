@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script>document.documentElement.classList.add("js")</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>6. Statements and Definitions | Verity Programming</title>
+<meta name="description" content="Verity Programming: the reference documentation for Verity, a functional language that compiles to Python and whose booleans testify.">
+<link rel="icon" href="../favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,800;1,9..144,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="book.css">
+</head>
+<body class="page-statements">
+<a class="skip" href="#content">Skip to content</a>
+<header class="topbar">
+  <button class="menu-btn" type="button" aria-controls="sidebar" aria-expanded="false">
+    <span aria-hidden="true">&#9776;</span> Contents
+  </button>
+  <a class="topbar-title" href="cover.html"><svg class="smiley" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="#ffda46"/><g fill="#243e30"><ellipse cx="35" cy="41" rx="4.1" ry="7.5"/><ellipse cx="65" cy="41" rx="4.1" ry="7.5"/></g><path d="M25 57 C35 78 66 78 77 55" fill="none" stroke="#243e30" stroke-width="4" stroke-linecap="round"/></svg><span>Verity Programming</span></a>
+  <a class="topbar-link" href="../index.html">Verity home</a>
+</header>
+<div class="layout">
+  <aside class="sidebar" id="sidebar" aria-label="Book contents">
+    <a class="sidebar-cover" href="cover.html"><svg class="smiley" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="#ffda46"/><g fill="#243e30"><ellipse cx="35" cy="41" rx="4.1" ry="7.5"/><ellipse cx="65" cy="41" rx="4.1" ry="7.5"/></g><path d="M25 57 C35 78 66 78 77 55" fill="none" stroke="#243e30" stroke-width="4" stroke-linecap="round"/></svg><span>Verity Programming</span></a>
+    <nav><p class="toc-heading">Front matter</p><ul>
+<li><a href="cover.html">Cover</a></li>
+<li><a href="about.html">About These Docs</a></li>
+</ul>
+<p class="toc-heading">Reference</p><ul>
+<li><a href="overview.html"><span class="toc-num">1</span>Overview</a></li>
+<li><a href="lexical.html"><span class="toc-num">2</span>Lexical Analysis</a></li>
+<li><a href="data-model.html"><span class="toc-num">3</span>Data Model</a></li>
+<li><a href="expressions.html"><span class="toc-num">4</span>Expressions</a></li>
+<li><a href="testimony.html"><span class="toc-num">5</span>Testimony Semantics</a></li>
+<li><a href="statements.html" aria-current="page"><span class="toc-num">6</span>Statements and Definitions</a></li>
+<li><a href="python.html"><span class="toc-num">7</span>Python Interoperability</a></li>
+<li><a href="stdlib.html"><span class="toc-num">8</span>Standard Library</a></li>
+<li><a href="cli.html"><span class="toc-num">9</span>Command-Line Interface</a></li>
+<li><a href="implementation.html"><span class="toc-num">10</span>Implementation</a></li>
+</ul>
+<p class="toc-heading">Appendices</p><ul>
+<li><a href="grammar.html"><span class="toc-num">A</span>Grammar</a></li>
+<li><a href="glossary.html"><span class="toc-num">B</span>Glossary</a></li>
+</ul></nav>
+  </aside>
+  <main id="content" class="content">
+    <article>
+<h1><span class="h1-num">Section 6</span>Statements and Definitions</h1>
+<p>This section specifies Verity's statements and definitions. Statements not listed here are not part of the language. Those listed as "as in Python" have Python's syntax and semantics.</p>
+
+<h2 id="simple"><span class="secnum">6.1</span> Simple statements<a class="anchor" href="#simple" aria-label="Link to this section">#</a></h2>
+<ul>
+  <li><strong>Expression statements</strong> and <strong>assignment</strong> (<code>=</code>, augmented assignment, unpacking): as in Python.</li>
+  <li><code>return</code>, <code>pass</code>, <code>break</code>, <code>continue</code>, <code>raise</code>, <code>del</code>, <code>assert</code>: as in Python. <span class="status status-proposed">Proposed</span> Whether a failing <code>assert</code> on a truth includes its testimony in the <code>AssertionError</code> message is <span class="status status-open">Open</span>.</li>
+</ul>
+
+<h2 id="def"><span class="secnum">6.2</span> Function definitions<a class="anchor" href="#def" aria-label="Link to this section">#</a></h2>
+<div class="code code-ebnf"><span class="code-label">grammar</span><pre><code>funcdef     <span class="t-test">::=</span> <span class="t-op">[</span><span class="t-str">"addpattern"</span><span class="t-op">]</span> <span class="t-str">"def"</span> <span class="t-kw">NAME</span> <span class="t-str">"("</span> <span class="t-op">[</span>param_list<span class="t-op">]</span> <span class="t-str">")"</span> <span class="t-op">[</span><span class="t-str">"-&gt;"</span> expression<span class="t-op">]</span> body
+body        <span class="t-test">::=</span> <span class="t-str">"="</span> expression <span class="t-kw">NEWLINE</span> <span class="t-op">|</span> <span class="t-str">":"</span> block
+param_list  <span class="t-test">::=</span> param (<span class="t-str">","</span> param)<span class="t-op">*</span> <span class="t-op">[</span><span class="t-str">","</span><span class="t-op">]</span>
+param       <span class="t-test">::=</span> <span class="t-kw">NAME</span> <span class="t-op">[</span><span class="t-str">"="</span> expression<span class="t-op">]</span> <span class="t-op">|</span> <span class="t-str">"*"</span> <span class="t-kw">NAME</span> <span class="t-op">|</span> <span class="t-str">"**"</span> <span class="t-kw">NAME</span> <span class="t-op">|</span> pattern</code></pre></div>
+<p>A <code>def</code> binds <code>NAME</code> to a function in the current scope. The body has two forms: <span class="status status-settled">Settled</span></p>
+<ul>
+  <li><strong>Assignment form</strong>: <code>def f(x) = expr</code>. The function returns the value of <code>expr</code>. This is equivalent to <code>def f(x): return expr</code>.</li>
+  <li><strong>Block form</strong>: <code>def f(x):</code> followed by an indented block, as in Python.</li>
+</ul>
+<p>If every parameter is a plain name, the definition is an ordinary Python function. If any parameter is a pattern other than a plain name, the definition is a <em>pattern-matching function</em>.</p>
+<div class="code code-ity"><span class="code-label">verity</span><pre><code><span class="t-kw">def</span> square(x) = x * x
+<span class="t-kw">def</span> hypotenuse(a, b) = (square(a) + square(b)) ** <span class="t-num">0.5</span>
+
+<span class="t-kw">def</span> describe(n):
+    kind = <span class="t-str">"even"</span> <span class="t-kw">if</span> n % <span class="t-num">2</span> == <span class="t-num">0</span> <span class="t-kw">else</span> <span class="t-str">"odd"</span>
+    <span class="t-kw">return</span> <span class="t-str">f"{n} is {kind}"</span></code></pre></div>
+
+<h2 id="pattern-functions"><span class="secnum">6.3</span> Pattern-matching functions<a class="anchor" href="#pattern-functions" aria-label="Link to this section">#</a></h2>
+<p>A pattern-matching function has an ordered list of <em>cases</em>, each a parameter list of patterns and a body. <span class="status status-settled">Settled</span></p>
+<ul>
+  <li>A <code>def</code> with pattern parameters creates a pattern-matching function with one case, replacing any previous binding of the name.</li>
+  <li><code>addpattern def f(...)</code> appends a case to the pattern-matching function currently bound to <code>f</code>. If <code>f</code> is unbound, or is not a pattern-matching function, it is an error: a compile-time error when the compiler can determine this, otherwise <code>TypeError</code> at run time. <span class="status status-proposed">Proposed</span></li>
+  <li>A call tries the cases in the order they were added. The first case whose patterns all match the arguments runs, with the pattern variables bound. If no case matches, the call raises <code>MatchError</code>.</li>
+</ul>
+<div class="code code-ity"><span class="code-label">verity</span><pre><code><span class="t-kw">data</span> Circle(r)
+<span class="t-kw">data</span> Rect(w, h)
+
+<span class="t-kw">def</span> area(Circle(r)) = <span class="t-num">3.14159</span> * r ** <span class="t-num">2</span>
+<span class="t-kw">addpattern</span> <span class="t-kw">def</span> area(Rect(w, h)) = w * h
+
+<span class="t-kw">def</span> factorial(<span class="t-num">0</span>) = <span class="t-num">1</span>
+<span class="t-kw">addpattern</span> <span class="t-kw">def</span> factorial(n) = n * factorial(n - <span class="t-num">1</span>)
+
+print(area(Rect(<span class="t-num">2</span>, <span class="t-num">3</span>)), factorial(<span class="t-num">5</span>))</code></pre></div>
+<div class="code code-out"><span class="code-label">output</span><pre><code>6 120</code></pre></div>
+
+<h2 id="patterns"><span class="secnum">6.4</span> Patterns<a class="anchor" href="#patterns" aria-label="Link to this section">#</a></h2>
+<div class="code code-ebnf"><span class="code-label">grammar</span><pre><code>pattern          <span class="t-test">::=</span> or_pattern <span class="t-op">[</span><span class="t-str">"as"</span> <span class="t-kw">NAME</span><span class="t-op">]</span>
+or_pattern       <span class="t-test">::=</span> closed_pattern (<span class="t-str">"|"</span> closed_pattern)<span class="t-op">*</span>
+closed_pattern   <span class="t-test">::=</span> literal_pattern <span class="t-op">|</span> capture <span class="t-op">|</span> <span class="t-str">"_"</span> <span class="t-op">|</span> class_pattern
+                   <span class="t-op">|</span> sequence_pattern <span class="t-op">|</span> <span class="t-str">"("</span> pattern <span class="t-str">")"</span>
+capture          <span class="t-test">::=</span> <span class="t-kw">NAME</span>
+class_pattern    <span class="t-test">::=</span> dotted_name <span class="t-str">"("</span> <span class="t-op">[</span>pattern (<span class="t-str">","</span> pattern)<span class="t-op">*</span> <span class="t-op">[</span><span class="t-str">","</span><span class="t-op">]</span><span class="t-op">]</span> <span class="t-str">")"</span>
+sequence_pattern <span class="t-test">::=</span> <span class="t-str">"["</span> <span class="t-op">[</span>pattern (<span class="t-str">","</span> pattern)<span class="t-op">*</span> <span class="t-op">[</span><span class="t-str">","</span><span class="t-op">]</span><span class="t-op">]</span> <span class="t-str">"]"</span></code></pre></div>
+<p>Pattern semantics are those of Python's structural pattern matching (PEP 634): <span class="status status-proposed">Proposed</span></p>
+<ul>
+  <li>A literal pattern matches an equal value. A capture binds a name, and <code>_</code> matches anything without binding.</li>
+  <li>A class pattern <code>C(p₁, …, pₙ)</code> matches an instance of <code>C</code> whose fields, in declaration order, match <code>p₁ … pₙ</code>. <code>data</code> types support positional class patterns.</li>
+  <li>A sequence pattern matches a sequence of the same length whose elements match.</li>
+</ul>
+<p>Mapping patterns, star patterns and keyword patterns in class patterns are <span class="status status-open">Open</span>.</p>
+
+<h2 id="data"><span class="secnum">6.5</span> Data declarations<a class="anchor" href="#data" aria-label="Link to this section">#</a></h2>
+<div class="code code-ebnf"><span class="code-label">grammar</span><pre><code>data_def <span class="t-test">::=</span> <span class="t-str">"data"</span> <span class="t-kw">NAME</span> <span class="t-str">"("</span> <span class="t-op">[</span><span class="t-kw">NAME</span> (<span class="t-str">","</span> <span class="t-kw">NAME</span>)<span class="t-op">*</span> <span class="t-op">[</span><span class="t-str">","</span><span class="t-op">]</span><span class="t-op">]</span> <span class="t-str">")"</span> <span class="t-kw">NEWLINE</span></code></pre></div>
+<p><code>data Name(f₁, …, fₙ)</code> binds <code>Name</code> to a new class of immutable data values with fields <code>f₁ … fₙ</code> (<a href="data-model.html#data">Section 3.4</a>). <span class="status status-settled">Settled</span> Data declarations with a body (methods), default field values, type annotations and inheritance are <span class="status status-open">Open</span>.</p>
+
+<h2 id="match"><span class="secnum">6.6</span> The <code>match</code> statement<a class="anchor" href="#match" aria-label="Link to this section">#</a></h2>
+<div class="code code-ebnf"><span class="code-label">grammar</span><pre><code>match_stmt <span class="t-test">::=</span> <span class="t-str">"match"</span> expression <span class="t-str">":"</span> <span class="t-kw">NEWLINE</span> <span class="t-kw">INDENT</span> case_block<span class="t-op">+</span> <span class="t-kw">DEDENT</span>
+case_block <span class="t-test">::=</span> <span class="t-str">"case"</span> pattern <span class="t-op">[</span><span class="t-str">"if"</span> expression<span class="t-op">]</span> <span class="t-str">":"</span> block</code></pre></div>
+<p>As in Python. The subject is evaluated once, then the cases are tried in order. The first case whose pattern matches and whose guard, if any, holds has its block executed. If no case matches, nothing happens and no exception is raised, unlike a pattern-matching function. <span class="status status-settled">Settled</span> A guard may be a truth, and its testimony is not observed.</p>
+<div class="code code-ity"><span class="code-label">verity</span><pre><code><span class="t-kw">def</span> is_square(shape):
+    <span class="t-kw">match</span> shape:
+        <span class="t-kw">case</span> Square(_):
+            <span class="t-kw">return</span> <span class="t-truth">verity</span> <span class="t-test">because</span> <span class="t-str">"it was built as a Square"</span>
+        <span class="t-kw">case</span> Rect(w, h):
+            <span class="t-kw">return</span> w == h
+        <span class="t-kw">case</span> _:
+            <span class="t-kw">return</span> <span class="t-truth">falsity</span> <span class="t-test">because</span> <span class="t-str">f"{shape} is a rectangle"</span></code></pre></div>
+
+<h2 id="control-flow"><span class="secnum">6.7</span> Conditionals and loops<a class="anchor" href="#control-flow" aria-label="Link to this section">#</a></h2>
+<p><code>if</code>/<code>elif</code>/<code>else</code>, <code>while</code> and <code>for</code> are as in Python. <span class="status status-settled">Settled</span> Conditions may be truths or any Python value, with Python truthiness applying to non-truths. The testimony of a condition is not observed (<a href="testimony.html#observation">Section 5.4</a>).</p>
+
+<h2 id="imports"><span class="secnum">6.8</span> Imports<a class="anchor" href="#imports" aria-label="Link to this section">#</a></h2>
+<p><code>import</code> and <code>from … import</code> are as in Python. <span class="status status-settled">Settled</span> Any importable Python module may be imported. The standard library modules (<code>testimony</code>, <code>string_ops</code>, <code>list_ops</code>) are always importable. Whether a local module may shadow a standard library module of the same name is <span class="status status-open">Open</span>. Importing one <code>.ity</code> module from another is <span class="status status-proposed">Proposed</span>. The compiler compiles the imported module and makes it importable under its file name.</p>
+
+<h2 id="other"><span class="secnum">6.9</span> Other Python statements<a class="anchor" href="#other" aria-label="Link to this section">#</a></h2>
+<p><code>try</code>/<code>except</code>/<code>finally</code>, <code>with</code>, <code>global</code> and <code>nonlocal</code> are as in Python. <span class="status status-proposed">Proposed</span> <code>class</code> definitions, decorators, <code>async</code> forms and type aliases are <span class="status status-open">Open</span>.</p>
+
+    </article>
+    <nav class="pager" aria-label="Previous and next pages"><a class="pager-prev" href="testimony.html"><span>Previous</span>5. Testimony Semantics</a><a class="pager-next" href="python.html"><span>Next</span>7. Python Interoperability</a></nav>
+    <footer class="page-footer">
+      <p>Verity Programming &middot; Henrik Gombos and Pranav Balakrishnan &middot; <a href="https://github.com/Henrik66/verity/blob/main/book/src/statements.html">Source for this page</a></p>
+    </footer>
+  </main>
+  <nav class="on-page" aria-label="On this page"><p>On this page</p><ul><li><a href="#simple">Simple statements</a></li><li><a href="#def">Function definitions</a></li><li><a href="#pattern-functions">Pattern-matching functions</a></li><li><a href="#patterns">Patterns</a></li><li><a href="#data">Data declarations</a></li><li><a href="#match">The match statement</a></li><li><a href="#control-flow">Conditionals and loops</a></li><li><a href="#imports">Imports</a></li><li><a href="#other">Other Python statements</a></li></ul></nav>
+</div>
+<script src="book.js" defer></script>
+</body>
+</html>

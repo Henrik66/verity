@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script>document.documentElement.classList.add("js")</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>9. Command-Line Interface | Verity Programming</title>
+<meta name="description" content="Verity Programming: the reference documentation for Verity, a functional language that compiles to Python and whose booleans testify.">
+<link rel="icon" href="../favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,800;1,9..144,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="book.css">
+</head>
+<body class="page-cli">
+<a class="skip" href="#content">Skip to content</a>
+<header class="topbar">
+  <button class="menu-btn" type="button" aria-controls="sidebar" aria-expanded="false">
+    <span aria-hidden="true">&#9776;</span> Contents
+  </button>
+  <a class="topbar-title" href="cover.html"><svg class="smiley" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="#ffda46"/><g fill="#243e30"><ellipse cx="35" cy="41" rx="4.1" ry="7.5"/><ellipse cx="65" cy="41" rx="4.1" ry="7.5"/></g><path d="M25 57 C35 78 66 78 77 55" fill="none" stroke="#243e30" stroke-width="4" stroke-linecap="round"/></svg><span>Verity Programming</span></a>
+  <a class="topbar-link" href="../index.html">Verity home</a>
+</header>
+<div class="layout">
+  <aside class="sidebar" id="sidebar" aria-label="Book contents">
+    <a class="sidebar-cover" href="cover.html"><svg class="smiley" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="#ffda46"/><g fill="#243e30"><ellipse cx="35" cy="41" rx="4.1" ry="7.5"/><ellipse cx="65" cy="41" rx="4.1" ry="7.5"/></g><path d="M25 57 C35 78 66 78 77 55" fill="none" stroke="#243e30" stroke-width="4" stroke-linecap="round"/></svg><span>Verity Programming</span></a>
+    <nav><p class="toc-heading">Front matter</p><ul>
+<li><a href="cover.html">Cover</a></li>
+<li><a href="about.html">About These Docs</a></li>
+</ul>
+<p class="toc-heading">Reference</p><ul>
+<li><a href="overview.html"><span class="toc-num">1</span>Overview</a></li>
+<li><a href="lexical.html"><span class="toc-num">2</span>Lexical Analysis</a></li>
+<li><a href="data-model.html"><span class="toc-num">3</span>Data Model</a></li>
+<li><a href="expressions.html"><span class="toc-num">4</span>Expressions</a></li>
+<li><a href="testimony.html"><span class="toc-num">5</span>Testimony Semantics</a></li>
+<li><a href="statements.html"><span class="toc-num">6</span>Statements and Definitions</a></li>
+<li><a href="python.html"><span class="toc-num">7</span>Python Interoperability</a></li>
+<li><a href="stdlib.html"><span class="toc-num">8</span>Standard Library</a></li>
+<li><a href="cli.html" aria-current="page"><span class="toc-num">9</span>Command-Line Interface</a></li>
+<li><a href="implementation.html"><span class="toc-num">10</span>Implementation</a></li>
+</ul>
+<p class="toc-heading">Appendices</p><ul>
+<li><a href="grammar.html"><span class="toc-num">A</span>Grammar</a></li>
+<li><a href="glossary.html"><span class="toc-num">B</span>Glossary</a></li>
+</ul></nav>
+  </aside>
+  <main id="content" class="content">
+    <article>
+<h1><span class="h1-num">Section 9</span>Command-Line Interface</h1>
+<p>The <code>verity</code> executable compiles and runs Verity programs. The command names <code>run</code> and <code>compile</code> are <span class="status status-settled">Settled</span>. Everything else in this section is <span class="status status-proposed">Proposed</span>.</p>
+
+<h2 id="synopsis"><span class="secnum">9.1</span> Synopsis<a class="anchor" href="#synopsis" aria-label="Link to this section">#</a></h2>
+<div class="code code-sh"><span class="code-label">shell</span><pre><code><span class="t-sh">$</span> <span class="t-truth">verity</span> run FILE.ity [ARG...]
+<span class="t-sh">$</span> <span class="t-truth">verity</span> compile FILE.ity [-o OUT.py]
+<span class="t-sh">$</span> <span class="t-truth">verity</span> --version
+<span class="t-sh">$</span> <span class="t-truth">verity</span> --help</code></pre></div>
+
+<h2 id="run"><span class="secnum">9.2</span> verity run<a class="anchor" href="#run" aria-label="Link to this section">#</a></h2>
+<p>Compiles <code>FILE.ity</code> and executes it with Python. Arguments after the file name are passed to the program as <code>sys.argv[1:]</code>, and <code>sys.argv[0]</code> is the source path.</p>
+<ul>
+  <li>Generated code and the runtime are written to a cache directory, <code>__verity__/</code>, next to the source file. The directory is reused across runs and can be deleted at any time.</li>
+  <li>The program's standard input, output and error are those of the <code>verity</code> process.</li>
+  <li>Imported <code>.ity</code> modules in the same directory are compiled on demand.</li>
+</ul>
+
+<h2 id="compile"><span class="secnum">9.3</span> verity compile<a class="anchor" href="#compile" aria-label="Link to this section">#</a></h2>
+<p>Compiles <code>FILE.ity</code> to Python without running it. By default the generated module is written to standard output. With <code>-o OUT.py</code>, it is written to <code>OUT.py</code> and the runtime module <code>truth.py</code> is written to the same directory.</p>
+<div class="code code-sh"><span class="code-label">shell</span><pre><code><span class="t-sh">$</span> <span class="t-truth">verity</span> compile hello.ity -o build/hello.py
+<span class="t-sh">$</span> python3 build/hello.py</code></pre></div>
+
+<h2 id="exit-status"><span class="secnum">9.4</span> Exit status<a class="anchor" href="#exit-status" aria-label="Link to this section">#</a></h2>
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Status</th><th>Meaning</th></tr></thead>
+  <tbody>
+    <tr><td>0</td><td>Success. For <code>run</code>, the program exited with status 0.</td></tr>
+    <tr><td>1</td><td>A compile error was reported.</td></tr>
+    <tr><td>2</td><td>Invalid command-line usage.</td></tr>
+    <tr><td>other</td><td>For <code>run</code>, the exit status of the Python process.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="diagnostics"><span class="secnum">9.5</span> Diagnostics<a class="anchor" href="#diagnostics" aria-label="Link to this section">#</a></h2>
+<p>Errors are written to standard error, one per diagnostic, in the form:</p>
+<div class="code code-out"><span class="code-label">output</span><pre><code>hello.ity:3:14: error: expected ')' to close '(' at 3:5</code></pre></div>
+<p>Line and column numbers are 1-based. Columns count Unicode scalar values.</p>
+
+<h2 id="environment"><span class="secnum">9.6</span> Environment<a class="anchor" href="#environment" aria-label="Link to this section">#</a></h2>
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Variable</th><th>Effect</th></tr></thead>
+  <tbody>
+    <tr><td><code>VERITY_PYTHON</code></td><td>Python interpreter used by <code>run</code>. Default: <code>python3</code> on the <code>PATH</code>.</td></tr>
+    <tr><td><code>VERITY_NO_ERASE</code></td><td>If set to <code>1</code>, disables testimony erasure. This is for checking that erasure does not change output.</td></tr>
+  </tbody>
+</table>
+</div>
+
+    </article>
+    <nav class="pager" aria-label="Previous and next pages"><a class="pager-prev" href="stdlib.html"><span>Previous</span>8. Standard Library</a><a class="pager-next" href="implementation.html"><span>Next</span>10. Implementation</a></nav>
+    <footer class="page-footer">
+      <p>Verity Programming &middot; Henrik Gombos and Pranav Balakrishnan &middot; <a href="https://github.com/Henrik66/verity/blob/main/book/src/cli.html">Source for this page</a></p>
+    </footer>
+  </main>
+  <nav class="on-page" aria-label="On this page"><p>On this page</p><ul><li><a href="#synopsis">Synopsis</a></li><li><a href="#run">verity run</a></li><li><a href="#compile">verity compile</a></li><li><a href="#exit-status">Exit status</a></li><li><a href="#diagnostics">Diagnostics</a></li><li><a href="#environment">Environment</a></li></ul></nav>
+</div>
+<script src="book.js" defer></script>
+</body>
+</html>

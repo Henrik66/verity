@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script>document.documentElement.classList.add("js")</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>About These Docs | Verity Programming</title>
+<meta name="description" content="Verity Programming: the reference documentation for Verity, a functional language that compiles to Python and whose booleans testify.">
+<link rel="icon" href="../favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,800;1,9..144,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="book.css">
+</head>
+<body class="page-about">
+<a class="skip" href="#content">Skip to content</a>
+<header class="topbar">
+  <button class="menu-btn" type="button" aria-controls="sidebar" aria-expanded="false">
+    <span aria-hidden="true">&#9776;</span> Contents
+  </button>
+  <a class="topbar-title" href="cover.html"><svg class="smiley" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="#ffda46"/><g fill="#243e30"><ellipse cx="35" cy="41" rx="4.1" ry="7.5"/><ellipse cx="65" cy="41" rx="4.1" ry="7.5"/></g><path d="M25 57 C35 78 66 78 77 55" fill="none" stroke="#243e30" stroke-width="4" stroke-linecap="round"/></svg><span>Verity Programming</span></a>
+  <a class="topbar-link" href="../index.html">Verity home</a>
+</header>
+<div class="layout">
+  <aside class="sidebar" id="sidebar" aria-label="Book contents">
+    <a class="sidebar-cover" href="cover.html"><svg class="smiley" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="#ffda46"/><g fill="#243e30"><ellipse cx="35" cy="41" rx="4.1" ry="7.5"/><ellipse cx="65" cy="41" rx="4.1" ry="7.5"/></g><path d="M25 57 C35 78 66 78 77 55" fill="none" stroke="#243e30" stroke-width="4" stroke-linecap="round"/></svg><span>Verity Programming</span></a>
+    <nav><p class="toc-heading">Front matter</p><ul>
+<li><a href="cover.html">Cover</a></li>
+<li><a href="about.html" aria-current="page">About These Docs</a></li>
+</ul>
+<p class="toc-heading">Reference</p><ul>
+<li><a href="overview.html"><span class="toc-num">1</span>Overview</a></li>
+<li><a href="lexical.html"><span class="toc-num">2</span>Lexical Analysis</a></li>
+<li><a href="data-model.html"><span class="toc-num">3</span>Data Model</a></li>
+<li><a href="expressions.html"><span class="toc-num">4</span>Expressions</a></li>
+<li><a href="testimony.html"><span class="toc-num">5</span>Testimony Semantics</a></li>
+<li><a href="statements.html"><span class="toc-num">6</span>Statements and Definitions</a></li>
+<li><a href="python.html"><span class="toc-num">7</span>Python Interoperability</a></li>
+<li><a href="stdlib.html"><span class="toc-num">8</span>Standard Library</a></li>
+<li><a href="cli.html"><span class="toc-num">9</span>Command-Line Interface</a></li>
+<li><a href="implementation.html"><span class="toc-num">10</span>Implementation</a></li>
+</ul>
+<p class="toc-heading">Appendices</p><ul>
+<li><a href="grammar.html"><span class="toc-num">A</span>Grammar</a></li>
+<li><a href="glossary.html"><span class="toc-num">B</span>Glossary</a></li>
+</ul></nav>
+  </aside>
+  <main id="content" class="content">
+    <article>
+<h1>About These Docs</h1>
+<p>This is the reference documentation for the Verity programming language. It describes the language's syntax and semantics, the testimony model, the boundary with Python, the standard library, the command-line tool and the compiler's architecture. It is written to be precise rather than introductory: each section states rules, then gives examples.</p>
+
+<h2 id="status">Status of this document<a class="anchor" href="#status" aria-label="Link to this section">#</a></h2>
+<p>Verity is in early design and no implementation exists yet. This document describes the language the implementation is being built to accept. Every rule carries one of three markers:</p>
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Marker</th><th>Meaning</th></tr></thead>
+  <tbody>
+    <tr><td><span class="status status-settled">Settled</span></td><td>Fixed by the language specification or by an expected output in <code>examples/</code>. Changing it requires changing the spec.</td></tr>
+    <tr><td><span class="status status-proposed">Proposed</span></td><td>A concrete design this document recommends. It has not yet been adopted by the spec and may change.</td></tr>
+    <tr><td><span class="status status-open">Open</span></td><td>An unresolved question. Alternatives are listed where they are known.</td></tr>
+  </tbody>
+</table>
+</div>
+<p>A section-level marker applies to every rule in that section unless a rule carries its own marker.</p>
+
+<h3>Normative sources</h3>
+<p>In order of precedence:</p>
+<ol>
+  <li>The language specification, <code>CLAUDE.md</code> in the repository root.</li>
+  <li>The conformance examples, <code>examples/*.ity</code>, and their expected output, <code>examples/*.expected</code>. The rendering format of testimony is defined by these files.</li>
+  <li>This document.</li>
+</ol>
+<p>Where this document disagrees with a higher source, the higher source is correct and this document has a bug.</p>
+
+<h2 id="notation">Notation<a class="anchor" href="#notation" aria-label="Link to this section">#</a></h2>
+<h3>Grammar</h3>
+<p>Syntax is given in a variant of EBNF:</p>
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Form</th><th>Meaning</th></tr></thead>
+  <tbody>
+    <tr><td><code>name ::= ...</code></td><td>Defines the nonterminal <code>name</code>.</td></tr>
+    <tr><td><code>"text"</code></td><td>A literal terminal: a keyword, operator or delimiter.</td></tr>
+    <tr><td><code>NAME</code>, <code>NEWLINE</code></td><td>A token class produced by the lexer (all capitals).</td></tr>
+    <tr><td><code>a b</code></td><td>Sequence.</td></tr>
+    <tr><td><code>a | b</code></td><td>Alternation.</td></tr>
+    <tr><td><code>[a]</code></td><td>Optional.</td></tr>
+    <tr><td><code>a*</code>, <code>a+</code></td><td>Zero or more, one or more.</td></tr>
+    <tr><td><code>(* ... *)</code></td><td>Comment.</td></tr>
+  </tbody>
+</table>
+</div>
+<p>The complete grammar is collected in <a href="grammar.html">Appendix A</a>.</p>
+
+<h3>Code and output</h3>
+<p>Verity source appears in blocks labeled <em>verity</em>, program output in blocks labeled <em>output</em>, generated Python in blocks labeled <em>python</em>, and shell commands, prefixed with <code>$</code>, in blocks labeled <em>shell</em>. Output blocks show exactly what the program prints, including the indentation of testimony.</p>
+<div class="code code-ity"><span class="code-label">verity</span><pre><code><span class="t-kw">from</span> testimony <span class="t-kw">import</span> explain
+
+(<span class="t-num">3</span> &gt; <span class="t-num">5</span>) <span class="t-op">|&gt;</span> explain <span class="t-op">|&gt;</span> print</code></pre></div>
+<div class="code code-out"><span class="code-label">output</span><pre><code><span class="t-truth">falsity</span>
+  3 &gt; 5: 3 &lt;= 5</code></pre></div>
+
+<h2 id="scope">Scope<a class="anchor" href="#scope" aria-label="Link to this section">#</a></h2>
+<p>This document does not teach programming or functional programming. Readers are assumed to know Python. Constructs that Verity takes unchanged from Python, such as literals, comprehensions, <code>try</code> and <code>with</code>, are listed but not re-specified. Their semantics are those of the corresponding Python construct.</p>
+
+<h2 id="credits">Authors and license<a class="anchor" href="#credits" aria-label="Link to this section">#</a></h2>
+<p>Written by Henrik Gombos (<a href="https://github.com/Henrik66">Henrik66</a>) and Pranav Balakrishnan (<a href="https://github.com/pranavbalakri">pranavbalakri</a>). Verity's surface syntax derives from <a href="https://coconut-lang.org/">Coconut</a>. The source of this document is in the <a href="https://github.com/Henrik66/verity/tree/main/book/src">repository</a> and is released under the Apache-2.0 license.</p>
+
+    </article>
+    <nav class="pager" aria-label="Previous and next pages"><a class="pager-prev" href="cover.html"><span>Previous</span>Cover</a><a class="pager-next" href="overview.html"><span>Next</span>1. Overview</a></nav>
+    <footer class="page-footer">
+      <p>Verity Programming &middot; Henrik Gombos and Pranav Balakrishnan &middot; <a href="https://github.com/Henrik66/verity/blob/main/book/src/about.html">Source for this page</a></p>
+    </footer>
+  </main>
+  <nav class="on-page" aria-label="On this page"><p>On this page</p><ul><li><a href="#status">Status of this document</a></li><li><a href="#notation">Notation</a></li><li><a href="#scope">Scope</a></li><li><a href="#credits">Authors and license</a></li></ul></nav>
+</div>
+<script src="book.js" defer></script>
+</body>
+</html>

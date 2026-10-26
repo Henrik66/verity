@@ -55,7 +55,7 @@ Verity is a quirky functional version of Python. This file is the spec. If code 
 
 ## The book
 
-`book/src/*.html` holds the textbook *Verity Programming* (authors: Henrik Gombos and Pranav Balakrishnan). Run `python3 book/build.py` to regenerate `site/public/book/` (Vite copies it into the site build), and commit the generated output. Book examples must agree with this spec and with `examples/*.expected`. "Design note" boxes are proposals and are not spec until adopted here. When a milestone changes behavior, update the affected chapters.
+`book/src/*.html` holds *Verity Programming*, the reference documentation (authors: Henrik Gombos and Pranav Balakrishnan), structured like a traditional language reference with [[settled]]/[[proposed]]/[[open]] status markers. Run `python3 book/build.py` to regenerate `site/public/book/` (Vite copies it into the site build), and commit the generated output. Book examples must agree with this spec and with `examples/*.expected`. Rules marked proposed or open are not spec until adopted here; when a proposal is adopted, mark it settled in the docs. When a milestone changes behavior, update the affected chapters.
 
 ## Working rules
 

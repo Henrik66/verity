@@ -176,6 +176,8 @@ code { font-family: var(--mono); font-size: .86em; font-variant-ligatures: none;
 .code-out { border-left-color: var(--sun-deep); background: #fdfbef; }
 .code-py { border-left-color: #4f8aa6; }
 .code-sh { border-left-color: var(--ink); }
+.code-ebnf .t-test { background: none; color: var(--soil); }
+.code-ebnf .t-kw { color: #1f5870; font-weight: 600; }
 .code-label {
   position: absolute; top: .35rem; right: .6rem;
   font: .68rem var(--mono); letter-spacing: .06em; text-transform: uppercase;
@@ -224,6 +226,28 @@ code { font-family: var(--mono); font-size: .86em; font-variant-ligatures: none;
 }
 .exercise h4 { margin: 0 0 .4rem; font-size: 1.05rem; color: var(--ink); }
 .stars { color: var(--sun-deep); letter-spacing: .05em; }
+
+/* Status markers */
+.status {
+  display: inline-block;
+  font: 600 .68rem/1.5 var(--mono);
+  letter-spacing: .04em; text-transform: uppercase;
+  padding: 0 .45em; border-radius: 4px; border: 1px solid;
+  vertical-align: .12em; white-space: nowrap;
+}
+.status-settled { color: var(--leaf); background: #e5efd9; border-color: var(--leaf-light); }
+.status-proposed { color: #6b4e00; background: #fdf3c4; border-color: var(--sun-deep); }
+.status-open { color: #1f5870; background: #e3f1f6; border-color: var(--sky); }
+
+/* API entries */
+dl.api dt {
+  margin-top: 1.4rem; padding: .45rem .7rem;
+  background: var(--panel); border-left: 4px solid var(--leaf);
+  font-weight: 400; color: var(--ink);
+}
+dl.api dt code { background: none; padding: 0; font-weight: 600; }
+dl.api dd { margin: .6rem 0 0 1rem; }
+.code-ebnf { border-left-color: var(--soil); }
 
 /* Tables */
 .table-wrap { overflow-x: auto; margin: 1rem 0 1.4rem; }

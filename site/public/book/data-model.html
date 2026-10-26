@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script>document.documentElement.classList.add("js")</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>3. Data Model | Verity Programming</title>
+<meta name="description" content="Verity Programming: the reference documentation for Verity, a functional language that compiles to Python and whose booleans testify.">
+<link rel="icon" href="../favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,800;1,9..144,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="book.css">
+</head>
+<body class="page-data-model">
+<a class="skip" href="#content">Skip to content</a>
+<header class="topbar">
+  <button class="menu-btn" type="button" aria-controls="sidebar" aria-expanded="false">
+    <span aria-hidden="true">&#9776;</span> Contents
+  </button>
+  <a class="topbar-title" href="cover.html"><svg class="smiley" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="#ffda46"/><g fill="#243e30"><ellipse cx="35" cy="41" rx="4.1" ry="7.5"/><ellipse cx="65" cy="41" rx="4.1" ry="7.5"/></g><path d="M25 57 C35 78 66 78 77 55" fill="none" stroke="#243e30" stroke-width="4" stroke-linecap="round"/></svg><span>Verity Programming</span></a>
+  <a class="topbar-link" href="../index.html">Verity home</a>
+</header>
+<div class="layout">
+  <aside class="sidebar" id="sidebar" aria-label="Book contents">
+    <a class="sidebar-cover" href="cover.html"><svg class="smiley" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="#ffda46"/><g fill="#243e30"><ellipse cx="35" cy="41" rx="4.1" ry="7.5"/><ellipse cx="65" cy="41" rx="4.1" ry="7.5"/></g><path d="M25 57 C35 78 66 78 77 55" fill="none" stroke="#243e30" stroke-width="4" stroke-linecap="round"/></svg><span>Verity Programming</span></a>
+    <nav><p class="toc-heading">Front matter</p><ul>
+<li><a href="cover.html">Cover</a></li>
+<li><a href="about.html">About These Docs</a></li>
+</ul>
+<p class="toc-heading">Reference</p><ul>
+<li><a href="overview.html"><span class="toc-num">1</span>Overview</a></li>
+<li><a href="lexical.html"><span class="toc-num">2</span>Lexical Analysis</a></li>
+<li><a href="data-model.html" aria-current="page"><span class="toc-num">3</span>Data Model</a></li>
+<li><a href="expressions.html"><span class="toc-num">4</span>Expressions</a></li>
+<li><a href="testimony.html"><span class="toc-num">5</span>Testimony Semantics</a></li>
+<li><a href="statements.html"><span class="toc-num">6</span>Statements and Definitions</a></li>
+<li><a href="python.html"><span class="toc-num">7</span>Python Interoperability</a></li>
+<li><a href="stdlib.html"><span class="toc-num">8</span>Standard Library</a></li>
+<li><a href="cli.html"><span class="toc-num">9</span>Command-Line Interface</a></li>
+<li><a href="implementation.html"><span class="toc-num">10</span>Implementation</a></li>
+</ul>
+<p class="toc-heading">Appendices</p><ul>
+<li><a href="grammar.html"><span class="toc-num">A</span>Grammar</a></li>
+<li><a href="glossary.html"><span class="toc-num">B</span>Glossary</a></li>
+</ul></nav>
+  </aside>
+  <main id="content" class="content">
+    <article>
+<h1><span class="h1-num">Section 3</span>Data Model</h1>
+<p>Every value in a running Verity program is a Python object. This section describes the objects Verity adds: truths, testimony, data values and pattern-matching functions.</p>
+
+<h2 id="objects"><span class="secnum">3.1</span> Objects<a class="anchor" href="#objects" aria-label="Link to this section">#</a></h2>
+<p>Verity has no object model of its own. Integers, strings, lists, functions, modules and all other values are the corresponding Python objects, with Python's identity, type and mutability rules. <span class="status status-settled">Settled</span></p>
+
+<h2 id="truth"><span class="secnum">3.2</span> The <code>truth</code> type<a class="anchor" href="#truth" aria-label="Link to this section">#</a></h2>
+<p><code>truth</code> is the type of truth values. <span class="status status-settled">Settled</span></p>
+<ul>
+  <li>It has exactly two constructors: <code>verity</code> (true) and <code>falsity</code> (false).</li>
+  <li>Every truth carries a testimony tree (<a href="testimony.html">Section 5</a>). A verity's testimony is called its <em>witness</em>, and a falsity's its <em>refutation</em>.</li>
+  <li>At run time, truths are instances of the runtime class <code>Truth</code> (<a href="stdlib.html#truth-class">Section 8.2</a>).</li>
+</ul>
+<p>The following properties are <span class="status status-proposed">Proposed</span>:</p>
+<ul>
+  <li>Truths are immutable.</li>
+  <li><code>bool(t)</code> is <code>True</code> for a verity and <code>False</code> for a falsity. Truths are accepted anywhere Python accepts a condition.</li>
+  <li>Equality and hashing consider only the truth value, never the testimony. Two verities with different witnesses are equal.</li>
+  <li><code>str(t)</code> is <code>"verity"</code> or <code>"falsity"</code>. <code>repr(t)</code> is the same, and testimony is shown only by <code>testimony.explain</code>.</li>
+  <li><code>truth</code> is not a subclass of Python's <code>bool</code> or <code>int</code>, so arithmetic on truths raises <code>TypeError</code>.</li>
+</ul>
+
+<h2 id="testimony"><span class="secnum">3.3</span> Testimony<a class="anchor" href="#testimony" aria-label="Link to this section">#</a></h2>
+<p>A testimony is a finite tree of nodes. Each node has a kind, the data for that kind (source text, values, a message, a position) and an ordered list of children. The node kinds, how they are constructed and how they are rendered are specified in <a href="testimony.html">Section 5</a>. <span class="status status-settled">Settled</span></p>
+<p>Testimony holds references to the values it mentions, not copies. Rendering uses <code>repr()</code> of those values at render time. <span class="status status-proposed">Proposed</span></p>
+
+<h2 id="data"><span class="secnum">3.4</span> Data values<a class="anchor" href="#data" aria-label="Link to this section">#</a></h2>
+<p>A <code>data</code> declaration (<a href="statements.html#data">Section 6.5</a>) defines a class whose instances are <em>data values</em>.</p>
+<ul>
+  <li>Instances are immutable. Their fields cannot be reassigned. <span class="status status-settled">Settled</span></li>
+  <li>Instances are constructed positionally in field order: <code>Rect(2, 3)</code>. Construction by keyword, <code>Rect(w=2, h=3)</code>, is also permitted. <span class="status status-proposed">Proposed</span></li>
+  <li>Fields are readable as attributes: <code>Rect(2, 3).w == 2</code>.</li>
+  <li><code>repr</code> is <code>Name(field=value, ...)</code>, for example <code>Circle(r=1)</code>. <span class="status status-settled">Settled</span></li>
+  <li>Equality is structural: same class and equal fields. Hashing is consistent with equality. <span class="status status-proposed">Proposed</span></li>
+  <li>Data values can be matched by class patterns (<a href="statements.html#patterns">Section 6.4</a>).</li>
+</ul>
+<div class="code code-ity"><span class="code-label">verity</span><pre><code><span class="t-kw">data</span> Rect(w, h)
+
+r = Rect(<span class="t-num">2</span>, <span class="t-num">3</span>)
+print(r)
+print(r.w * r.h)
+print(r == Rect(<span class="t-num">2</span>, <span class="t-num">3</span>))</code></pre></div>
+<div class="code code-out"><span class="code-label">output</span><pre><code>Rect(w=2, h=3)
+6
+<span class="t-truth">verity</span></code></pre></div>
+
+<h2 id="functions"><span class="secnum">3.5</span> Functions<a class="anchor" href="#functions" aria-label="Link to this section">#</a></h2>
+<p>Functions are Python function objects. Two forms carry additional structure:</p>
+<ul>
+  <li><strong>Pattern-matching functions</strong> are defined with pattern parameters and extended with <code>addpattern def</code> (<a href="statements.html#pattern-functions">Section 6.3</a>). Calling one tries its cases in definition order. If no case matches, it raises <code>MatchError</code>.</li>
+  <li><strong>Partial applications</strong>, <code>f$(args)</code>, are callables that hold <code>f</code> and the supplied arguments (<a href="expressions.html#partial">Section 4.3</a>).</li>
+</ul>
+<p><code>MatchError</code> is a subclass of Python's <code>Exception</code>, provided by the runtime. <span class="status status-proposed">Proposed</span></p>
+
+    </article>
+    <nav class="pager" aria-label="Previous and next pages"><a class="pager-prev" href="lexical.html"><span>Previous</span>2. Lexical Analysis</a><a class="pager-next" href="expressions.html"><span>Next</span>4. Expressions</a></nav>
+    <footer class="page-footer">
+      <p>Verity Programming &middot; Henrik Gombos and Pranav Balakrishnan &middot; <a href="https://github.com/Henrik66/verity/blob/main/book/src/data-model.html">Source for this page</a></p>
+    </footer>
+  </main>
+  <nav class="on-page" aria-label="On this page"><p>On this page</p><ul><li><a href="#objects">Objects</a></li><li><a href="#truth">The truth type</a></li><li><a href="#testimony">Testimony</a></li><li><a href="#data">Data values</a></li><li><a href="#functions">Functions</a></li></ul></nav>
+</div>
+<script src="book.js" defer></script>
+</body>
+</html>

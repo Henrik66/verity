@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script>document.documentElement.classList.add("js")</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>4. Expressions | Verity Programming</title>
+<meta name="description" content="Verity Programming: the reference documentation for Verity, a functional language that compiles to Python and whose booleans testify.">
+<link rel="icon" href="../favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,800;1,9..144,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="book.css">
+</head>
+<body class="page-expressions">
+<a class="skip" href="#content">Skip to content</a>
+<header class="topbar">
+  <button class="menu-btn" type="button" aria-controls="sidebar" aria-expanded="false">
+    <span aria-hidden="true">&#9776;</span> Contents
+  </button>
+  <a class="topbar-title" href="cover.html"><svg class="smiley" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="#ffda46"/><g fill="#243e30"><ellipse cx="35" cy="41" rx="4.1" ry="7.5"/><ellipse cx="65" cy="41" rx="4.1" ry="7.5"/></g><path d="M25 57 C35 78 66 78 77 55" fill="none" stroke="#243e30" stroke-width="4" stroke-linecap="round"/></svg><span>Verity Programming</span></a>
+  <a class="topbar-link" href="../index.html">Verity home</a>
+</header>
+<div class="layout">
+  <aside class="sidebar" id="sidebar" aria-label="Book contents">
+    <a class="sidebar-cover" href="cover.html"><svg class="smiley" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="#ffda46"/><g fill="#243e30"><ellipse cx="35" cy="41" rx="4.1" ry="7.5"/><ellipse cx="65" cy="41" rx="4.1" ry="7.5"/></g><path d="M25 57 C35 78 66 78 77 55" fill="none" stroke="#243e30" stroke-width="4" stroke-linecap="round"/></svg><span>Verity Programming</span></a>
+    <nav><p class="toc-heading">Front matter</p><ul>
+<li><a href="cover.html">Cover</a></li>
+<li><a href="about.html">About These Docs</a></li>
+</ul>
+<p class="toc-heading">Reference</p><ul>
+<li><a href="overview.html"><span class="toc-num">1</span>Overview</a></li>
+<li><a href="lexical.html"><span class="toc-num">2</span>Lexical Analysis</a></li>
+<li><a href="data-model.html"><span class="toc-num">3</span>Data Model</a></li>
+<li><a href="expressions.html" aria-current="page"><span class="toc-num">4</span>Expressions</a></li>
+<li><a href="testimony.html"><span class="toc-num">5</span>Testimony Semantics</a></li>
+<li><a href="statements.html"><span class="toc-num">6</span>Statements and Definitions</a></li>
+<li><a href="python.html"><span class="toc-num">7</span>Python Interoperability</a></li>
+<li><a href="stdlib.html"><span class="toc-num">8</span>Standard Library</a></li>
+<li><a href="cli.html"><span class="toc-num">9</span>Command-Line Interface</a></li>
+<li><a href="implementation.html"><span class="toc-num">10</span>Implementation</a></li>
+</ul>
+<p class="toc-heading">Appendices</p><ul>
+<li><a href="grammar.html"><span class="toc-num">A</span>Grammar</a></li>
+<li><a href="glossary.html"><span class="toc-num">B</span>Glossary</a></li>
+</ul></nav>
+  </aside>
+  <main id="content" class="content">
+    <article>
+<h1><span class="h1-num">Section 4</span>Expressions</h1>
+<p>This section specifies Verity's expressions. Expressions not mentioned here (displays, comprehensions, subscriptions, slicing, attribute references, arithmetic, bitwise operators, conditional expressions) have Python's syntax and semantics.</p>
+
+<h2 id="precedence"><span class="secnum">4.1</span> Operator precedence<a class="anchor" href="#precedence" aria-label="Link to this section">#</a></h2>
+<p>From highest (binds tightest) to lowest. Operators in the same row have equal precedence. <span class="status status-proposed">Proposed</span> Where Verity shares an operator with Coconut, the relative order follows Coconut's.</p>
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Operators</th><th>Description</th><th>Associativity</th></tr></thead>
+  <tbody>
+    <tr><td><code>x(...)</code>, <code>x$(...)</code>, <code>x[...]</code>, <code>x.name</code></td><td>call, partial application, subscription, attribute</td><td>left</td></tr>
+    <tr><td><code>**</code></td><td>exponentiation</td><td>right</td></tr>
+    <tr><td><code>+x</code>, <code>-x</code>, <code>~x</code></td><td>unary</td><td>n/a</td></tr>
+    <tr><td><code>*</code>, <code>@</code>, <code>/</code>, <code>//</code>, <code>%</code></td><td>multiplicative</td><td>left</td></tr>
+    <tr><td><code>+</code>, <code>-</code></td><td>additive</td><td>left</td></tr>
+    <tr><td><code>&lt;&lt;</code>, <code>&gt;&gt;</code></td><td>shifts</td><td>left</td></tr>
+    <tr><td><code>&amp;</code></td><td>bitwise and</td><td>left</td></tr>
+    <tr><td><code>^</code></td><td>bitwise xor</td><td>left</td></tr>
+    <tr><td><code>|</code></td><td>bitwise or</td><td>left</td></tr>
+    <tr><td><code>..&gt;</code></td><td>forward composition</td><td>left</td></tr>
+    <tr><td><code>|&gt;</code></td><td>pipe</td><td>left</td></tr>
+    <tr><td><code>==</code> <code>!=</code> <code>&lt;</code> <code>&lt;=</code> <code>&gt;</code> <code>&gt;=</code> <code>in</code> <code>not in</code> <code>is</code> <code>is not</code></td><td>comparisons</td><td>see <a href="#comparisons">4.7</a></td></tr>
+    <tr><td><code>not</code></td><td>negation</td><td>n/a</td></tr>
+    <tr><td><code>because</code></td><td>custom testimony</td><td>none (not chainable)</td></tr>
+    <tr><td><code>and</code></td><td>conjunction</td><td>left</td></tr>
+    <tr><td><code>or</code></td><td>disjunction</td><td>left</td></tr>
+    <tr><td><code>x if c else y</code></td><td>conditional expression</td><td>right</td></tr>
+    <tr><td><code>-&gt;</code></td><td>lambda</td><td>right</td></tr>
+    <tr><td><code>forall</code>, <code>exists</code></td><td>quantifiers</td><td>body extends right</td></tr>
+  </tbody>
+</table>
+</div>
+<p>Consequences worth noting:</p>
+<ul>
+  <li><code>x |&gt; f == y</code> parses as <code>(x |&gt; f) == y</code>.</li>
+  <li><code>n % 2 == 0 because m</code> parses as <code>(n % 2 == 0) because m</code>, and <code>not p because m</code> as <code>(not p) because m</code>.</li>
+  <li><code>p because m and q</code> parses as <code>(p because m) and q</code>. The conformance examples parenthesize such operands anyway, and this document recommends doing so.</li>
+  <li>A quantifier's body extends as far right as possible, so a quantifier must be parenthesized to be piped: <code>(forall x in xs, p) |&gt; explain</code>.</li>
+</ul>
+
+<h2 id="primaries"><span class="secnum">4.2</span> Primaries<a class="anchor" href="#primaries" aria-label="Link to this section">#</a></h2>
+<div class="code code-ebnf"><span class="code-label">grammar</span><pre><code>primary   <span class="t-test">::=</span> atom trailer<span class="t-op">*</span>
+trailer   <span class="t-test">::=</span> <span class="t-str">"("</span> <span class="t-op">[</span>arguments<span class="t-op">]</span> <span class="t-str">")"</span> <span class="t-op">|</span> <span class="t-str">"$"</span> <span class="t-str">"("</span> <span class="t-op">[</span>arguments<span class="t-op">]</span> <span class="t-str">")"</span>
+            <span class="t-op">|</span> <span class="t-str">"["</span> subscripts <span class="t-str">"]"</span> <span class="t-op">|</span> <span class="t-str">"."</span> <span class="t-kw">NAME</span>
+atom      <span class="t-test">::=</span> <span class="t-kw">NAME</span> <span class="t-op">|</span> <span class="t-kw">NUMBER</span> <span class="t-op">|</span> <span class="t-kw">STRING</span><span class="t-op">+</span> <span class="t-op">|</span> <span class="t-str">"verity"</span> <span class="t-op">|</span> <span class="t-str">"falsity"</span> <span class="t-op">|</span> <span class="t-str">"None"</span>
+            <span class="t-op">|</span> <span class="t-str">"("</span> <span class="t-op">[</span>expression_list<span class="t-op">]</span> <span class="t-str">")"</span> <span class="t-op">|</span> list_display <span class="t-op">|</span> set_display <span class="t-op">|</span> dict_display</code></pre></div>
+<p>Atoms, calls, subscriptions and attribute references are as in Python. <code>verity</code> and <code>falsity</code> evaluate to truths with <code>literal</code> testimony (<a href="testimony.html#nodes">Section 5.1</a>).</p>
+
+<h2 id="partial"><span class="secnum">4.3</span> Partial application<a class="anchor" href="#partial" aria-label="Link to this section">#</a></h2>
+<div class="code code-ebnf"><span class="code-label">grammar</span><pre><code>partial   <span class="t-test">::=</span> primary <span class="t-str">"$"</span> <span class="t-str">"("</span> <span class="t-op">[</span>arguments<span class="t-op">]</span> <span class="t-str">")"</span></code></pre></div>
+<p><code>f$(a, b)</code> evaluates <code>f</code>, <code>a</code> and <code>b</code> immediately and produces a callable <code>g</code> such that <code>g(c, d)</code> is <code>f(a, b, c, d)</code>. Keyword arguments are supported, and keywords supplied at call time override those fixed by the partial. <span class="status status-proposed">Proposed</span> The semantics match Python's <code>functools.partial</code>.</p>
+<div class="code code-ity"><span class="code-label">verity</span><pre><code><span class="t-kw">def</span> power(base, exp) = base ** exp
+
+two_to = power<span class="t-op">$</span>(<span class="t-num">2</span>)
+print(two_to(<span class="t-num">10</span>))
+[<span class="t-num">1</span>, <span class="t-num">2</span>, <span class="t-num">3</span>] <span class="t-op">|&gt;</span> map<span class="t-op">$</span>(x <span class="t-op">-&gt;</span> x * <span class="t-num">10</span>) <span class="t-op">|&gt;</span> list <span class="t-op">|&gt;</span> print</code></pre></div>
+<div class="code code-out"><span class="code-label">output</span><pre><code>1024
+[10, 20, 30]</code></pre></div>
+<p>Coconut's <code>?</code> placeholder for skipping positional arguments is not supported. <span class="status status-open">Open</span></p>
+
+<h2 id="lambdas"><span class="secnum">4.4</span> Lambdas<a class="anchor" href="#lambdas" aria-label="Link to this section">#</a></h2>
+<div class="code code-ebnf"><span class="code-label">grammar</span><pre><code>lambda        <span class="t-test">::=</span> lambda_params <span class="t-str">"-&gt;"</span> expression
+lambda_params <span class="t-test">::=</span> <span class="t-kw">NAME</span> <span class="t-op">|</span> <span class="t-str">"("</span> <span class="t-op">[</span><span class="t-kw">NAME</span> (<span class="t-str">","</span> <span class="t-kw">NAME</span>)<span class="t-op">*</span> <span class="t-op">[</span><span class="t-str">","</span><span class="t-op">]</span><span class="t-op">]</span> <span class="t-str">")"</span></code></pre></div>
+<p>A lambda evaluates to a function whose body is the expression after <code>-&gt;</code>. The body extends as far right as possible, so <code>x -&gt; x + 1 |&gt; f</code> is <code>x -&gt; ((x + 1) |&gt; f)</code>. <span class="status status-settled">Settled</span> Default values, <code>*args</code> and <code>**kwargs</code> in lambda parameters are <span class="status status-open">Open</span>.</p>
+<div class="code code-ity"><span class="code-label">verity</span><pre><code>inc = x <span class="t-op">-&gt;</span> x + <span class="t-num">1</span>
+add = (x, y) <span class="t-op">-&gt;</span> x + y
+print(add(inc(<span class="t-num">1</span>), <span class="t-num">3</span>))</code></pre></div>
+<div class="code code-out"><span class="code-label">output</span><pre><code>5</code></pre></div>
+
+<h2 id="pipes"><span class="secnum">4.5</span> Pipes<a class="anchor" href="#pipes" aria-label="Link to this section">#</a></h2>
+<div class="code code-ebnf"><span class="code-label">grammar</span><pre><code>pipe      <span class="t-test">::=</span> compose (<span class="t-str">"|&gt;"</span> compose)<span class="t-op">*</span></code></pre></div>
+<p><code>x |&gt; f</code> evaluates <code>x</code>, then <code>f</code>, then calls <code>f(x)</code>. Pipes associate left, so <code>x |&gt; f |&gt; g</code> is <code>g(f(x))</code>. <span class="status status-settled">Settled</span> Only <code>|&gt;</code> is provided. Coconut's other pipe forms (<code>&lt;|</code>, <code>|*&gt;</code>, <code>|?&gt;</code> and so on) are <span class="status status-open">Open</span>.</p>
+
+<h2 id="composition"><span class="secnum">4.6</span> Composition<a class="anchor" href="#composition" aria-label="Link to this section">#</a></h2>
+<div class="code code-ebnf"><span class="code-label">grammar</span><pre><code>compose   <span class="t-test">::=</span> bit_or (<span class="t-str">"..&gt;"</span> bit_or)<span class="t-op">*</span></code></pre></div>
+<p><code>f ..&gt; g</code> evaluates both operands and produces a function <code>h</code> such that <code>h(*args, **kwargs)</code> is <code>g(f(*args, **kwargs))</code>. Composition associates left. <span class="status status-settled">Settled</span> for single-argument use. Forwarding of multiple arguments to <code>f</code> is <span class="status status-proposed">Proposed</span>.</p>
+<div class="code code-ity"><span class="code-label">verity</span><pre><code>shout = str.strip <span class="t-op">..&gt;</span> str.upper <span class="t-op">..&gt;</span> (s <span class="t-op">-&gt;</span> s + <span class="t-str">"!"</span>)
+print(shout(<span class="t-str">"  bluebell "</span>))</code></pre></div>
+<div class="code code-out"><span class="code-label">output</span><pre><code>BLUEBELL!</code></pre></div>
+
+<h2 id="comparisons"><span class="secnum">4.7</span> Comparisons<a class="anchor" href="#comparisons" aria-label="Link to this section">#</a></h2>
+<div class="code code-ebnf"><span class="code-label">grammar</span><pre><code>comparison <span class="t-test">::=</span> pipe (comp_op pipe)<span class="t-op">*</span>
+comp_op    <span class="t-test">::=</span> <span class="t-str">"=="</span> <span class="t-op">|</span> <span class="t-str">"!="</span> <span class="t-op">|</span> <span class="t-str">"&lt;"</span> <span class="t-op">|</span> <span class="t-str">"&gt;"</span> <span class="t-op">|</span> <span class="t-str">"&lt;="</span> <span class="t-op">|</span> <span class="t-str">"&gt;="</span> <span class="t-op">|</span> <span class="t-str">"in"</span> <span class="t-op">|</span> <span class="t-str">"not"</span> <span class="t-str">"in"</span> <span class="t-op">|</span> <span class="t-str">"is"</span> <span class="t-op">|</span> <span class="t-str">"is"</span> <span class="t-str">"not"</span></code></pre></div>
+<p>A comparison <code>a op b</code> evaluates <code>a</code> and then <code>b</code>, and applies Python's comparison protocol. Then: <span class="status status-settled">Settled</span></p>
+<ul>
+  <li>If the result <code>r</code> is a Python <code>bool</code>, the value of the comparison is a truth with the same truth value. Its testimony is a <em>comparison</em> node recording the source text of the whole comparison, both operand values and the relation that held (<a href="testimony.html#construction">Section 5.2</a>).</li>
+  <li>Otherwise, for example a numpy array or pandas Series, the value of the comparison is <code>r</code>, unchanged.</li>
+</ul>
+<p>Comparison testimony for <code>==</code>, <code>!=</code>, <code>&lt;</code>, <code>&lt;=</code>, <code>&gt;</code> and <code>&gt;=</code> is <span class="status status-settled">Settled</span>. For <code>in</code>, <code>not in</code>, <code>is</code> and <code>is not</code> it is <span class="status status-proposed">Proposed</span>, with the same form, e.g. <code>3 in xs: 3 not in [1, 2]</code>. The meaning and testimony of chained comparisons such as <code>a &lt; b &lt; c</code> are <span class="status status-open">Open</span>. Until they are settled, an implementation may reject chains.</p>
+
+<h2 id="boolean-operations"><span class="secnum">4.8</span> Boolean operations<a class="anchor" href="#boolean-operations" aria-label="Link to this section">#</a></h2>
+<div class="code code-ebnf"><span class="code-label">grammar</span><pre><code>or_test     <span class="t-test">::=</span> and_test (<span class="t-str">"or"</span> and_test)<span class="t-op">*</span>
+and_test    <span class="t-test">::=</span> because_test (<span class="t-str">"and"</span> because_test)<span class="t-op">*</span>
+not_test    <span class="t-test">::=</span> <span class="t-str">"not"</span> not_test <span class="t-op">|</span> comparison</code></pre></div>
+<p>Operands of <code>not</code>, <code>and</code> and <code>or</code> must be truths. A Python <code>bool</code> operand is first <em>lifted</em> to a truth (<a href="python.html#lifting">Section 7.2</a>). The behavior for operands that are neither, such as <code>name or "anonymous"</code>, is <span class="status status-open">Open</span>.</p>
+<ul>
+  <li><code>not p</code> is a truth with the opposite value. Its testimony wraps <code>p</code>'s. <span class="status status-settled">Settled</span></li>
+  <li><code>p and q</code> evaluates <code>p</code>. If <code>p</code> is a falsity, the result is <code>p</code>'s value and testimony, and <code>q</code> is not evaluated. Otherwise <code>q</code> is evaluated. A falsity <code>q</code> gives a falsity with <code>q</code>'s testimony, and a verity gives a verity whose testimony lists both. <span class="status status-settled">Settled</span></li>
+  <li><code>p or q</code> is the dual: it short-circuits on the first verity, and a falsity lists every operand's refutation. <span class="status status-settled">Settled</span></li>
+</ul>
+<p>Unlike Python, <code>and</code> and <code>or</code> always produce a truth, never one of their operands. Exact testimony construction is given in <a href="testimony.html#construction">Section 5.2</a>.</p>
+
+<h2 id="because"><span class="secnum">4.9</span> Custom testimony: <code>because</code><a class="anchor" href="#because" aria-label="Link to this section">#</a></h2>
+<div class="code code-ebnf"><span class="code-label">grammar</span><pre><code>because_test <span class="t-test">::=</span> not_test <span class="t-op">[</span><span class="t-str">"because"</span> not_test<span class="t-op">]</span></code></pre></div>
+<p><code>p because m</code> evaluates <code>p</code>, which must be a truth or liftable bool, and yields a truth with the same value. Its testimony is a <em>because</em> node carrying <code>str(m)</code>, with <code>p</code>'s testimony as its child. <span class="status status-settled">Settled</span> <code>m</code> states the claim that holds when <code>p</code> is a verity. It renders after <code>witnessed:</code> or <code>refuted:</code>.</p>
+<ul>
+  <li><code>m</code> is evaluated only if the testimony is observed (<a href="testimony.html#observation">Section 5.4</a>). <span class="status status-proposed">Proposed</span> A program must therefore not rely on side effects in <code>m</code>.</li>
+  <li><code>because</code> does not chain. <code>p because a because b</code> is a syntax error. <span class="status status-proposed">Proposed</span></li>
+</ul>
+<div class="code code-ity"><span class="code-label">verity</span><pre><code><span class="t-kw">from</span> testimony <span class="t-kw">import</span> explain
+
+is_even = n <span class="t-op">-&gt;</span> (n % <span class="t-num">2</span> == <span class="t-num">0</span> <span class="t-test">because</span> <span class="t-str">f"{n} is even"</span>)
+is_even(<span class="t-num">7</span>) <span class="t-op">|&gt;</span> explain <span class="t-op">|&gt;</span> print</code></pre></div>
+<div class="code code-out"><span class="code-label">output</span><pre><code><span class="t-truth">falsity</span>
+  <span class="t-label">refuted</span>: 7 is even
+    n % 2 == 0: 1 != 0</code></pre></div>
+
+<h2 id="quantifiers"><span class="secnum">4.10</span> Quantifiers<a class="anchor" href="#quantifiers" aria-label="Link to this section">#</a></h2>
+<div class="code code-ebnf"><span class="code-label">grammar</span><pre><code>quantifier <span class="t-test">::=</span> (<span class="t-str">"forall"</span> <span class="t-op">|</span> <span class="t-str">"exists"</span>) <span class="t-kw">NAME</span> <span class="t-str">"in"</span> or_test <span class="t-str">","</span> expression</code></pre></div>
+<p>A quantifier evaluates its iterable expression once, then iterates over it in order. For each element it binds the name to the element in a new scope local to the quantifier, and evaluates the body, which must yield a truth or liftable bool. <span class="status status-settled">Settled</span></p>
+<ul>
+  <li><code>forall</code> stops at the first falsity and yields a falsity whose testimony is a <em>counterexample</em> node. If the iterable is exhausted, it yields a verity with a <em>universal</em> node.</li>
+  <li><code>exists</code> stops at the first verity and yields a verity whose testimony is a <em>witness</em> node. If the iterable is exhausted, it yields a falsity with a <em>no-element</em> node.</li>
+</ul>
+<p>Over an empty iterable, <code>forall</code> yields a verity and <code>exists</code> a falsity. Infinite iterables are permitted: evaluation terminates if and when a deciding element is found. The bound name must be a single identifier. Destructuring targets such as <code>forall (k, v) in d.items(), ...</code> are <span class="status status-open">Open</span>.</p>
+<div class="code code-ity"><span class="code-label">verity</span><pre><code><span class="t-kw">from</span> testimony <span class="t-kw">import</span> explain
+
+grid = [[<span class="t-num">1</span>, <span class="t-num">0</span>], [<span class="t-num">0</span>, <span class="t-num">2</span>], [<span class="t-num">3</span>, <span class="t-num">4</span>]]
+(<span class="t-test">forall</span> row <span class="t-kw">in</span> grid, <span class="t-test">exists</span> x <span class="t-kw">in</span> row, x == <span class="t-num">0</span>) <span class="t-op">|&gt;</span> explain <span class="t-op">|&gt;</span> print</code></pre></div>
+<div class="code code-out"><span class="code-label">output</span><pre><code><span class="t-truth">falsity</span>
+  <span class="t-label">counterexample</span>: row = [3, 4] (grid[2])
+    no element of row satisfies x == 0</code></pre></div>
+
+<h2 id="conditional"><span class="secnum">4.11</span> Conditional expressions<a class="anchor" href="#conditional" aria-label="Link to this section">#</a></h2>
+<p><code>x if c else y</code> has Python's semantics. <code>c</code> may be a truth. Its testimony is not observed by the conditional expression itself, so it is eligible for erasure (<a href="testimony.html#erasure">Section 5.5</a>).</p>
+
+    </article>
+    <nav class="pager" aria-label="Previous and next pages"><a class="pager-prev" href="data-model.html"><span>Previous</span>3. Data Model</a><a class="pager-next" href="testimony.html"><span>Next</span>5. Testimony Semantics</a></nav>
+    <footer class="page-footer">
+      <p>Verity Programming &middot; Henrik Gombos and Pranav Balakrishnan &middot; <a href="https://github.com/Henrik66/verity/blob/main/book/src/expressions.html">Source for this page</a></p>
+    </footer>
+  </main>
+  <nav class="on-page" aria-label="On this page"><p>On this page</p><ul><li><a href="#precedence">Operator precedence</a></li><li><a href="#primaries">Primaries</a></li><li><a href="#partial">Partial application</a></li><li><a href="#lambdas">Lambdas</a></li><li><a href="#pipes">Pipes</a></li><li><a href="#composition">Composition</a></li><li><a href="#comparisons">Comparisons</a></li><li><a href="#boolean-operations">Boolean operations</a></li><li><a href="#because">Custom testimony: because</a></li><li><a href="#quantifiers">Quantifiers</a></li><li><a href="#conditional">Conditional expressions</a></li></ul></nav>
+</div>
+<script src="book.js" defer></script>
+</body>
+</html>

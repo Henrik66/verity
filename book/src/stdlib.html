@@ -1,0 +1,66 @@
+<p>The standard library consists of modules that are always importable from Verity. Their functions return truths whose testimony is meaningful at the library's level, not the level of its implementation. Module and function names are snake_case. [[settled]]</p>
+
+<h2 id="testimony">Module <code>testimony</code></h2>
+<p>Functions for working with truths and their testimony.</p>
+<dl class="api">
+  <dt><code>explain(t: truth) -&gt; str</code> [[settled]]</dt>
+  <dd>
+    <p>Return the rendering of <code>t</code> defined in <a href="testimony.html#rendering">Section 5.3</a>: <code>"verity"</code> or <code>"falsity"</code> on the first line, followed by the indented testimony tree, without a trailing newline. A Python <code>bool</code> argument is lifted first (<a href="python.html#lifting">Section 7.2</a>).</p>
+<pre class="ity">
+from testimony import explain
+print(explain(2 + 2 == 5))
+</pre>
+<pre class="out">
+falsity
+  2 + 2 == 5: 4 != 5
+</pre>
+  </dd>
+
+  <dt><code>to_bool(t: truth) -&gt; bool</code> [[settled]]</dt>
+  <dd><p>Return <code>True</code> if <code>t</code> is a verity and <code>False</code> if it is a falsity, discarding testimony. Use it when passing truth values to Python code that requires a <code>bool</code> (<a href="python.html#lowering">Section 7.3</a>).</p></dd>
+
+  <dt><code>as_dict(t: truth) -&gt; dict</code> [[proposed]]</dt>
+  <dd>
+    <p>Return the testimony as a JSON-serializable structure, for logging and tooling: <code>{"value": "falsity", "testimony": node}</code>, where each node is <code>{"kind": str, "line": str, "children": [node, ...]}</code> and <code>line</code> is the node's rendered line without indentation. Values appear only in their <code>repr()</code> form.</p>
+  </dd>
+</dl>
+
+<h2 id="truth-class">Class <code>Truth</code></h2>
+<p>The runtime class of truths. It is not normally named in Verity source: values are created by literals, comparisons and the operators in <a href="expressions.html">Section 4</a>.</p>
+<dl class="api">
+  <dt><code>bool(t)</code> [[settled]]</dt>
+  <dd><p><code>True</code> for a verity, <code>False</code> for a falsity.</p></dd>
+  <dt><code>str(t)</code>, <code>repr(t)</code> [[proposed]]</dt>
+  <dd><p><code>"verity"</code> or <code>"falsity"</code>.</p></dd>
+  <dt><code>t == u</code>, <code>hash(t)</code> [[proposed]]</dt>
+  <dd><p>Compare and hash by truth value only.</p></dd>
+  <dt><code>t.testimony</code> [[proposed]]</dt>
+  <dd><p>The root testimony node. Nodes are read-only objects with attributes <code>kind</code> (one of the kinds in <a href="testimony.html#nodes">Section 5.1</a>), <code>line</code> (the rendered line) and <code>children</code> (a tuple of nodes). Accessing this attribute counts as observing the testimony.</p></dd>
+</dl>
+
+<h2 id="string-ops">Module <code>string_ops</code></h2>
+<p>String predicates with character-level testimony.</p>
+<dl class="api">
+  <dt><code>is_alnum(s: str) -&gt; truth</code> [[settled]]</dt>
+  <dd>
+    <p>A verity if <code>s</code> is non-empty and every character is alphanumeric in the sense of Python's <code>str.isalnum</code>. Testimony, as a <em>text</em> node:</p>
+    <ul>
+      <li>verity: <code>every character of {repr(s)} is alphanumeric</code></li>
+      <li>falsity at the first offending character <code>c</code> at index <code>i</code>: <code>{repr(c)} at index {i} is not alphanumeric</code></li>
+      <li>falsity for the empty string: <code>'' is empty</code> [[proposed]]</li>
+    </ul>
+<pre class="ity">
+import string_ops
+from testimony import explain
+string_ops.is_alnum("grace_hopper") |> explain |> print
+</pre>
+<pre class="out">
+falsity
+  '_' at index 5 is not alphanumeric
+</pre>
+  </dd>
+</dl>
+<p>Further <code>string_ops</code> functions are [[open]]. Testifying counterparts of the <code>str.is*</code> predicates are the expected first additions.</p>
+
+<h2 id="list-ops">Module <code>list_ops</code></h2>
+<p>The module name is reserved for functional list helpers. Its contents are [[open]].</p>

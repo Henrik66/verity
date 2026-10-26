@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script>document.documentElement.classList.add("js")</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>8. Standard Library | Verity Programming</title>
+<meta name="description" content="Verity Programming: the reference documentation for Verity, a functional language that compiles to Python and whose booleans testify.">
+<link rel="icon" href="../favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,800;1,9..144,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="book.css">
+</head>
+<body class="page-stdlib">
+<a class="skip" href="#content">Skip to content</a>
+<header class="topbar">
+  <button class="menu-btn" type="button" aria-controls="sidebar" aria-expanded="false">
+    <span aria-hidden="true">&#9776;</span> Contents
+  </button>
+  <a class="topbar-title" href="cover.html"><svg class="smiley" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="#ffda46"/><g fill="#243e30"><ellipse cx="35" cy="41" rx="4.1" ry="7.5"/><ellipse cx="65" cy="41" rx="4.1" ry="7.5"/></g><path d="M25 57 C35 78 66 78 77 55" fill="none" stroke="#243e30" stroke-width="4" stroke-linecap="round"/></svg><span>Verity Programming</span></a>
+  <a class="topbar-link" href="../index.html">Verity home</a>
+</header>
+<div class="layout">
+  <aside class="sidebar" id="sidebar" aria-label="Book contents">
+    <a class="sidebar-cover" href="cover.html"><svg class="smiley" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="#ffda46"/><g fill="#243e30"><ellipse cx="35" cy="41" rx="4.1" ry="7.5"/><ellipse cx="65" cy="41" rx="4.1" ry="7.5"/></g><path d="M25 57 C35 78 66 78 77 55" fill="none" stroke="#243e30" stroke-width="4" stroke-linecap="round"/></svg><span>Verity Programming</span></a>
+    <nav><p class="toc-heading">Front matter</p><ul>
+<li><a href="cover.html">Cover</a></li>
+<li><a href="about.html">About These Docs</a></li>
+</ul>
+<p class="toc-heading">Reference</p><ul>
+<li><a href="overview.html"><span class="toc-num">1</span>Overview</a></li>
+<li><a href="lexical.html"><span class="toc-num">2</span>Lexical Analysis</a></li>
+<li><a href="data-model.html"><span class="toc-num">3</span>Data Model</a></li>
+<li><a href="expressions.html"><span class="toc-num">4</span>Expressions</a></li>
+<li><a href="testimony.html"><span class="toc-num">5</span>Testimony Semantics</a></li>
+<li><a href="statements.html"><span class="toc-num">6</span>Statements and Definitions</a></li>
+<li><a href="python.html"><span class="toc-num">7</span>Python Interoperability</a></li>
+<li><a href="stdlib.html" aria-current="page"><span class="toc-num">8</span>Standard Library</a></li>
+<li><a href="cli.html"><span class="toc-num">9</span>Command-Line Interface</a></li>
+<li><a href="implementation.html"><span class="toc-num">10</span>Implementation</a></li>
+</ul>
+<p class="toc-heading">Appendices</p><ul>
+<li><a href="grammar.html"><span class="toc-num">A</span>Grammar</a></li>
+<li><a href="glossary.html"><span class="toc-num">B</span>Glossary</a></li>
+</ul></nav>
+  </aside>
+  <main id="content" class="content">
+    <article>
+<h1><span class="h1-num">Section 8</span>Standard Library</h1>
+<p>The standard library consists of modules that are always importable from Verity. Their functions return truths whose testimony is meaningful at the library's level, not the level of its implementation. Module and function names are snake_case. <span class="status status-settled">Settled</span></p>
+
+<h2 id="testimony"><span class="secnum">8.1</span> Module <code>testimony</code><a class="anchor" href="#testimony" aria-label="Link to this section">#</a></h2>
+<p>Functions for working with truths and their testimony.</p>
+<dl class="api">
+  <dt><code>explain(t: truth) -&gt; str</code> <span class="status status-settled">Settled</span></dt>
+  <dd>
+    <p>Return the rendering of <code>t</code> defined in <a href="testimony.html#rendering">Section 5.3</a>: <code>"verity"</code> or <code>"falsity"</code> on the first line, followed by the indented testimony tree, without a trailing newline. A Python <code>bool</code> argument is lifted first (<a href="python.html#lifting">Section 7.2</a>).</p>
+<div class="code code-ity"><span class="code-label">verity</span><pre><code><span class="t-kw">from</span> testimony <span class="t-kw">import</span> explain
+print(explain(<span class="t-num">2</span> + <span class="t-num">2</span> == <span class="t-num">5</span>))</code></pre></div>
+<div class="code code-out"><span class="code-label">output</span><pre><code><span class="t-truth">falsity</span>
+  2 + 2 == 5: 4 != 5</code></pre></div>
+  </dd>
+
+  <dt><code>to_bool(t: truth) -&gt; bool</code> <span class="status status-settled">Settled</span></dt>
+  <dd><p>Return <code>True</code> if <code>t</code> is a verity and <code>False</code> if it is a falsity, discarding testimony. Use it when passing truth values to Python code that requires a <code>bool</code> (<a href="python.html#lowering">Section 7.3</a>).</p></dd>
+
+  <dt><code>as_dict(t: truth) -&gt; dict</code> <span class="status status-proposed">Proposed</span></dt>
+  <dd>
+    <p>Return the testimony as a JSON-serializable structure, for logging and tooling: <code>{"value": "falsity", "testimony": node}</code>, where each node is <code>{"kind": str, "line": str, "children": [node, ...]}</code> and <code>line</code> is the node's rendered line without indentation. Values appear only in their <code>repr()</code> form.</p>
+  </dd>
+</dl>
+
+<h2 id="truth-class"><span class="secnum">8.2</span> Class <code>Truth</code><a class="anchor" href="#truth-class" aria-label="Link to this section">#</a></h2>
+<p>The runtime class of truths. It is not normally named in Verity source: values are created by literals, comparisons and the operators in <a href="expressions.html">Section 4</a>.</p>
+<dl class="api">
+  <dt><code>bool(t)</code> <span class="status status-settled">Settled</span></dt>
+  <dd><p><code>True</code> for a verity, <code>False</code> for a falsity.</p></dd>
+  <dt><code>str(t)</code>, <code>repr(t)</code> <span class="status status-proposed">Proposed</span></dt>
+  <dd><p><code>"verity"</code> or <code>"falsity"</code>.</p></dd>
+  <dt><code>t == u</code>, <code>hash(t)</code> <span class="status status-proposed">Proposed</span></dt>
+  <dd><p>Compare and hash by truth value only.</p></dd>
+  <dt><code>t.testimony</code> <span class="status status-proposed">Proposed</span></dt>
+  <dd><p>The root testimony node. Nodes are read-only objects with attributes <code>kind</code> (one of the kinds in <a href="testimony.html#nodes">Section 5.1</a>), <code>line</code> (the rendered line) and <code>children</code> (a tuple of nodes). Accessing this attribute counts as observing the testimony.</p></dd>
+</dl>
+
+<h2 id="string-ops"><span class="secnum">8.3</span> Module <code>string_ops</code><a class="anchor" href="#string-ops" aria-label="Link to this section">#</a></h2>
+<p>String predicates with character-level testimony.</p>
+<dl class="api">
+  <dt><code>is_alnum(s: str) -&gt; truth</code> <span class="status status-settled">Settled</span></dt>
+  <dd>
+    <p>A verity if <code>s</code> is non-empty and every character is alphanumeric in the sense of Python's <code>str.isalnum</code>. Testimony, as a <em>text</em> node:</p>
+    <ul>
+      <li>verity: <code>every character of {repr(s)} is alphanumeric</code></li>
+      <li>falsity at the first offending character <code>c</code> at index <code>i</code>: <code>{repr(c)} at index {i} is not alphanumeric</code></li>
+      <li>falsity for the empty string: <code>'' is empty</code> <span class="status status-proposed">Proposed</span></li>
+    </ul>
+<div class="code code-ity"><span class="code-label">verity</span><pre><code><span class="t-kw">import</span> string_ops
+<span class="t-kw">from</span> testimony <span class="t-kw">import</span> explain
+string_ops.is_alnum(<span class="t-str">"grace_hopper"</span>) <span class="t-op">|&gt;</span> explain <span class="t-op">|&gt;</span> print</code></pre></div>
+<div class="code code-out"><span class="code-label">output</span><pre><code><span class="t-truth">falsity</span>
+  '_' at index 5 is not alphanumeric</code></pre></div>
+  </dd>
+</dl>
+<p>Further <code>string_ops</code> functions are <span class="status status-open">Open</span>. Testifying counterparts of the <code>str.is*</code> predicates are the expected first additions.</p>
+
+<h2 id="list-ops"><span class="secnum">8.4</span> Module <code>list_ops</code><a class="anchor" href="#list-ops" aria-label="Link to this section">#</a></h2>
+<p>The module name is reserved for functional list helpers. Its contents are <span class="status status-open">Open</span>.</p>
+
+    </article>
+    <nav class="pager" aria-label="Previous and next pages"><a class="pager-prev" href="python.html"><span>Previous</span>7. Python Interoperability</a><a class="pager-next" href="cli.html"><span>Next</span>9. Command-Line Interface</a></nav>
+    <footer class="page-footer">
+      <p>Verity Programming &middot; Henrik Gombos and Pranav Balakrishnan &middot; <a href="https://github.com/Henrik66/verity/blob/main/book/src/stdlib.html">Source for this page</a></p>
+    </footer>
+  </main>
+  <nav class="on-page" aria-label="On this page"><p>On this page</p><ul><li><a href="#testimony">Module testimony</a></li><li><a href="#truth-class">Class Truth</a></li><li><a href="#string-ops">Module string_ops</a></li><li><a href="#list-ops">Module list_ops</a></li></ul></nav>
+</div>
+<script src="book.js" defer></script>
+</body>
+</html>

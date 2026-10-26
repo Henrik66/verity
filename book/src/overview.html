@@ -1,0 +1,94 @@
+<p>Verity is a functional programming language that compiles to Python. Its truth values carry evidence for why they are true or false.</p>
+
+<h2 id="summary">Summary</h2>
+<ul>
+  <li><strong>Syntax.</strong> Python's statement and expression syntax, extended with Coconut's functional forms: <code>x -&gt; x + 1</code> lambdas, <code>|&gt;</code> pipes, <code>f$(args)</code> partial application, <code>..&gt;</code> composition, <code>match</code>, <code>data</code> types, and pattern-matched <code>def</code> extended by <code>addpattern def</code>. [[settled]]</li>
+  <li><strong>Truth values.</strong> The type <code>truth</code> has exactly two constructors, <code>verity</code> and <code>falsity</code>. [[settled]]</li>
+  <li><strong>Testimony.</strong> Every truth carries testimony: a verity carries a <em>witness</em> and a falsity a <em>refutation</em>. Comparisons, <code>and</code>, <code>or</code>, <code>not</code>, <code>forall</code>, <code>exists</code> and <code>because</code> construct testimony automatically. [[settled]]</li>
+  <li><strong>Erasure.</strong> Testimony that is never observed is not constructed. A truth used only as a branch condition compiles to a plain Python boolean expression. [[settled]]</li>
+  <li><strong>Target.</strong> Each <code>.ity</code> file compiles to one Python module that runs on CPython and imports a small runtime module. [[settled]]</li>
+</ul>
+
+<h2 id="example">Example</h2>
+<pre class="ity">
+from testimony import explain
+
+primes = [2, 3, 5, 7, 11, 13]
+
+all_odd = forall p in primes, p % 2 == 1
+has_big = exists p in primes, p > 10
+
+all_odd |> explain |> print
+has_big |> explain |> print
+
+if not all_odd:
+    print("not every prime is odd, and Verity can tell you why")
+</pre>
+<pre class="out">
+falsity
+  counterexample: p = 2 (primes[0])
+    p % 2 == 1: 0 != 1
+verity
+  witness: p = 11 (primes[4])
+    p > 10: 11 > 10
+not every prime is odd, and Verity can tell you why
+</pre>
+<p>This program is <code>examples/counterexample.ity</code>, one of the conformance examples.</p>
+
+<h2 id="goals">Design goals</h2>
+<ol>
+  <li><strong>Truth values explain themselves.</strong> A falsity identifies the comparison, element or claim that decided it, together with the values involved.</li>
+  <li><strong>No cost when unused.</strong> Programs that never observe testimony run as fast as the equivalent Python.</li>
+  <li><strong>Python compatibility.</strong> Any Python module can be imported, and compiled Verity modules can be imported from Python.</li>
+  <li><strong>Functional by default.</strong> Short function definitions, pipelines, algebraic data types and pattern matching are the primary style.</li>
+  <li><strong>Readable output.</strong> Generated Python stays structurally close to its source.</li>
+</ol>
+
+<h2 id="execution">Execution model</h2>
+<div class="flow" role="img" aria-label="Pipeline: a .ity source file is compiled by the verity compiler, written in Rust, into a Python module plus the truth.py runtime, which CPython executes.">
+  <span><code>file.ity</code></span><span class="arrow">→</span>
+  <span><code>verity</code> (Rust)</span><span class="arrow">→</span>
+  <span>Python module + <code>truth.py</code></span><span class="arrow">→</span>
+  <span>CPython</span>
+</div>
+<ul>
+  <li>The compiler, <code>verity</code>, is a standalone executable written in Rust. [[settled]]</li>
+  <li>A compilation unit is one source file. Each <code>.ity</code> file produces one Python module. [[settled]]</li>
+  <li>Generated modules import the runtime module <code>truth.py</code>, which is embedded in the compiler binary and written next to generated code. [[settled]]</li>
+  <li>Programs are executed by CPython. The minimum supported Python version is not yet fixed. [[open]]</li>
+</ul>
+<p>See <a href="cli.html">Section 9</a> for the command-line interface and <a href="implementation.html">Section 10</a> for the compiler's internals.</p>
+
+<h2 id="differences">Differences from Python and Coconut</h2>
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Topic</th><th>Python</th><th>Verity</th></tr></thead>
+  <tbody>
+    <tr><td>Boolean values</td><td><code>True</code>, <code>False</code> of type <code>bool</code></td><td><code>verity</code>, <code>falsity</code> of type <code>truth</code>, carrying testimony</td></tr>
+    <tr><td>Comparisons</td><td>Return <code>bool</code> (or any object)</td><td>Return a <code>truth</code> when Python would return a <code>bool</code>; otherwise the result passes through unchanged (<a href="python.html#pass-through">Section 7.4</a>)</td></tr>
+    <tr><td><code>and</code>, <code>or</code></td><td>Return one of the operands</td><td>Return a <code>truth</code> combining the operands' testimony</td></tr>
+    <tr><td>Quantifiers</td><td><code>all()</code>, <code>any()</code> return <code>bool</code></td><td><code>forall</code>, <code>exists</code> expressions return a <code>truth</code> naming the deciding element</td></tr>
+    <tr><td>Function definitions</td><td><code>def</code> blocks, <code>lambda</code></td><td>Additionally <code>def f(x) = expr</code>, <code>x -&gt; expr</code>, pattern parameters and <code>addpattern def</code></td></tr>
+  </tbody>
+</table>
+</div>
+<p>Relative to Coconut, Verity adopts only the functional forms listed in the summary. Other Coconut operators and features (for example, the <code>|*&gt;</code> family of pipes, <code>&lt;..</code>, <code>::</code> and the <code>?</code> placeholder in partial application) are not part of Verity. Whether any will be added is [[open]].</p>
+<aside class="note">
+  <p class="callout-title"><!--smiley--> Lambda arrow</p>
+  <p>Current Coconut documentation describes <code>-&gt;</code> lambdas as deprecated in favor of <code>=&gt;</code>. Verity's specification uses <code>-&gt;</code>, and this document follows the specification.</p>
+</aside>
+
+<h2 id="status">Implementation status</h2>
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Milestone</th><th>Scope</th><th>Status</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td>Runtime: <code>Truth</code>, testimony, combinators, rendering</td><td>not started</td></tr>
+    <tr><td>2</td><td>Literals, <code>def</code>, comparisons, <code>and</code>/<code>or</code>/<code>not</code>; <code>verity run</code></td><td>not started</td></tr>
+    <tr><td>3</td><td><code>forall</code>, <code>exists</code>, <code>because</code></td><td>not started</td></tr>
+    <tr><td>4</td><td>Coconut features, one at a time</td><td>not started</td></tr>
+    <tr><td>5</td><td>Testimony erasure</td><td>not started</td></tr>
+  </tbody>
+</table>
+</div>
+<p>A milestone is complete when every conformance example within its scope produces exactly its expected output.</p>

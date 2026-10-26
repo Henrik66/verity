@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script>document.documentElement.classList.add("js")</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Appendix A. Grammar | Verity Programming</title>
+<meta name="description" content="Verity Programming: the reference documentation for Verity, a functional language that compiles to Python and whose booleans testify.">
+<link rel="icon" href="../favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,800;1,9..144,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="book.css">
+</head>
+<body class="page-grammar">
+<a class="skip" href="#content">Skip to content</a>
+<header class="topbar">
+  <button class="menu-btn" type="button" aria-controls="sidebar" aria-expanded="false">
+    <span aria-hidden="true">&#9776;</span> Contents
+  </button>
+  <a class="topbar-title" href="cover.html"><svg class="smiley" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="#ffda46"/><g fill="#243e30"><ellipse cx="35" cy="41" rx="4.1" ry="7.5"/><ellipse cx="65" cy="41" rx="4.1" ry="7.5"/></g><path d="M25 57 C35 78 66 78 77 55" fill="none" stroke="#243e30" stroke-width="4" stroke-linecap="round"/></svg><span>Verity Programming</span></a>
+  <a class="topbar-link" href="../index.html">Verity home</a>
+</header>
+<div class="layout">
+  <aside class="sidebar" id="sidebar" aria-label="Book contents">
+    <a class="sidebar-cover" href="cover.html"><svg class="smiley" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="#ffda46"/><g fill="#243e30"><ellipse cx="35" cy="41" rx="4.1" ry="7.5"/><ellipse cx="65" cy="41" rx="4.1" ry="7.5"/></g><path d="M25 57 C35 78 66 78 77 55" fill="none" stroke="#243e30" stroke-width="4" stroke-linecap="round"/></svg><span>Verity Programming</span></a>
+    <nav><p class="toc-heading">Front matter</p><ul>
+<li><a href="cover.html">Cover</a></li>
+<li><a href="about.html">About These Docs</a></li>
+</ul>
+<p class="toc-heading">Reference</p><ul>
+<li><a href="overview.html"><span class="toc-num">1</span>Overview</a></li>
+<li><a href="lexical.html"><span class="toc-num">2</span>Lexical Analysis</a></li>
+<li><a href="data-model.html"><span class="toc-num">3</span>Data Model</a></li>
+<li><a href="expressions.html"><span class="toc-num">4</span>Expressions</a></li>
+<li><a href="testimony.html"><span class="toc-num">5</span>Testimony Semantics</a></li>
+<li><a href="statements.html"><span class="toc-num">6</span>Statements and Definitions</a></li>
+<li><a href="python.html"><span class="toc-num">7</span>Python Interoperability</a></li>
+<li><a href="stdlib.html"><span class="toc-num">8</span>Standard Library</a></li>
+<li><a href="cli.html"><span class="toc-num">9</span>Command-Line Interface</a></li>
+<li><a href="implementation.html"><span class="toc-num">10</span>Implementation</a></li>
+</ul>
+<p class="toc-heading">Appendices</p><ul>
+<li><a href="grammar.html" aria-current="page"><span class="toc-num">A</span>Grammar</a></li>
+<li><a href="glossary.html"><span class="toc-num">B</span>Glossary</a></li>
+</ul></nav>
+  </aside>
+  <main id="content" class="content">
+    <article>
+<h1><span class="h1-num">Appendix A</span>Grammar</h1>
+<p>The complete grammar of Verity, in the notation of <a href="about.html#notation">About These Docs</a>. <span class="status status-proposed">Proposed</span> Token classes come from <a href="lexical.html">Section 2</a>. Rules marked "as in Python" abbreviate Python's grammar for the same construct.</p>
+
+<h2 id="modules"><span class="secnum">A.1</span> Modules and statements<a class="anchor" href="#modules" aria-label="Link to this section">#</a></h2>
+<div class="code code-ebnf"><span class="code-label">grammar</span><pre><code>file          <span class="t-test">::=</span> statement<span class="t-op">*</span> <span class="t-kw">ENDMARKER</span>
+statement     <span class="t-test">::=</span> simple_stmt <span class="t-op">|</span> compound_stmt
+simple_stmt   <span class="t-test">::=</span> small_stmt (<span class="t-str">";"</span> small_stmt)<span class="t-op">*</span> <span class="t-op">[</span><span class="t-str">";"</span><span class="t-op">]</span> <span class="t-kw">NEWLINE</span>
+small_stmt    <span class="t-test">::=</span> expression_stmt <span class="t-op">|</span> assign_stmt <span class="t-op">|</span> return_stmt <span class="t-op">|</span> import_stmt
+                <span class="t-op">|</span> raise_stmt <span class="t-op">|</span> assert_stmt <span class="t-op">|</span> del_stmt
+                <span class="t-op">|</span> <span class="t-str">"pass"</span> <span class="t-op">|</span> <span class="t-str">"break"</span> <span class="t-op">|</span> <span class="t-str">"continue"</span>
+                <span class="t-op">|</span> <span class="t-str">"global"</span> <span class="t-kw">NAME</span> (<span class="t-str">","</span> <span class="t-kw">NAME</span>)<span class="t-op">*</span> <span class="t-op">|</span> <span class="t-str">"nonlocal"</span> <span class="t-kw">NAME</span> (<span class="t-str">","</span> <span class="t-kw">NAME</span>)<span class="t-op">*</span>
+expression_stmt <span class="t-test">::=</span> expression_list
+assign_stmt   <span class="t-test">::=</span> (target_list <span class="t-str">"="</span>)<span class="t-op">+</span> expression_list
+                <span class="t-op">|</span> target augassign expression_list
+return_stmt   <span class="t-test">::=</span> <span class="t-str">"return"</span> <span class="t-op">[</span>expression_list<span class="t-op">]</span>
+raise_stmt    <span class="t-test">::=</span> <span class="t-str">"raise"</span> <span class="t-op">[</span>expression <span class="t-op">[</span><span class="t-str">"from"</span> expression<span class="t-op">]</span><span class="t-op">]</span>
+assert_stmt   <span class="t-test">::=</span> <span class="t-str">"assert"</span> expression <span class="t-op">[</span><span class="t-str">","</span> expression<span class="t-op">]</span>
+del_stmt      <span class="t-test">::=</span> <span class="t-str">"del"</span> target_list
+import_stmt   <span class="t-test">::=</span> <span class="t-com">(* as in Python *)</span>
+
+compound_stmt <span class="t-test">::=</span> funcdef <span class="t-op">|</span> data_def <span class="t-op">|</span> if_stmt <span class="t-op">|</span> while_stmt <span class="t-op">|</span> for_stmt
+                <span class="t-op">|</span> match_stmt <span class="t-op">|</span> try_stmt <span class="t-op">|</span> with_stmt
+block         <span class="t-test">::=</span> simple_stmt <span class="t-op">|</span> <span class="t-kw">NEWLINE</span> <span class="t-kw">INDENT</span> statement<span class="t-op">+</span> <span class="t-kw">DEDENT</span>
+if_stmt       <span class="t-test">::=</span> <span class="t-str">"if"</span> expression <span class="t-str">":"</span> block (<span class="t-str">"elif"</span> expression <span class="t-str">":"</span> block)<span class="t-op">*</span> <span class="t-op">[</span><span class="t-str">"else"</span> <span class="t-str">":"</span> block<span class="t-op">]</span>
+while_stmt    <span class="t-test">::=</span> <span class="t-str">"while"</span> expression <span class="t-str">":"</span> block <span class="t-op">[</span><span class="t-str">"else"</span> <span class="t-str">":"</span> block<span class="t-op">]</span>
+for_stmt      <span class="t-test">::=</span> <span class="t-str">"for"</span> target_list <span class="t-str">"in"</span> expression_list <span class="t-str">":"</span> block <span class="t-op">[</span><span class="t-str">"else"</span> <span class="t-str">":"</span> block<span class="t-op">]</span>
+try_stmt      <span class="t-test">::=</span> <span class="t-com">(* as in Python *)</span>
+with_stmt     <span class="t-test">::=</span> <span class="t-com">(* as in Python *)</span></code></pre></div>
+
+<h2 id="definitions"><span class="secnum">A.2</span> Definitions<a class="anchor" href="#definitions" aria-label="Link to this section">#</a></h2>
+<div class="code code-ebnf"><span class="code-label">grammar</span><pre><code>funcdef       <span class="t-test">::=</span> <span class="t-op">[</span><span class="t-str">"addpattern"</span><span class="t-op">]</span> <span class="t-str">"def"</span> <span class="t-kw">NAME</span> <span class="t-str">"("</span> <span class="t-op">[</span>param_list<span class="t-op">]</span> <span class="t-str">")"</span> <span class="t-op">[</span><span class="t-str">"-&gt;"</span> expression<span class="t-op">]</span> body
+body          <span class="t-test">::=</span> <span class="t-str">"="</span> expression <span class="t-kw">NEWLINE</span> <span class="t-op">|</span> <span class="t-str">":"</span> block
+param_list    <span class="t-test">::=</span> param (<span class="t-str">","</span> param)<span class="t-op">*</span> <span class="t-op">[</span><span class="t-str">","</span><span class="t-op">]</span>
+param         <span class="t-test">::=</span> <span class="t-kw">NAME</span> <span class="t-op">[</span><span class="t-str">"="</span> expression<span class="t-op">]</span> <span class="t-op">|</span> <span class="t-str">"*"</span> <span class="t-kw">NAME</span> <span class="t-op">|</span> <span class="t-str">"**"</span> <span class="t-kw">NAME</span> <span class="t-op">|</span> pattern
+data_def      <span class="t-test">::=</span> <span class="t-str">"data"</span> <span class="t-kw">NAME</span> <span class="t-str">"("</span> <span class="t-op">[</span><span class="t-kw">NAME</span> (<span class="t-str">","</span> <span class="t-kw">NAME</span>)<span class="t-op">*</span> <span class="t-op">[</span><span class="t-str">","</span><span class="t-op">]</span><span class="t-op">]</span> <span class="t-str">")"</span> <span class="t-kw">NEWLINE</span></code></pre></div>
+
+<h2 id="match"><span class="secnum">A.3</span> Pattern matching<a class="anchor" href="#match" aria-label="Link to this section">#</a></h2>
+<div class="code code-ebnf"><span class="code-label">grammar</span><pre><code>match_stmt    <span class="t-test">::=</span> <span class="t-str">"match"</span> expression <span class="t-str">":"</span> <span class="t-kw">NEWLINE</span> <span class="t-kw">INDENT</span> case_block<span class="t-op">+</span> <span class="t-kw">DEDENT</span>
+case_block    <span class="t-test">::=</span> <span class="t-str">"case"</span> pattern <span class="t-op">[</span><span class="t-str">"if"</span> expression<span class="t-op">]</span> <span class="t-str">":"</span> block
+pattern       <span class="t-test">::=</span> or_pattern <span class="t-op">[</span><span class="t-str">"as"</span> <span class="t-kw">NAME</span><span class="t-op">]</span>
+or_pattern    <span class="t-test">::=</span> closed_pattern (<span class="t-str">"|"</span> closed_pattern)<span class="t-op">*</span>
+closed_pattern <span class="t-test">::=</span> literal_pattern <span class="t-op">|</span> <span class="t-kw">NAME</span> <span class="t-op">|</span> <span class="t-str">"_"</span> <span class="t-op">|</span> class_pattern
+                <span class="t-op">|</span> sequence_pattern <span class="t-op">|</span> <span class="t-str">"("</span> pattern <span class="t-str">")"</span>
+literal_pattern <span class="t-test">::=</span> <span class="t-op">[</span><span class="t-str">"-"</span><span class="t-op">]</span> <span class="t-kw">NUMBER</span> <span class="t-op">|</span> <span class="t-kw">STRING</span><span class="t-op">+</span> <span class="t-op">|</span> <span class="t-str">"None"</span> <span class="t-op">|</span> <span class="t-str">"verity"</span> <span class="t-op">|</span> <span class="t-str">"falsity"</span>
+class_pattern <span class="t-test">::=</span> dotted_name <span class="t-str">"("</span> <span class="t-op">[</span>pattern (<span class="t-str">","</span> pattern)<span class="t-op">*</span> <span class="t-op">[</span><span class="t-str">","</span><span class="t-op">]</span><span class="t-op">]</span> <span class="t-str">")"</span>
+sequence_pattern <span class="t-test">::=</span> <span class="t-str">"["</span> <span class="t-op">[</span>pattern (<span class="t-str">","</span> pattern)<span class="t-op">*</span> <span class="t-op">[</span><span class="t-str">","</span><span class="t-op">]</span><span class="t-op">]</span> <span class="t-str">"]"</span>
+dotted_name   <span class="t-test">::=</span> <span class="t-kw">NAME</span> (<span class="t-str">"."</span> <span class="t-kw">NAME</span>)<span class="t-op">*</span></code></pre></div>
+
+<h2 id="expressions"><span class="secnum">A.4</span> Expressions<a class="anchor" href="#expressions" aria-label="Link to this section">#</a></h2>
+<div class="code code-ebnf"><span class="code-label">grammar</span><pre><code>expression_list <span class="t-test">::=</span> expression (<span class="t-str">","</span> expression)<span class="t-op">*</span> <span class="t-op">[</span><span class="t-str">","</span><span class="t-op">]</span>
+expression    <span class="t-test">::=</span> quantifier <span class="t-op">|</span> lambda <span class="t-op">|</span> conditional
+quantifier    <span class="t-test">::=</span> (<span class="t-str">"forall"</span> <span class="t-op">|</span> <span class="t-str">"exists"</span>) <span class="t-kw">NAME</span> <span class="t-str">"in"</span> or_test <span class="t-str">","</span> expression
+lambda        <span class="t-test">::=</span> lambda_params <span class="t-str">"-&gt;"</span> expression
+lambda_params <span class="t-test">::=</span> <span class="t-kw">NAME</span> <span class="t-op">|</span> <span class="t-str">"("</span> <span class="t-op">[</span><span class="t-kw">NAME</span> (<span class="t-str">","</span> <span class="t-kw">NAME</span>)<span class="t-op">*</span> <span class="t-op">[</span><span class="t-str">","</span><span class="t-op">]</span><span class="t-op">]</span> <span class="t-str">")"</span>
+conditional   <span class="t-test">::=</span> or_test <span class="t-op">[</span><span class="t-str">"if"</span> or_test <span class="t-str">"else"</span> expression<span class="t-op">]</span>
+
+or_test       <span class="t-test">::=</span> and_test (<span class="t-str">"or"</span> and_test)<span class="t-op">*</span>
+and_test      <span class="t-test">::=</span> because_test (<span class="t-str">"and"</span> because_test)<span class="t-op">*</span>
+because_test  <span class="t-test">::=</span> not_test <span class="t-op">[</span><span class="t-str">"because"</span> not_test<span class="t-op">]</span>
+not_test      <span class="t-test">::=</span> <span class="t-str">"not"</span> not_test <span class="t-op">|</span> comparison
+comparison    <span class="t-test">::=</span> pipe (comp_op pipe)<span class="t-op">*</span>
+comp_op       <span class="t-test">::=</span> <span class="t-str">"=="</span> <span class="t-op">|</span> <span class="t-str">"!="</span> <span class="t-op">|</span> <span class="t-str">"&lt;"</span> <span class="t-op">|</span> <span class="t-str">"&gt;"</span> <span class="t-op">|</span> <span class="t-str">"&lt;="</span> <span class="t-op">|</span> <span class="t-str">"&gt;="</span>
+                <span class="t-op">|</span> <span class="t-str">"in"</span> <span class="t-op">|</span> <span class="t-str">"not"</span> <span class="t-str">"in"</span> <span class="t-op">|</span> <span class="t-str">"is"</span> <span class="t-op">|</span> <span class="t-str">"is"</span> <span class="t-str">"not"</span>
+pipe          <span class="t-test">::=</span> compose (<span class="t-str">"|&gt;"</span> compose)<span class="t-op">*</span>
+compose       <span class="t-test">::=</span> bit_or (<span class="t-str">"..&gt;"</span> bit_or)<span class="t-op">*</span>
+bit_or        <span class="t-test">::=</span> bit_xor (<span class="t-str">"|"</span> bit_xor)<span class="t-op">*</span>
+bit_xor       <span class="t-test">::=</span> bit_and (<span class="t-str">"^"</span> bit_and)<span class="t-op">*</span>
+bit_and       <span class="t-test">::=</span> shift (<span class="t-str">"&amp;"</span> shift)<span class="t-op">*</span>
+shift         <span class="t-test">::=</span> arith ((<span class="t-str">"&lt;&lt;"</span> <span class="t-op">|</span> <span class="t-str">"&gt;&gt;"</span>) arith)<span class="t-op">*</span>
+arith         <span class="t-test">::=</span> term ((<span class="t-str">"+"</span> <span class="t-op">|</span> <span class="t-str">"-"</span>) term)<span class="t-op">*</span>
+term          <span class="t-test">::=</span> factor ((<span class="t-str">"*"</span> <span class="t-op">|</span> <span class="t-str">"@"</span> <span class="t-op">|</span> <span class="t-str">"/"</span> <span class="t-op">|</span> <span class="t-str">"//"</span> <span class="t-op">|</span> <span class="t-str">"%"</span>) factor)<span class="t-op">*</span>
+factor        <span class="t-test">::=</span> (<span class="t-str">"+"</span> <span class="t-op">|</span> <span class="t-str">"-"</span> <span class="t-op">|</span> <span class="t-str">"~"</span>) factor <span class="t-op">|</span> power
+power         <span class="t-test">::=</span> primary <span class="t-op">[</span><span class="t-str">"**"</span> factor<span class="t-op">]</span>
+
+primary       <span class="t-test">::=</span> atom trailer<span class="t-op">*</span>
+trailer       <span class="t-test">::=</span> <span class="t-str">"("</span> <span class="t-op">[</span>arguments<span class="t-op">]</span> <span class="t-str">")"</span> <span class="t-op">|</span> <span class="t-str">"$"</span> <span class="t-str">"("</span> <span class="t-op">[</span>arguments<span class="t-op">]</span> <span class="t-str">")"</span>
+                <span class="t-op">|</span> <span class="t-str">"["</span> subscripts <span class="t-str">"]"</span> <span class="t-op">|</span> <span class="t-str">"."</span> <span class="t-kw">NAME</span>
+arguments     <span class="t-test">::=</span> argument (<span class="t-str">","</span> argument)<span class="t-op">*</span> <span class="t-op">[</span><span class="t-str">","</span><span class="t-op">]</span>
+argument      <span class="t-test">::=</span> expression <span class="t-op">|</span> <span class="t-kw">NAME</span> <span class="t-str">"="</span> expression <span class="t-op">|</span> <span class="t-str">"*"</span> expression <span class="t-op">|</span> <span class="t-str">"**"</span> expression
+subscripts    <span class="t-test">::=</span> <span class="t-com">(* as in Python *)</span>
+atom          <span class="t-test">::=</span> <span class="t-kw">NAME</span> <span class="t-op">|</span> <span class="t-kw">NUMBER</span> <span class="t-op">|</span> <span class="t-kw">STRING</span><span class="t-op">+</span> <span class="t-op">|</span> <span class="t-str">"verity"</span> <span class="t-op">|</span> <span class="t-str">"falsity"</span> <span class="t-op">|</span> <span class="t-str">"None"</span>
+                <span class="t-op">|</span> <span class="t-str">"("</span> <span class="t-op">[</span>expression_list<span class="t-op">]</span> <span class="t-str">")"</span> <span class="t-op">|</span> <span class="t-str">"("</span> expression comp_for <span class="t-str">")"</span>
+                <span class="t-op">|</span> <span class="t-str">"["</span> <span class="t-op">[</span>expression_list <span class="t-op">|</span> expression comp_for<span class="t-op">]</span> <span class="t-str">"]"</span>
+                <span class="t-op">|</span> <span class="t-str">"{"</span> <span class="t-op">[</span>dict_or_set<span class="t-op">]</span> <span class="t-str">"}"</span>
+comp_for      <span class="t-test">::=</span> <span class="t-com">(* as in Python *)</span>
+dict_or_set   <span class="t-test">::=</span> <span class="t-com">(* as in Python *)</span></code></pre></div>
+
+<h2 id="notes"><span class="secnum">A.5</span> Notes<a class="anchor" href="#notes" aria-label="Link to this section">#</a></h2>
+<ul>
+  <li>In <code>lambda</code>, the parser distinguishes <code>NAME "-&gt;"</code> and <code>"(" … ")" "-&gt;"</code> from ordinary parenthesized expressions by looking ahead to the arrow.</li>
+  <li>In a call, <code>f(forall x in xs, p, y)</code> passes two arguments: the quantifier (body <code>p</code>) and <code>y</code>. The body is an <code>expression</code>, not an <code>expression_list</code>, so it stops at the next comma.</li>
+  <li><code>because_test</code> permits at most one <code>because</code> (<a href="expressions.html#because">Section 4.9</a>).</li>
+  <li>Chained comparisons are syntactically accepted, but their semantics are open (<a href="expressions.html#comparisons">Section 4.7</a>).</li>
+</ul>
+
+    </article>
+    <nav class="pager" aria-label="Previous and next pages"><a class="pager-prev" href="implementation.html"><span>Previous</span>10. Implementation</a><a class="pager-next" href="glossary.html"><span>Next</span>Appendix B. Glossary</a></nav>
+    <footer class="page-footer">
+      <p>Verity Programming &middot; Henrik Gombos and Pranav Balakrishnan &middot; <a href="https://github.com/Henrik66/verity/blob/main/book/src/grammar.html">Source for this page</a></p>
+    </footer>
+  </main>
+  <nav class="on-page" aria-label="On this page"><p>On this page</p><ul><li><a href="#modules">Modules and statements</a></li><li><a href="#definitions">Definitions</a></li><li><a href="#match">Pattern matching</a></li><li><a href="#expressions">Expressions</a></li><li><a href="#notes">Notes</a></li></ul></nav>
+</div>
+<script src="book.js" defer></script>
+</body>
+</html>

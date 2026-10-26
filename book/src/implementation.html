@@ -1,0 +1,57 @@
+<p>This section describes the reference implementation: a compiler written in Rust and a runtime written in Python. It is informative. Other implementations need only conform to Sections 2 through 9.</p>
+
+<h2 id="architecture">Architecture</h2>
+<div class="flow" role="img" aria-label="Compiler stages: source text, lexer, tokens, parser, syntax tree, compiler, Python source.">
+  <span>source</span><span class="arrow">→</span><span>lexer</span><span class="arrow">→</span><span>tokens</span><span class="arrow">→</span><span>parser</span><span class="arrow">→</span><span>AST</span><span class="arrow">→</span><span>compiler</span><span class="arrow">→</span><span>Python</span>
+</div>
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Module</th><th>Responsibility</th></tr></thead>
+  <tbody>
+    <tr><td><code>src/lexer.rs</code></td><td>Tokens, indentation (<code>INDENT</code>/<code>DEDENT</code>), source spans</td></tr>
+    <tr><td><code>src/parser.rs</code></td><td>Recursive descent for statements, Pratt parsing for expressions</td></tr>
+    <tr><td><code>src/ast.rs</code></td><td>Syntax tree types. Every node carries a span.</td></tr>
+    <tr><td><code>src/compiler.rs</code></td><td>Lowering to Python, testimony construction, erasure</td></tr>
+    <tr><td><code>src/cli.rs</code></td><td>The <code>verity</code> command (<a href="cli.html">Section 9</a>)</td></tr>
+    <tr><td><code>src/runtime.rs</code></td><td>Embeds <code>runtime/truth.py</code> via <code>include_str!</code></td></tr>
+    <tr><td><code>runtime/truth.py</code></td><td><code>Truth</code>, testimony nodes, combinators, rendering</td></tr>
+  </tbody>
+</table>
+</div>
+<p>The compiler has no run-time dependencies. The parser is hand-written rather than generated, because the grammar is indentation-sensitive and its precedence table (<a href="expressions.html#precedence">Section 4.1</a>) includes non-Python operators.</p>
+
+<h2 id="lexer">Lexer</h2>
+<p>The lexer implements <a href="lexical.html">Section 2</a>. It tracks bracket depth so that line breaks inside brackets produce no <code>NEWLINE</code>, and maintains the indentation stack described in <a href="lexical.html#indentation">Section 2.3</a>. Each token records a byte span. Spans are used both for diagnostics and to recover the exact source text quoted by comparison, universal and no-element testimony.</p>
+
+<h2 id="parser">Parser</h2>
+<p>Statements are parsed by recursive descent, with one function per grammar rule in <a href="grammar.html">Appendix A</a>. Expressions use a Pratt parser driven by a single binding-power table, which is the precedence table in Section 4.1. Prefix forms (<code>not</code>, unary operators, lambdas, quantifiers) and infix forms (all binary operators, <code>because</code>, call, partial application) are table entries.</p>
+
+<h2 id="lowering">Lowering</h2>
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Verity</th><th>Generated Python (illustrative)</th></tr></thead>
+  <tbody>
+    <tr><td><code>x |&gt; f</code></td><td><code>f(x)</code></td></tr>
+    <tr><td><code>f ..&gt; g</code></td><td><code>_v.compose(f, g)</code></td></tr>
+    <tr><td><code>f$(a)</code></td><td><code>functools.partial(f, a)</code></td></tr>
+    <tr><td><code>x -&gt; e</code></td><td><code>lambda x: e</code></td></tr>
+    <tr><td><code>def f(x) = e</code></td><td><code>def f(x): return e</code></td></tr>
+    <tr><td><code>data P(x, y)</code></td><td>a frozen class with <code>__match_args__ = ("x", "y")</code></td></tr>
+    <tr><td><code>a &lt; b</code> (observed)</td><td><code>_v.compare(a, "&lt;", b, src="a &lt; b")</code></td></tr>
+    <tr><td><code>a &lt; b</code> (erased)</td><td><code>a &lt; b</code></td></tr>
+    <tr><td><code>p and q</code> (observed)</td><td><code>_v.and_(lambda: p, lambda: q)</code></td></tr>
+    <tr><td><code>p because m</code> (observed)</td><td><code>_v.because(p, lambda: m)</code></td></tr>
+    <tr><td><code>forall x in xs, b</code> (observed)</td><td><code>_v.forall(xs, lambda x: b, name="x", src_xs="xs", src_body="b")</code></td></tr>
+  </tbody>
+</table>
+</div>
+<p>Operands of <code>and</code>/<code>or</code> and the messages of <code>because</code> are wrapped in thunks to preserve short-circuiting and laziness. The names <code>_v</code>, <code>compare</code>, <code>and_</code> and so on illustrate the shape of the runtime interface. They are not final.</p>
+
+<h2 id="runtime">Runtime</h2>
+<p><code>runtime/truth.py</code> implements the <code>Truth</code> class, the node kinds in <a href="testimony.html#nodes">Section 5.1</a>, the combinators targeted by lowering, lifting (<a href="python.html#lifting">Section 7.2</a>) and the renderer behind <code>explain</code>. The compiler embeds the file at build time and writes it next to generated code, so the compiler and runtime versions always match.</p>
+
+<h2 id="erasure-pass">Erasure pass</h2>
+<p>Erasure runs on the AST after name resolution. For each truth-producing expression it computes whether the expression's testimony is observed, using the rules of <a href="testimony.html#observation">Section 5.4</a>. The analysis is conservative and intraprocedural: any flow it cannot follow counts as observed. Unobserved expressions are lowered to their plain Python form. <code>VERITY_NO_ERASE=1</code> disables the pass, and the conformance suite is run in both modes.</p>
+
+<h2 id="conformance">Conformance</h2>
+<p>The files <code>examples/*.ity</code> with expected output <code>examples/*.expected</code> form the conformance suite. An implementation conforms to a milestone when each example within that milestone's scope prints exactly its expected output, byte for byte, with and without erasure.</p>

@@ -1,0 +1,55 @@
+<p>The <code>verity</code> executable compiles and runs Verity programs. The command names <code>run</code> and <code>compile</code> are [[settled]]. Everything else in this section is [[proposed]].</p>
+
+<h2 id="synopsis">Synopsis</h2>
+<pre class="sh">
+$ verity run FILE.ity [ARG...]
+$ verity compile FILE.ity [-o OUT.py]
+$ verity --version
+$ verity --help
+</pre>
+
+<h2 id="run">verity run</h2>
+<p>Compiles <code>FILE.ity</code> and executes it with Python. Arguments after the file name are passed to the program as <code>sys.argv[1:]</code>, and <code>sys.argv[0]</code> is the source path.</p>
+<ul>
+  <li>Generated code and the runtime are written to a cache directory, <code>__verity__/</code>, next to the source file. The directory is reused across runs and can be deleted at any time.</li>
+  <li>The program's standard input, output and error are those of the <code>verity</code> process.</li>
+  <li>Imported <code>.ity</code> modules in the same directory are compiled on demand.</li>
+</ul>
+
+<h2 id="compile">verity compile</h2>
+<p>Compiles <code>FILE.ity</code> to Python without running it. By default the generated module is written to standard output. With <code>-o OUT.py</code>, it is written to <code>OUT.py</code> and the runtime module <code>truth.py</code> is written to the same directory.</p>
+<pre class="sh">
+$ verity compile hello.ity -o build/hello.py
+$ python3 build/hello.py
+</pre>
+
+<h2 id="exit-status">Exit status</h2>
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Status</th><th>Meaning</th></tr></thead>
+  <tbody>
+    <tr><td>0</td><td>Success. For <code>run</code>, the program exited with status 0.</td></tr>
+    <tr><td>1</td><td>A compile error was reported.</td></tr>
+    <tr><td>2</td><td>Invalid command-line usage.</td></tr>
+    <tr><td>other</td><td>For <code>run</code>, the exit status of the Python process.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="diagnostics">Diagnostics</h2>
+<p>Errors are written to standard error, one per diagnostic, in the form:</p>
+<pre class="out">
+hello.ity:3:14: error: expected ')' to close '(' at 3:5
+</pre>
+<p>Line and column numbers are 1-based. Columns count Unicode scalar values.</p>
+
+<h2 id="environment">Environment</h2>
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Variable</th><th>Effect</th></tr></thead>
+  <tbody>
+    <tr><td><code>VERITY_PYTHON</code></td><td>Python interpreter used by <code>run</code>. Default: <code>python3</code> on the <code>PATH</code>.</td></tr>
+    <tr><td><code>VERITY_NO_ERASE</code></td><td>If set to <code>1</code>, disables testimony erasure. This is for checking that erasure does not change output.</td></tr>
+  </tbody>
+</table>
+</div>

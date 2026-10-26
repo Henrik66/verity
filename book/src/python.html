@@ -1,19 +1,25 @@
-<p>Verity compiles to Python and runs on CPython, so any Python library is one <code>import</code> away. Python code knows nothing about testimony, though. This chapter covers the rules at the boundary: what happens when Python values meet Verity truths, and the reverse.</p>
+<p>Verity programs run on CPython and use Python libraries directly. This section specifies the conversions at the boundary between Verity truths and Python values.</p>
 
-<h2 id="imports">Using Python libraries</h2>
-<p>Importing works exactly as in Python, and so does calling the imported functions:</p>
+<h2 id="calling-python">Calling Python from Verity</h2>
+<p>Any module importable by the executing Python interpreter can be imported. Python functions, classes and values are used with ordinary call, attribute and subscription syntax. [[settled]]</p>
 <pre class="ity">
 import json
-from pathlib import Path
 from statistics import mean
 
-scores = Path("scores.json").read_text() |> json.loads
+scores = json.loads("[61, 74, 88]")
 print(mean(scores))
 </pre>
-<p>The compiled program is ordinary Python, so it can also be imported <em>from</em> Python. A Python project can adopt Verity one module at a time.</p>
+<pre class="out">
+74.33333333333333
+</pre>
 
-<h2 id="lifting">Rule 1: Python booleans become truths</h2>
-<p>When Python code hands back a plain <code>True</code> or <code>False</code> where Verity expects a truth, the runtime <em>lifts</em> it into a truth. Python can't explain its answer, so the testimony records what Verity does know: the call that produced the boolean, with its argument values:</p>
+<h2 id="lifting">Rule 1: lifting Python booleans</h2>
+<p>A Python <code>bool</code> that appears where a truth is required is <em>lifted</em> into a truth with the same value. The positions that require a truth are: the operands of <code>not</code>, <code>and</code> and <code>or</code>, the left operand of <code>because</code>, the body of a quantifier, and the argument of <code>testimony.explain</code>. [[settled]]</p>
+<p>The lifted truth's testimony is a <em>lifted</em> node: [[proposed]]</p>
+<ul>
+  <li>When the bool is the direct result of a call, the node renders the callee and argument values: <code>str.isdigit('4a') returned False</code>.</li>
+  <li>Otherwise it renders the source text: <code>flag returned True</code>.</li>
+</ul>
 <pre class="ity">
 from testimony import explain
 
@@ -24,26 +30,23 @@ code.isdigit() |> explain |> print
 falsity
   str.isdigit('4a') returned False
 </pre>
-<p>Lifted testimony is thin, but it is honest. For richer testimony, wrap the check in a Verity predicate with <code>because</code>, or use the standard library's testifying versions, such as those in <code>string_ops</code>.</p>
 
-<h2 id="lowering">Rule 2: Truths work as Python booleans</h2>
-<p>Going the other way, a Verity truth behaves like a Python boolean in all the usual places: <code>if</code>, <code>while</code>, <code>all()</code>, <code>any()</code>, <code>filter()</code>, <code>sorted(key=...)</code> and so on. Python libraries that just test a value's truthiness will never notice the difference.</p>
-<p>A few places insist on an actual <code>bool</code>. Examples include <code>json.dumps</code>, strict <code>isinstance(x, bool)</code> checks and some C extensions. For those, convert explicitly with <code>to_bool</code>:</p>
+<h2 id="lowering">Rule 2: truths as Python values</h2>
+<p>A truth passed to Python code is a <code>Truth</code> object. It defines <code>__bool__</code>, so it behaves correctly in Python conditions, <code>all()</code>, <code>any()</code>, <code>filter()</code>, sorting keys and anywhere else truthiness is used. [[settled]]</p>
+<p>Code that requires an actual <code>bool</code> (<code>json.dumps</code>, <code>isinstance(x, bool)</code> checks, some C extensions) must convert explicitly with <code>testimony.to_bool</code>: [[settled]]</p>
 <pre class="ity">
 import json
 from testimony import to_bool
 
-passed = forall s in scores, s >= 50
-json.dumps({"passed": to_bool(passed)}) |> print
+passed = forall s in [61, 74, 88], s >= 50
+print(json.dumps({"passed": to_bool(passed)}))
 </pre>
 <pre class="out">
 {"passed": true}
 </pre>
-<p>(This assumes every score is at least 50.)</p>
 
-<h2 id="pass-through">Rule 3: Non-boolean comparisons pass through</h2>
-<p>Some libraries redefine comparison operators to return something other than a boolean. In numpy, <code>array &gt; 0</code> compares element by element and returns an array. In pandas, <code>df["age"] &gt; 30</code> returns a Series used to filter rows. Wrapping those results in truths would break the libraries.</p>
-<p>So the rule is: when a comparison's result is not a <code>bool</code>, Verity returns it untouched. Everything works as it does in Python:</p>
+<h2 id="pass-through">Rule 3: non-boolean comparisons</h2>
+<p>If a comparison's Python result is not a <code>bool</code>, it is returned unchanged and no truth is created. Libraries that overload comparisons, such as numpy and pandas, therefore work unmodified. [[settled]]</p>
 <pre class="ity">
 import numpy as np
 
@@ -53,34 +56,27 @@ print(a[a > 0])
 <pre class="out">
 [3 4]
 </pre>
-<p>This is easy to get wrong in an implementation, so it is pinned down by tests from the first compiler milestone onward.</p>
+<p>Applying <code>and</code>, <code>or</code>, <code>not</code> or <code>because</code> to such a result is subject to the open question in <a href="#open">Section 7.8</a>.</p>
 
-<h2 id="requirements">Rule 4: Python is required to run programs</h2>
-<p>The <code>verity</code> compiler is a standalone Rust binary. Running a compiled program needs <code>python3</code> on the machine, just as running a Python program does. The runtime module, <code>truth.py</code>, is written out by the compiler, so there is no Python package to install.</p>
+<h2 id="requirements">Rule 4: runtime requirements</h2>
+<p>The compiler is a standalone executable. Running a compiled program requires a Python 3 interpreter. The runtime module is written by the compiler, so no Python package needs to be installed. [[settled]]</p>
 
-<h2 id="tracebacks">Rule 5: Tracebacks point at generated Python (for now)</h2>
-<p>When a Verity program raises an exception, the traceback CPython prints refers to lines in the generated Python file, not in your <code>.ity</code> source. The generated code is designed to stay close to the source, so the mapping is usually easy to follow by eye. Proper source mapping is planned but not yet scheduled.</p>
+<h2 id="tracebacks">Rule 5: tracebacks</h2>
+<p>Exceptions raised by a Verity program produce CPython tracebacks that refer to the generated Python file. [[settled]] Mapping tracebacks back to <code>.ity</code> source lines is planned but not scheduled.</p>
+
+<h2 id="from-python">Calling Verity from Python</h2>
+<p>A compiled Verity module is a Python module. Python code can import it and call its functions. Functions that return truths return <code>Truth</code> objects, which Python can test for truthiness, pass to <code>to_bool</code>, or render with <code>explain</code>. [[proposed]]</p>
+<pre class="py">
+from validate import valid_username
+from truth import explain
+
+result = valid_username(form["username"])
+if not result:
+    log.info(explain(result))
+</pre>
 
 <h2 id="open">Open questions</h2>
-<aside class="design">
-  <p class="callout-title"><!--smiley--> Design note: <code>and</code>/<code>or</code> on non-truths</p>
-  <p>In Python, <code>name or "anonymous"</code> returns a value, not a boolean, and is a common idiom. When Verity rewrites <code>or</code> into a testimony-building call, what should happen if an operand isn't a truth? One proposal is to fall back to Python's semantics whenever either operand is not a truth or a <code>bool</code>. That keeps the idiom working, but it means <code>or</code> returns different kinds of values depending on its inputs.</p>
-</aside>
-<aside class="design">
-  <p class="callout-title"><!--smiley--> Design note: <code>in</code>, <code>is</code> and chained comparisons</p>
-  <p>Should <code>x in xs</code> and <code>x is None</code> testify like comparisons, with output such as <code>3 in xs: 3 not in [1, 2]</code>? And how should a chained comparison like <code>0 &lt;= x &lt; 10</code> print: as one line, or as an <code>all of:</code> over its two halves? Both are proposed to testify, but neither format is settled.</p>
-</aside>
-
-<h2 id="exercises">Exercises</h2>
-<div class="exercise">
-  <h4>Exercise: lifted testimony <span class="stars">★</span></h4>
-  <p>What testimony would <code>"hello".startswith("he")</code> carry when it is passed to <code>explain</code>?</p>
-</div>
-<div class="exercise">
-  <h4>Exercise: upgrade the evidence <span class="stars">★★</span></h4>
-  <p>Wrap <code>str.isdigit</code> in a Verity predicate <code>all_digits(s)</code> whose refutation names the first non-digit character, like <code>string_ops.is_alnum</code> does. (Hint: <code>forall</code> and <code>enumerate</code>.)</p>
-</div>
-<div class="exercise">
-  <h4>Exercise: the <code>or</code> idiom <span class="stars">★★★</span></h4>
-  <p>Take a position on the first design note in Section 7.7. Write three short programs whose behavior differs between the two options and say which behavior you'd want.</p>
-</div>
+<ul>
+  <li><strong>Non-truth operands of <code>and</code>/<code>or</code>.</strong> Python's <code>name or "anonymous"</code> idiom returns an operand. Options: (a) fall back to Python semantics when either operand is neither a truth nor a bool; (b) lift by Python truthiness; (c) reject at run time with <code>TypeError</code>. [[open]]</li>
+  <li><strong><code>to_bool</code> on non-truths.</strong> Whether <code>to_bool</code> accepts any value and applies Python truthiness, or only truths and bools. [[open]]</li>
+</ul>

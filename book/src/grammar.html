@@ -1,0 +1,101 @@
+<p>The complete grammar of Verity, in the notation of <a href="about.html#notation">About These Docs</a>. [[proposed]] Token classes come from <a href="lexical.html">Section 2</a>. Rules marked "as in Python" abbreviate Python's grammar for the same construct.</p>
+
+<h2 id="modules">Modules and statements</h2>
+<pre class="ebnf">
+file          ::= statement* ENDMARKER
+statement     ::= simple_stmt | compound_stmt
+simple_stmt   ::= small_stmt (";" small_stmt)* [";"] NEWLINE
+small_stmt    ::= expression_stmt | assign_stmt | return_stmt | import_stmt
+                | raise_stmt | assert_stmt | del_stmt
+                | "pass" | "break" | "continue"
+                | "global" NAME ("," NAME)* | "nonlocal" NAME ("," NAME)*
+expression_stmt ::= expression_list
+assign_stmt   ::= (target_list "=")+ expression_list
+                | target augassign expression_list
+return_stmt   ::= "return" [expression_list]
+raise_stmt    ::= "raise" [expression ["from" expression]]
+assert_stmt   ::= "assert" expression ["," expression]
+del_stmt      ::= "del" target_list
+import_stmt   ::= (* as in Python *)
+
+compound_stmt ::= funcdef | data_def | if_stmt | while_stmt | for_stmt
+                | match_stmt | try_stmt | with_stmt
+block         ::= simple_stmt | NEWLINE INDENT statement+ DEDENT
+if_stmt       ::= "if" expression ":" block ("elif" expression ":" block)* ["else" ":" block]
+while_stmt    ::= "while" expression ":" block ["else" ":" block]
+for_stmt      ::= "for" target_list "in" expression_list ":" block ["else" ":" block]
+try_stmt      ::= (* as in Python *)
+with_stmt     ::= (* as in Python *)
+</pre>
+
+<h2 id="definitions">Definitions</h2>
+<pre class="ebnf">
+funcdef       ::= ["addpattern"] "def" NAME "(" [param_list] ")" ["->" expression] body
+body          ::= "=" expression NEWLINE | ":" block
+param_list    ::= param ("," param)* [","]
+param         ::= NAME ["=" expression] | "*" NAME | "**" NAME | pattern
+data_def      ::= "data" NAME "(" [NAME ("," NAME)* [","]] ")" NEWLINE
+</pre>
+
+<h2 id="match">Pattern matching</h2>
+<pre class="ebnf">
+match_stmt    ::= "match" expression ":" NEWLINE INDENT case_block+ DEDENT
+case_block    ::= "case" pattern ["if" expression] ":" block
+pattern       ::= or_pattern ["as" NAME]
+or_pattern    ::= closed_pattern ("|" closed_pattern)*
+closed_pattern ::= literal_pattern | NAME | "_" | class_pattern
+                | sequence_pattern | "(" pattern ")"
+literal_pattern ::= ["-"] NUMBER | STRING+ | "None" | "verity" | "falsity"
+class_pattern ::= dotted_name "(" [pattern ("," pattern)* [","]] ")"
+sequence_pattern ::= "[" [pattern ("," pattern)* [","]] "]"
+dotted_name   ::= NAME ("." NAME)*
+</pre>
+
+<h2 id="expressions">Expressions</h2>
+<pre class="ebnf">
+expression_list ::= expression ("," expression)* [","]
+expression    ::= quantifier | lambda | conditional
+quantifier    ::= ("forall" | "exists") NAME "in" or_test "," expression
+lambda        ::= lambda_params "->" expression
+lambda_params ::= NAME | "(" [NAME ("," NAME)* [","]] ")"
+conditional   ::= or_test ["if" or_test "else" expression]
+
+or_test       ::= and_test ("or" and_test)*
+and_test      ::= because_test ("and" because_test)*
+because_test  ::= not_test ["because" not_test]
+not_test      ::= "not" not_test | comparison
+comparison    ::= pipe (comp_op pipe)*
+comp_op       ::= "==" | "!=" | "<" | ">" | "<=" | ">="
+                | "in" | "not" "in" | "is" | "is" "not"
+pipe          ::= compose ("|>" compose)*
+compose       ::= bit_or ("..>" bit_or)*
+bit_or        ::= bit_xor ("|" bit_xor)*
+bit_xor       ::= bit_and ("^" bit_and)*
+bit_and       ::= shift ("&" shift)*
+shift         ::= arith (("<<" | ">>") arith)*
+arith         ::= term (("+" | "-") term)*
+term          ::= factor (("*" | "@" | "/" | "//" | "%") factor)*
+factor        ::= ("+" | "-" | "~") factor | power
+power         ::= primary ["**" factor]
+
+primary       ::= atom trailer*
+trailer       ::= "(" [arguments] ")" | "$" "(" [arguments] ")"
+                | "[" subscripts "]" | "." NAME
+arguments     ::= argument ("," argument)* [","]
+argument      ::= expression | NAME "=" expression | "*" expression | "**" expression
+subscripts    ::= (* as in Python *)
+atom          ::= NAME | NUMBER | STRING+ | "verity" | "falsity" | "None"
+                | "(" [expression_list] ")" | "(" expression comp_for ")"
+                | "[" [expression_list | expression comp_for] "]"
+                | "{" [dict_or_set] "}"
+comp_for      ::= (* as in Python *)
+dict_or_set   ::= (* as in Python *)
+</pre>
+
+<h2 id="notes">Notes</h2>
+<ul>
+  <li>In <code>lambda</code>, the parser distinguishes <code>NAME "-&gt;"</code> and <code>"(" … ")" "-&gt;"</code> from ordinary parenthesized expressions by looking ahead to the arrow.</li>
+  <li>In a call, <code>f(forall x in xs, p, y)</code> passes two arguments: the quantifier (body <code>p</code>) and <code>y</code>. The body is an <code>expression</code>, not an <code>expression_list</code>, so it stops at the next comma.</li>
+  <li><code>because_test</code> permits at most one <code>because</code> (<a href="expressions.html#because">Section 4.9</a>).</li>
+  <li>Chained comparisons are syntactically accepted, but their semantics are open (<a href="expressions.html#comparisons">Section 4.7</a>).</li>
+</ul>

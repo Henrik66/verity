@@ -1,0 +1,102 @@
+<p>This section specifies Verity's statements and definitions. Statements not listed here are not part of the language. Those listed as "as in Python" have Python's syntax and semantics.</p>
+
+<h2 id="simple">Simple statements</h2>
+<ul>
+  <li><strong>Expression statements</strong> and <strong>assignment</strong> (<code>=</code>, augmented assignment, unpacking): as in Python.</li>
+  <li><code>return</code>, <code>pass</code>, <code>break</code>, <code>continue</code>, <code>raise</code>, <code>del</code>, <code>assert</code>: as in Python. [[proposed]] Whether a failing <code>assert</code> on a truth includes its testimony in the <code>AssertionError</code> message is [[open]].</li>
+</ul>
+
+<h2 id="def">Function definitions</h2>
+<pre class="ebnf">
+funcdef     ::= ["addpattern"] "def" NAME "(" [param_list] ")" ["->" expression] body
+body        ::= "=" expression NEWLINE | ":" block
+param_list  ::= param ("," param)* [","]
+param       ::= NAME ["=" expression] | "*" NAME | "**" NAME | pattern
+</pre>
+<p>A <code>def</code> binds <code>NAME</code> to a function in the current scope. The body has two forms: [[settled]]</p>
+<ul>
+  <li><strong>Assignment form</strong>: <code>def f(x) = expr</code>. The function returns the value of <code>expr</code>. This is equivalent to <code>def f(x): return expr</code>.</li>
+  <li><strong>Block form</strong>: <code>def f(x):</code> followed by an indented block, as in Python.</li>
+</ul>
+<p>If every parameter is a plain name, the definition is an ordinary Python function. If any parameter is a pattern other than a plain name, the definition is a <em>pattern-matching function</em>.</p>
+<pre class="ity">
+def square(x) = x * x
+def hypotenuse(a, b) = (square(a) + square(b)) ** 0.5
+
+def describe(n):
+    kind = "even" if n % 2 == 0 else "odd"
+    return f"{n} is {kind}"
+</pre>
+
+<h2 id="pattern-functions">Pattern-matching functions</h2>
+<p>A pattern-matching function has an ordered list of <em>cases</em>, each a parameter list of patterns and a body. [[settled]]</p>
+<ul>
+  <li>A <code>def</code> with pattern parameters creates a pattern-matching function with one case, replacing any previous binding of the name.</li>
+  <li><code>addpattern def f(...)</code> appends a case to the pattern-matching function currently bound to <code>f</code>. If <code>f</code> is unbound, or is not a pattern-matching function, it is an error: a compile-time error when the compiler can determine this, otherwise <code>TypeError</code> at run time. [[proposed]]</li>
+  <li>A call tries the cases in the order they were added. The first case whose patterns all match the arguments runs, with the pattern variables bound. If no case matches, the call raises <code>MatchError</code>.</li>
+</ul>
+<pre class="ity">
+data Circle(r)
+data Rect(w, h)
+
+def area(Circle(r)) = 3.14159 * r ** 2
+addpattern def area(Rect(w, h)) = w * h
+
+def factorial(0) = 1
+addpattern def factorial(n) = n * factorial(n - 1)
+
+print(area(Rect(2, 3)), factorial(5))
+</pre>
+<pre class="out">
+6 120
+</pre>
+
+<h2 id="patterns">Patterns</h2>
+<pre class="ebnf">
+pattern          ::= or_pattern ["as" NAME]
+or_pattern       ::= closed_pattern ("|" closed_pattern)*
+closed_pattern   ::= literal_pattern | capture | "_" | class_pattern
+                   | sequence_pattern | "(" pattern ")"
+capture          ::= NAME
+class_pattern    ::= dotted_name "(" [pattern ("," pattern)* [","]] ")"
+sequence_pattern ::= "[" [pattern ("," pattern)* [","]] "]"
+</pre>
+<p>Pattern semantics are those of Python's structural pattern matching (PEP 634): [[proposed]]</p>
+<ul>
+  <li>A literal pattern matches an equal value. A capture binds a name, and <code>_</code> matches anything without binding.</li>
+  <li>A class pattern <code>C(p₁, …, pₙ)</code> matches an instance of <code>C</code> whose fields, in declaration order, match <code>p₁ … pₙ</code>. <code>data</code> types support positional class patterns.</li>
+  <li>A sequence pattern matches a sequence of the same length whose elements match.</li>
+</ul>
+<p>Mapping patterns, star patterns and keyword patterns in class patterns are [[open]].</p>
+
+<h2 id="data">Data declarations</h2>
+<pre class="ebnf">
+data_def ::= "data" NAME "(" [NAME ("," NAME)* [","]] ")" NEWLINE
+</pre>
+<p><code>data Name(f₁, …, fₙ)</code> binds <code>Name</code> to a new class of immutable data values with fields <code>f₁ … fₙ</code> (<a href="data-model.html#data">Section 3.4</a>). [[settled]] Data declarations with a body (methods), default field values, type annotations and inheritance are [[open]].</p>
+
+<h2 id="match">The <code>match</code> statement</h2>
+<pre class="ebnf">
+match_stmt ::= "match" expression ":" NEWLINE INDENT case_block+ DEDENT
+case_block ::= "case" pattern ["if" expression] ":" block
+</pre>
+<p>As in Python. The subject is evaluated once, then the cases are tried in order. The first case whose pattern matches and whose guard, if any, holds has its block executed. If no case matches, nothing happens and no exception is raised, unlike a pattern-matching function. [[settled]] A guard may be a truth, and its testimony is not observed.</p>
+<pre class="ity">
+def is_square(shape):
+    match shape:
+        case Square(_):
+            return verity because "it was built as a Square"
+        case Rect(w, h):
+            return w == h
+        case _:
+            return falsity because f"{shape} is a rectangle"
+</pre>
+
+<h2 id="control-flow">Conditionals and loops</h2>
+<p><code>if</code>/<code>elif</code>/<code>else</code>, <code>while</code> and <code>for</code> are as in Python. [[settled]] Conditions may be truths or any Python value, with Python truthiness applying to non-truths. The testimony of a condition is not observed (<a href="testimony.html#observation">Section 5.4</a>).</p>
+
+<h2 id="imports">Imports</h2>
+<p><code>import</code> and <code>from … import</code> are as in Python. [[settled]] Any importable Python module may be imported. The standard library modules (<code>testimony</code>, <code>string_ops</code>, <code>list_ops</code>) are always importable. Whether a local module may shadow a standard library module of the same name is [[open]]. Importing one <code>.ity</code> module from another is [[proposed]]. The compiler compiles the imported module and makes it importable under its file name.</p>
+
+<h2 id="other">Other Python statements</h2>
+<p><code>try</code>/<code>except</code>/<code>finally</code>, <code>with</code>, <code>global</code> and <code>nonlocal</code> are as in Python. [[proposed]] <code>class</code> definitions, decorators, <code>async</code> forms and type aliases are [[open]].</p>

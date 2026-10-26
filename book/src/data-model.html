@@ -1,0 +1,56 @@
+<p>Every value in a running Verity program is a Python object. This section describes the objects Verity adds: truths, testimony, data values and pattern-matching functions.</p>
+
+<h2 id="objects">Objects</h2>
+<p>Verity has no object model of its own. Integers, strings, lists, functions, modules and all other values are the corresponding Python objects, with Python's identity, type and mutability rules. [[settled]]</p>
+
+<h2 id="truth">The <code>truth</code> type</h2>
+<p><code>truth</code> is the type of truth values. [[settled]]</p>
+<ul>
+  <li>It has exactly two constructors: <code>verity</code> (true) and <code>falsity</code> (false).</li>
+  <li>Every truth carries a testimony tree (<a href="testimony.html">Section 5</a>). A verity's testimony is called its <em>witness</em>, and a falsity's its <em>refutation</em>.</li>
+  <li>At run time, truths are instances of the runtime class <code>Truth</code> (<a href="stdlib.html#truth-class">Section 8.2</a>).</li>
+</ul>
+<p>The following properties are [[proposed]]:</p>
+<ul>
+  <li>Truths are immutable.</li>
+  <li><code>bool(t)</code> is <code>True</code> for a verity and <code>False</code> for a falsity. Truths are accepted anywhere Python accepts a condition.</li>
+  <li>Equality and hashing consider only the truth value, never the testimony. Two verities with different witnesses are equal.</li>
+  <li><code>str(t)</code> is <code>"verity"</code> or <code>"falsity"</code>. <code>repr(t)</code> is the same, and testimony is shown only by <code>testimony.explain</code>.</li>
+  <li><code>truth</code> is not a subclass of Python's <code>bool</code> or <code>int</code>, so arithmetic on truths raises <code>TypeError</code>.</li>
+</ul>
+
+<h2 id="testimony">Testimony</h2>
+<p>A testimony is a finite tree of nodes. Each node has a kind, the data for that kind (source text, values, a message, a position) and an ordered list of children. The node kinds, how they are constructed and how they are rendered are specified in <a href="testimony.html">Section 5</a>. [[settled]]</p>
+<p>Testimony holds references to the values it mentions, not copies. Rendering uses <code>repr()</code> of those values at render time. [[proposed]]</p>
+
+<h2 id="data">Data values</h2>
+<p>A <code>data</code> declaration (<a href="statements.html#data">Section 6.5</a>) defines a class whose instances are <em>data values</em>.</p>
+<ul>
+  <li>Instances are immutable. Their fields cannot be reassigned. [[settled]]</li>
+  <li>Instances are constructed positionally in field order: <code>Rect(2, 3)</code>. Construction by keyword, <code>Rect(w=2, h=3)</code>, is also permitted. [[proposed]]</li>
+  <li>Fields are readable as attributes: <code>Rect(2, 3).w == 2</code>.</li>
+  <li><code>repr</code> is <code>Name(field=value, ...)</code>, for example <code>Circle(r=1)</code>. [[settled]]</li>
+  <li>Equality is structural: same class and equal fields. Hashing is consistent with equality. [[proposed]]</li>
+  <li>Data values can be matched by class patterns (<a href="statements.html#patterns">Section 6.4</a>).</li>
+</ul>
+<pre class="ity">
+data Rect(w, h)
+
+r = Rect(2, 3)
+print(r)
+print(r.w * r.h)
+print(r == Rect(2, 3))
+</pre>
+<pre class="out">
+Rect(w=2, h=3)
+6
+verity
+</pre>
+
+<h2 id="functions">Functions</h2>
+<p>Functions are Python function objects. Two forms carry additional structure:</p>
+<ul>
+  <li><strong>Pattern-matching functions</strong> are defined with pattern parameters and extended with <code>addpattern def</code> (<a href="statements.html#pattern-functions">Section 6.3</a>). Calling one tries its cases in definition order. If no case matches, it raises <code>MatchError</code>.</li>
+  <li><strong>Partial applications</strong>, <code>f$(args)</code>, are callables that hold <code>f</code> and the supplied arguments (<a href="expressions.html#partial">Section 4.3</a>).</li>
+</ul>
+<p><code>MatchError</code> is a subclass of Python's <code>Exception</code>, provided by the runtime. [[proposed]]</p>
