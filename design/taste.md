@@ -22,3 +22,10 @@ the next round's summary instead of picking one.
 
 - Banned: IBM Plex Mono, and any font with the same vibe. Claude's reading of "same vibe" (flag if wrong): the contemporary coding-font monos, i.e. JetBrains Mono, IBM Plex Mono, Fira Code / Fira Mono, Source Code Pro, Roboto Mono, DM Mono, Red Hat Mono, Ubuntu Mono, Geist Mono, Commit Mono, Martian Mono, SF Mono / Menlo.
 - Like: the setup (layout) of docs/a.
+
+## 2026-10-26, Henrik (docs, round 3)
+
+> i just kinda dont like tose squar-ey fonts, Courier Prime included, can we.. in https://www.verity.garden/design/variants/docs/a.html.. create a button to swap between fonts so i can catch a vibe live
+
+- Hate: square-ish fonts, Courier Prime included.
+- Action: docs/a now has a live font picker (text and code faces) so Henrik can choose.

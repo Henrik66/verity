@@ -3,15 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="variant-idea" content="Round 3: 2a's layout, locked in place; only the typeface changes. Courier Prime: a typewriter face, warm and documentary, the RFC-on-paper reading.">
-<title>Docs / a: Courier Prime</title>
+<meta name="variant-idea" content="Font picker on 2a's layout: use the bar in the bottom-right corner (or the [ ] and , . keys) to swap the text face and the code face live. Square coding monos and banned faces are left out.">
+<title>Docs / a: font picker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 <style>
   :root { --ink: #1e2a23; --mute: #5f6e64; --paper: #fbfbf8; --rule: #c7cec6; --link: #315d46; --fal: #9a3d1f; --prop: #8a6a00; }
   * { box-sizing: border-box; font-feature-settings: "liga" 0, "calt" 0 !important; font-variant-ligatures: none !important; }
-  body { margin: 0; background: var(--paper); color: var(--ink); font: 400 15px/1.6 "Courier Prime", "Courier New", monospace; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 400 var(--fs, 16px)/1.6 var(--text, Georgia, serif); }
+  pre, table, .tag, .rule .no { font-family: var(--code, "Courier New", monospace); }
+  pre { font-size: var(--cs, 14.5px); } table { font-size: var(--cs, 14.5px); }
   a { color: var(--link); text-underline-offset: 3px; }
   .shell { display: grid; grid-template-columns: 30ch calc(80ch + 32px); justify-content: center; gap: 0 6ch; padding: 0 16px; }
   .index { position: sticky; top: 0; align-self: start; height: 100vh; overflow-y: auto; padding: 32px 0; color: var(--mute); font-size: 13px; }
@@ -43,14 +44,15 @@
   tbody tr:last-child td { border-bottom: 1px dashed var(--ink); }
   .rule { display: grid; grid-template-columns: 7ch minmax(0, 1fr); margin: 0 0 10px; }
   .rule .no { color: var(--mute); }
-  pre { margin: 0 0 16px; padding-left: 3ch; overflow-x: auto; font: inherit; border-left: 1px solid var(--rule); }
+  pre { margin: 0 0 16px; padding-left: 3ch; overflow-x: auto; line-height: 1.6; border-left: 1px solid var(--rule); }
   .k { font-weight: 600; } .s { color: #5b6b2f; } .n { color: #7a4f1f; }
   .out .x { color: var(--fal); font-weight: 600; }
   .label { color: var(--mute); }
   .foot { margin-top: 48px; border-top: 1px solid var(--rule); padding-top: 6px; display: flex; justify-content: space-between; color: var(--mute); font-size: 13px; }
   @media (max-width: 1180px) { .shell { grid-template-columns: minmax(0, calc(80ch + 32px)); } .index { display: none; } }
   @media (max-width: 600px) {
-    body { font-size: 13px; }
+    body { font-size: calc(var(--fs, 16px) - 2px); }
+    pre, table { font-size: calc(var(--cs, 14.5px) - 2px); }
     .shell { padding: 0 16px; }
     .front { grid-template-columns: 1fr; } .front .r { text-align: left; margin-top: 8px; }
     .running span:nth-child(2) { display: none; }
@@ -149,5 +151,97 @@ print(explain(valid_username(<span class="s">"al"</span>)))</pre>
     <div class="foot"><a href="#">&lt; 4. Expressions</a><span>[Page 5]</span><a href="#">6. Statements &gt;</a></div>
   </div>
 </div>
+<div class="fontbar" role="group" aria-label="Font picker">
+  <div><span class="lbl">text</span><button type="button" data-k="text" data-d="-1" aria-label="Previous text font">&lsaquo;</button><span class="name" id="text-name"></span><button type="button" data-k="text" data-d="1" aria-label="Next text font">&rsaquo;</button></div>
+  <div><span class="lbl">code</span><button type="button" data-k="code" data-d="-1" aria-label="Previous code font">&lsaquo;</button><span class="name" id="code-name"></span><button type="button" data-k="code" data-d="1" aria-label="Next code font">&rsaquo;</button></div>
+  <div class="hint">keys: [ ] text, , . code</div>
+</div>
+<style>
+  .fontbar { position: fixed; right: 16px; bottom: 16px; z-index: 10; background: var(--paper); border: 1px solid var(--ink); padding: 8px 10px; font: 13px/1.5 system-ui, sans-serif; color: var(--ink); min-width: 290px; }
+  .fontbar div { display: flex; align-items: center; gap: 6px; }
+  .fontbar .lbl { width: 4ch; color: var(--mute); }
+  .fontbar button { font: inherit; background: none; border: 1px solid var(--rule); color: var(--ink); width: 26px; height: 24px; cursor: pointer; padding: 0; }
+  .fontbar button:hover { border-color: var(--ink); }
+  .fontbar .name { flex: 1; text-align: center; white-space: nowrap; }
+  .fontbar .name small { color: var(--mute); }
+  .fontbar .hint { color: var(--mute); font-size: 11.5px; justify-content: flex-end; }
+  @media (max-width: 600px) { .fontbar { left: 16px; right: 16px; bottom: 12px; min-width: 0; } .fontbar .hint { display: none; } .page { padding-bottom: 140px; } }
+</style>
+<script>
+(() => {
+  // [label, Google Fonts family spec, CSS stack, kind, body size px]
+  const TEXT = [
+    ["Newsreader", "Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400", "'Newsreader', Georgia, serif", "serif", 17.5],
+    ["Source Serif 4", "Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400", "'Source Serif 4', Georgia, serif", "serif", 17],
+    ["Spectral", "Spectral:ital,wght@0,400;0,600;1,400", "'Spectral', Georgia, serif", "serif", 16.5],
+    ["Literata", "Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400", "'Literata', Georgia, serif", "serif", 16.5],
+    ["EB Garamond", "EB+Garamond:ital,wght@0,400;0,600;1,400", "'EB Garamond', Georgia, serif", "serif", 18.5],
+    ["Libre Caslon Text", "Libre+Caslon+Text:ital,wght@0,400;0,700;1,400", "'Libre Caslon Text', Georgia, serif", "serif", 16],
+    ["Crimson Pro", "Crimson+Pro:ital,wght@0,400;0,600;1,400", "'Crimson Pro', Georgia, serif", "serif", 18.5],
+    ["Gelasio", "Gelasio:ital,wght@0,400;0,600;1,400", "'Gelasio', Georgia, serif", "serif", 16.5],
+    ["Besley", "Besley:ital,wght@0,400;0,600;1,400", "'Besley', Georgia, serif", "serif", 16.5],
+    ["Instrument Sans", "Instrument+Sans:ital,wght@0,400;0,600;1,400", "'Instrument Sans', system-ui, sans-serif", "sans", 16.5],
+    ["Public Sans", "Public+Sans:ital,wght@0,400;0,600;1,400", "'Public Sans', system-ui, sans-serif", "sans", 16],
+    ["Atkinson Hyperlegible", "Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400", "'Atkinson Hyperlegible', system-ui, sans-serif", "sans", 16.5],
+    ["Hanken Grotesk", "Hanken+Grotesk:ital,wght@0,400;0,600;1,400", "'Hanken Grotesk', system-ui, sans-serif", "sans", 16.5],
+    ["Schibsted Grotesk", "Schibsted+Grotesk:ital,wght@0,400;0,600;1,400", "'Schibsted Grotesk', system-ui, sans-serif", "sans", 16.5],
+    ["Libre Franklin", "Libre+Franklin:ital,wght@0,400;0,600;1,400", "'Libre Franklin', system-ui, sans-serif", "sans", 16],
+    ["Alegreya Sans", "Alegreya+Sans:ital,wght@0,400;0,700;1,400", "'Alegreya Sans', system-ui, sans-serif", "sans", 17.5],
+    ["Xanh Mono", "Xanh+Mono:ital@0;1", "'Xanh Mono', 'Courier New', monospace", "mono", 16],
+    ["Cutive Mono", "Cutive+Mono", "'Cutive Mono', 'Courier New', monospace", "mono", 16],
+    ["Syne Mono", "Syne+Mono", "'Syne Mono', 'Courier New', monospace", "mono", 15],
+  ];
+  const CODE = [
+    ["Xanh Mono", "Xanh+Mono:ital@0;1", "'Xanh Mono', 'Courier New', monospace", "mono", 15],
+    ["Cutive Mono", "Cutive+Mono", "'Cutive Mono', 'Courier New', monospace", "mono", 15],
+    ["Syne Mono", "Syne+Mono", "'Syne Mono', 'Courier New', monospace", "mono", 14],
+    ["Nova Mono", "Nova+Mono", "'Nova Mono', 'Courier New', monospace", "mono", 14],
+    ["Oxygen Mono", "Oxygen+Mono", "'Oxygen Mono', 'Courier New', monospace", "mono", 14],
+    ["B612 Mono", "B612+Mono:ital,wght@0,400;0,700;1,400", "'B612 Mono', 'Courier New', monospace", "mono", 13.5],
+    ["Share Tech Mono", "Share+Tech+Mono", "'Share Tech Mono', 'Courier New', monospace", "mono", 15],
+    ["VT323", "VT323", "'VT323', 'Courier New', monospace", "mono", 18],
+    ["Anonymous Pro", "Anonymous+Pro:ital,wght@0,400;0,700;1,400", "'Anonymous Pro', 'Courier New', monospace", "mono", 15],
+    ["Courier Prime", "Courier+Prime:ital,wght@0,400;0,700;1,400", "'Courier Prime', 'Courier New', monospace", "mono", 14.5],
+    ["same as text", null, null, "", 0],
+  ];
+  const loaded = new Set();
+  const load = (spec) => {
+    if (!spec || loaded.has(spec)) return;
+    loaded.add(spec);
+    const l = document.createElement("link");
+    l.rel = "stylesheet";
+    l.href = "https://fonts.googleapis.com/css2?family=" + spec + "&display=swap";
+    document.head.appendChild(l);
+  };
+  const get = (k, d) => { try { const v = localStorage.getItem("vfont-" + k); return v === null ? d : +v; } catch (e) { return d; } };
+  const put = (k, v) => { try { localStorage.setItem("vfont-" + k, v); } catch (e) {} };
+  const state = { text: get("text", 0) % TEXT.length, code: get("code", 0) % CODE.length };
+  const root = document.documentElement.style;
+  function apply() {
+    const t = TEXT[state.text], c = CODE[state.code];
+    load(t[1]); load(c[1]);
+    root.setProperty("--text", t[2]);
+    root.setProperty("--fs", t[4] + "px");
+    const same = !c[1];
+    root.setProperty("--code", same ? t[2] : c[2]);
+    root.setProperty("--cs", (same ? t[4] - 1.5 : c[4]) + "px");
+    document.getElementById("text-name").innerHTML = t[0] + " <small>" + t[3] + " " + (state.text + 1) + "/" + TEXT.length + "</small>";
+    document.getElementById("code-name").innerHTML = c[0] + " <small>" + (state.code + 1) + "/" + CODE.length + "</small>";
+    put("text", state.text); put("code", state.code);
+  }
+  function step(k, d) {
+    const n = (k === "text" ? TEXT : CODE).length;
+    state[k] = (state[k] + d + n) % n;
+    apply();
+  }
+  document.querySelectorAll(".fontbar button").forEach((b) => b.addEventListener("click", () => step(b.dataset.k, +b.dataset.d)));
+  document.addEventListener("keydown", (e) => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    const m = { "[": ["text", -1], "]": ["text", 1], ",": ["code", -1], ".": ["code", 1] }[e.key];
+    if (m) step(...m);
+  });
+  apply();
+})();
+</script>
 </body>
 </html>
