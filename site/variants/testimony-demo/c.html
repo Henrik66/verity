@@ -7,7 +7,7 @@
 <title>Testimony demo / c: talk to Verity</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;1,9..144,400&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;1,9..144,400&family=IBM+Plex+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root {
     --ink: #243e30; --paper: #f7f6ec; --cloud: #f4f2df;
@@ -27,15 +27,15 @@
   .sphere { width: 260px; height: 260px; margin: 0 0 70px 20px; position: relative; z-index: 2; }
   .bubble { position: relative; z-index: 3; align-self: center; margin-bottom: 120px; background: var(--cloud); border: 2px solid var(--ink); border-radius: 22px; padding: 18px 20px 16px; max-width: 560px; box-shadow: 6px 6px 0 rgba(36, 62, 48, .25); }
   .bubble::before { content: ""; position: absolute; left: -22px; bottom: 34px; width: 30px; height: 26px; background: var(--cloud); border-left: 2px solid var(--ink); border-bottom: 2px solid var(--ink); transform: skewY(-28deg); border-radius: 0 0 0 8px; }
-  .ask { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; font: 15px "JetBrains Mono", monospace; margin-bottom: 12px; }
-  .ask input { font: 700 15px "JetBrains Mono", monospace; color: var(--ink); width: 15ch; min-width: 8ch; padding: 4px 8px; border: 1.5px solid var(--ink); border-radius: 6px; background: #fff; }
+  .ask { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; font: 15px "IBM Plex Mono", monospace; margin-bottom: 12px; }
+  .ask input { font: 700 15px "IBM Plex Mono", monospace; color: var(--ink); width: 15ch; min-width: 8ch; padding: 4px 8px; border: 1.5px solid var(--ink); border-radius: 6px; background: #fff; }
   .ask input:focus-visible { outline: 3px solid var(--sun-dark); outline-offset: 1px; }
-  .out { margin: 0; font: 14px/1.65 "JetBrains Mono", monospace; white-space: pre-wrap; overflow-wrap: anywhere; font-variant-ligatures: none; }
+  .out { margin: 0; font: 14px/1.65 "IBM Plex Mono", monospace; white-space: pre-wrap; overflow-wrap: anywhere; font-variant-ligatures: none; }
   .out .v { font-weight: 700; background: var(--sun); padding: 0 .25em; border-radius: 3px; }
   .out .l { color: var(--f1); font-weight: 700; }
   .src { margin: 14px 0 0; font-size: 13px; color: var(--f2); }
   .src summary { cursor: pointer; }
-  .src pre { margin: 8px 0 0; font: 12.5px/1.6 "JetBrains Mono", monospace; overflow-x: auto; background: #fff; padding: 10px 12px; border-radius: 8px; color: var(--ink); }
+  .src pre { margin: 8px 0 0; font: 12.5px/1.6 "IBM Plex Mono", monospace; overflow-x: auto; background: #fff; padding: 10px 12px; border-radius: 8px; color: var(--ink); }
 
   .hills, .meadow { position: absolute; left: 0; width: 100%; pointer-events: none; }
   .hills { bottom: 40px; height: 300px; z-index: 1; }
