@@ -270,7 +270,7 @@ print(json.dumps(to_json(t), indent=2))
 <ul>
   <li>A secret compares (<code>==</code>, <code>!=</code>, <code>&lt;</code>, <code>&lt;=</code>, <code>&gt;</code>, <code>&gt;=</code>, <code>in</code>) and hashes as its value does.</li>
   <li>Its <code>repr</code> and <code>str</code> are <code>&lt;secret&gt;</code>, so comparison testimony shows <code>&lt;secret&gt;</code> in every audience and format.</li>
-  <li>Secrets do not propagate. Every other operation on a secret raises <code>TypeError</code>. <code>testimony.reveal(s)</code> returns the wrapped value, which is then an ordinary value and is shown like any other.</li>
+  <li>Secrets do not propagate. A secret supports no other operations: <code>len()</code>, arithmetic, truthiness and the like raise <code>TypeError</code>, and attribute access raises <code>AttributeError</code>. <code>testimony.reveal(s)</code> returns the wrapped value, which is then an ordinary value and is shown like any other.</li>
 </ul>
 <pre class="ity">
 from testimony import explain, secret

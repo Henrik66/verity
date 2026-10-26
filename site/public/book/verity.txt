@@ -154,7 +154,7 @@ Before October 2026 Verity borrowed Coconut's syntax (-> lambdas, |> pipes, $ pa
 -------------------------
 
 Milestone | Scope | Status
-1 | Runtime library: Truth, testimony, combinators, all_of, reasons, secrets, text and JSON rendering, bounds | in progress
+1 | Runtime library: Truth, testimony, combinators, all_of, reasons, secrets, text and JSON rendering, bounds | done
 2 | Python core: literals, def, comparisons, and/or/not, control flow; verity run, compile, check --json | not started
 3 | forall, exists, because, assert; spans; verity test; traceback mapping | not started
 4 | pytest plugin and @testify for plain Python | not started
@@ -467,7 +467,7 @@ For exists, exchange verity and falsity: the first verity b gives witness(x, váµ
 
 pos(i) is xs[i] when the iterable expression is a plain name, and element i otherwise.
 
-The counterexample is the first falsifying element in iteration order, not the smallest or simplest one. Minimal counterexamples need a shrinking test tool such as Hypothesis (Section 7.7).
+The counterexample is the first falsifying element in iteration order, not the smallest or simplest one. Minimal counterexamples need a shrinking test tool such as Hypothesis (Section 7.9).
 
 Lifting
 
@@ -624,7 +624,7 @@ A complete example with every field in use is examples/signup.ity. The record fo
 testimony.secret(x) wraps a value so that it never appears in testimony. [settled]
 - A secret compares (==, !=, <, <=, >, >=, in) and hashes as its value does.
 - Its repr and str are <secret>, so comparison testimony shows <secret> in every audience and format.
-- Secrets do not propagate. Every other operation on a secret raises TypeError. testimony.reveal(s) returns the wrapped value, which is then an ordinary value and is shown like any other.
+- Secrets do not propagate. A secret supports no other operations: len(), arithmetic, truthiness and the like raise TypeError, and attribute access raises AttributeError. testimony.reveal(s) returns the wrapped value, which is then an ordinary value and is shown like any other.
 
     from testimony import explain, secret
 

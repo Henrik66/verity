@@ -1,0 +1,134 @@
+falsity
+  failed 3 of 4:
+    refuted: 'ada_l' is alphanumeric [name.charset]
+      hint: use only letters and digits
+      name.isalnum() returned False
+    refuted: the user is at least 13 [age.minimum]
+      age >= 13: 12 < 13
+    refuted: the invite code is valid [invite.valid]
+      invite == INVITE: 'garden-41' != <secret>
+falsity
+  refuted: 'ada_l' is alphanumeric [name.charset]
+    hint: use only letters and digits
+  refuted: the user is at least 13 [age.minimum]
+  refuted: the invite code is valid [invite.valid]
+{
+  "schema": "verity.testimony/0",
+  "value": "falsity",
+  "testimony": {
+    "kind": "failures",
+    "value": "falsity",
+    "asserted": false,
+    "line": "failed 3 of 4:",
+    "failed": 3,
+    "total": 4,
+    "children": [
+      {
+        "kind": "because",
+        "value": "falsity",
+        "asserted": true,
+        "line": "refuted: 'ada_l' is alphanumeric [name.charset]",
+        "claim": "'ada_l' is alphanumeric",
+        "reason": "name.charset",
+        "hint": "use only letters and digits",
+        "span": {
+          "file": "examples/signup.ity",
+          "line": 10,
+          "col": 9,
+          "end_line": 10,
+          "end_col": 119
+        },
+        "children": [
+          {
+            "kind": "lifted",
+            "value": "falsity",
+            "asserted": false,
+            "line": "name.isalnum() returned False",
+            "src": "name.isalnum()",
+            "result": false,
+            "span": {
+              "file": "examples/signup.ity",
+              "line": 10,
+              "col": 9,
+              "end_line": 10,
+              "end_col": 23
+            },
+            "children": []
+          }
+        ]
+      },
+      {
+        "kind": "because",
+        "value": "falsity",
+        "asserted": true,
+        "line": "refuted: the user is at least 13 [age.minimum]",
+        "claim": "the user is at least 13",
+        "reason": "age.minimum",
+        "hint": null,
+        "span": {
+          "file": "examples/signup.ity",
+          "line": 11,
+          "col": 9,
+          "end_line": 11,
+          "end_col": 75
+        },
+        "children": [
+          {
+            "kind": "comparison",
+            "value": "falsity",
+            "asserted": false,
+            "line": "age >= 13: 12 < 13",
+            "src": "age >= 13",
+            "left": "12",
+            "rel": "<",
+            "right": "13",
+            "span": {
+              "file": "examples/signup.ity",
+              "line": 11,
+              "col": 9,
+              "end_line": 11,
+              "end_col": 18
+            },
+            "children": []
+          }
+        ]
+      },
+      {
+        "kind": "because",
+        "value": "falsity",
+        "asserted": true,
+        "line": "refuted: the invite code is valid [invite.valid]",
+        "claim": "the invite code is valid",
+        "reason": "invite.valid",
+        "hint": null,
+        "span": {
+          "file": "examples/signup.ity",
+          "line": 12,
+          "col": 9,
+          "end_line": 12,
+          "end_col": 84
+        },
+        "children": [
+          {
+            "kind": "comparison",
+            "value": "falsity",
+            "asserted": false,
+            "line": "invite == INVITE: 'garden-41' != <secret>",
+            "src": "invite == INVITE",
+            "left": "'garden-41'",
+            "rel": "!=",
+            "right": "<secret>",
+            "span": {
+              "file": "examples/signup.ity",
+              "line": 12,
+              "col": 9,
+              "end_line": 12,
+              "end_col": 25
+            },
+            "children": []
+          }
+        ]
+      }
+    ]
+  }
+}

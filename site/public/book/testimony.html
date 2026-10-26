@@ -127,7 +127,7 @@
 </ul>
 <p>For <code>exists</code>, exchange verity and falsity: the first verity <code>b</code> gives <code>witness(x, vᵢ, pos(i), T(b))</code>, and exhaustion gives <code>no-element(src(xs), src(body))</code>.</p>
 <p><code>pos(i)</code> is <code>xs[i]</code> when the iterable expression is a plain name, and <code>element i</code> otherwise.</p>
-<p>The counterexample is the <em>first</em> falsifying element in iteration order, not the smallest or simplest one. Minimal counterexamples need a shrinking test tool such as Hypothesis (<a href="python.html#pytest">Section 7.7</a>).</p>
+<p>The counterexample is the <em>first</em> falsifying element in iteration order, not the smallest or simplest one. Minimal counterexamples need a shrinking test tool such as Hypothesis (<a href="python.html#pytest">Section 7.9</a>).</p>
 
 <h3>Lifting</h3>
 <p>A Python <code>bool</code> <code>r</code> in a position that requires a truth (<a href="python.html#lifting">Section 7.2</a>) becomes a truth with <code>V = r</code> and <code>T = lifted(src, r)</code>, where <code>src</code> is the source text of the expression that produced it.</p>
@@ -301,7 +301,7 @@ print(json.dumps(to_json(t), indent=<span class="t-num">2</span>))</code></pre><
 <ul>
   <li>A secret compares (<code>==</code>, <code>!=</code>, <code>&lt;</code>, <code>&lt;=</code>, <code>&gt;</code>, <code>&gt;=</code>, <code>in</code>) and hashes as its value does.</li>
   <li>Its <code>repr</code> and <code>str</code> are <code>&lt;secret&gt;</code>, so comparison testimony shows <code>&lt;secret&gt;</code> in every audience and format.</li>
-  <li>Secrets do not propagate. Every other operation on a secret raises <code>TypeError</code>. <code>testimony.reveal(s)</code> returns the wrapped value, which is then an ordinary value and is shown like any other.</li>
+  <li>Secrets do not propagate. A secret supports no other operations: <code>len()</code>, arithmetic, truthiness and the like raise <code>TypeError</code>, and attribute access raises <code>AttributeError</code>. <code>testimony.reveal(s)</code> returns the wrapped value, which is then an ordinary value and is shown like any other.</li>
 </ul>
 <div class="code code-ity"><span class="code-label">verity</span><pre><code><span class="t-kw">from</span> testimony <span class="t-kw">import</span> explain, secret
 
