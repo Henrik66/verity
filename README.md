@@ -41,6 +41,14 @@ Open the local URL printed by Vite. `npm run build` creates the static site in
 `site/dist`, and `npm run preview` serves that build. GitHub Pages builds and deploys
 this directory through `.github/workflows/pages.yml`.
 
+The frontend's dependencies and lockfile live in `site/`. Root-level commands
+forward to that package, and `npm ci` installs it automatically. It also builds
+independently with `cd site && npm ci && npm run build`.
+
+`verity.garden` is hosted on Vercel. Both the repository root and `site/` include
+explicit Vercel configuration, supporting either project root selection. Vercel
+must serve the generated `dist` directory, never the unbuilt source `index.html`.
+
 With the dev server running, `npm run test:site` runs the browser smoke checks.
 It uses an installed Chrome on macOS, or Playwright Chromium elsewhere (install
 with `npx playwright install chromium`). Set `SITE_URL` or `CHROME_PATH` to override

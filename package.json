@@ -1,22 +1,13 @@
 {
-  "name": "verity-homepage",
+  "name": "verity-workspace",
   "version": "0.1.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite --config site/vite.config.js --host 127.0.0.1",
-    "build": "vite build --config site/vite.config.js",
-    "preview": "vite preview --config site/vite.config.js --host 127.0.0.1",
-    "test:site": "node site/tests/smoke.mjs"
-  },
-  "dependencies": {
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
-    "three": "^0.180.0"
-  },
-  "devDependencies": {
-    "@playwright/test": "^1.56.1",
-    "@vitejs/plugin-react": "^5.0.4",
-    "vite": "^7.1.12"
+    "postinstall": "npm --prefix site ci --no-audit --no-fund",
+    "dev": "npm --prefix site run dev",
+    "build": "npm --prefix site run build",
+    "preview": "npm --prefix site run preview",
+    "test:site": "npm --prefix site run test:site"
   }
 }
